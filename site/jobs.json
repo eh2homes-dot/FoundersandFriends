@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T15:19:31.680Z",
+  "generated_at": "2026-08-17T15:21:16.577Z",
   "count": 244,
   "sources_ok": 20,
   "sources_failed": 7,
@@ -22,7 +22,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8719845002",
       "source": "greenhouse",
       "posted_at": "2026-08-16T16:32:23-04:00",
-      "scraped_at": "2026-08-17T15:19:28.222Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -43,7 +43,7 @@
       "apply_url": "https://job-boards.greenhouse.io/doma/jobs/8109028",
       "source": "greenhouse",
       "posted_at": "2026-08-14T21:21:47-04:00",
-      "scraped_at": "2026-08-17T15:19:28.193Z",
+      "scraped_at": "2026-08-17T15:21:12.067Z",
       "status": "open"
     },
     {
@@ -64,7 +64,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/6144675004",
       "source": "greenhouse",
       "posted_at": "2026-08-14T17:04:25-04:00",
-      "scraped_at": "2026-08-17T15:19:28.923Z",
+      "scraped_at": "2026-08-17T15:21:13.216Z",
       "status": "open"
     },
     {
@@ -85,7 +85,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8129457",
       "source": "greenhouse",
       "posted_at": "2026-08-13T21:28:59-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -106,7 +106,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8038650",
       "source": "greenhouse",
       "posted_at": "2026-08-13T21:18:36-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -127,7 +127,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4724138005",
       "source": "greenhouse",
       "posted_at": "2026-08-13T19:57:26-04:00",
-      "scraped_at": "2026-08-17T15:19:28.956Z",
+      "scraped_at": "2026-08-17T15:21:13.250Z",
       "status": "open"
     },
     {
@@ -148,7 +148,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/4097174004",
       "source": "greenhouse",
       "posted_at": "2026-08-13T15:02:10-04:00",
-      "scraped_at": "2026-08-17T15:19:28.923Z",
+      "scraped_at": "2026-08-17T15:21:13.216Z",
       "status": "open"
     },
     {
@@ -169,7 +169,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/4961261007",
       "source": "greenhouse",
       "posted_at": "2026-08-13T14:19:31-04:00",
-      "scraped_at": "2026-08-17T15:19:31.069Z",
+      "scraped_at": "2026-08-17T15:21:15.900Z",
       "status": "open"
     },
     {
@@ -190,7 +190,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8698299002",
       "source": "greenhouse",
       "posted_at": "2026-08-13T12:18:59-04:00",
-      "scraped_at": "2026-08-17T15:19:28.224Z",
+      "scraped_at": "2026-08-17T15:21:12.093Z",
       "status": "open"
     },
     {
@@ -211,7 +211,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8706240002",
       "source": "greenhouse",
       "posted_at": "2026-08-13T11:14:09-04:00",
-      "scraped_at": "2026-08-17T15:19:28.218Z",
+      "scraped_at": "2026-08-17T15:21:12.088Z",
       "status": "open"
     },
     {
@@ -232,7 +232,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4723659005",
       "source": "greenhouse",
       "posted_at": "2026-08-12T16:40:07-04:00",
-      "scraped_at": "2026-08-17T15:19:28.956Z",
+      "scraped_at": "2026-08-17T15:21:13.250Z",
       "status": "open"
     },
     {
@@ -253,7 +253,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4723629005",
       "source": "greenhouse",
       "posted_at": "2026-08-12T15:27:31-04:00",
-      "scraped_at": "2026-08-17T15:19:28.955Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -274,7 +274,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4723615005",
       "source": "greenhouse",
       "posted_at": "2026-08-12T15:26:49-04:00",
-      "scraped_at": "2026-08-17T15:19:28.955Z",
+      "scraped_at": "2026-08-17T15:21:13.250Z",
       "status": "open"
     },
     {
@@ -295,7 +295,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4701392006",
       "source": "greenhouse",
       "posted_at": "2026-08-12T11:02:11-04:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -316,7 +316,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8697848002",
       "source": "greenhouse",
       "posted_at": "2026-08-11T17:40:07-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -337,7 +337,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8697558002",
       "source": "greenhouse",
       "posted_at": "2026-08-11T17:18:59-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -358,7 +358,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8697559002",
       "source": "greenhouse",
       "posted_at": "2026-08-11T17:18:50-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -379,7 +379,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/6140322004",
       "source": "greenhouse",
       "posted_at": "2026-08-10T17:32:53-04:00",
-      "scraped_at": "2026-08-17T15:19:28.924Z",
+      "scraped_at": "2026-08-17T15:21:13.216Z",
       "status": "open"
     },
     {
@@ -400,7 +400,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7948400",
       "source": "greenhouse",
       "posted_at": "2026-08-10T14:50:00-04:00",
-      "scraped_at": "2026-08-17T15:19:29.362Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -421,7 +421,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8693453002",
       "source": "greenhouse",
       "posted_at": "2026-08-10T12:47:48-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -442,7 +442,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8647520002",
       "source": "greenhouse",
       "posted_at": "2026-08-10T12:39:43-04:00",
-      "scraped_at": "2026-08-17T15:19:28.218Z",
+      "scraped_at": "2026-08-17T15:21:12.088Z",
       "status": "open"
     },
     {
@@ -463,7 +463,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8625411002",
       "source": "greenhouse",
       "posted_at": "2026-08-10T11:02:13-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -484,7 +484,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5164488007",
       "source": "greenhouse",
       "posted_at": "2026-08-09T13:14:03-04:00",
-      "scraped_at": "2026-08-17T15:19:31.069Z",
+      "scraped_at": "2026-08-17T15:21:15.900Z",
       "status": "open"
     },
     {
@@ -505,7 +505,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8645681002",
       "source": "greenhouse",
       "posted_at": "2026-08-09T00:01:56-04:00",
-      "scraped_at": "2026-08-17T15:19:28.225Z",
+      "scraped_at": "2026-08-17T15:21:12.094Z",
       "status": "open"
     },
     {
@@ -526,7 +526,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8692779002",
       "source": "greenhouse",
       "posted_at": "2026-08-08T16:50:45-04:00",
-      "scraped_at": "2026-08-17T15:19:28.218Z",
+      "scraped_at": "2026-08-17T15:21:12.089Z",
       "status": "open"
     },
     {
@@ -547,7 +547,7 @@
       "apply_url": "https://jobs.lever.co/entrata/244e6927-2772-4fa6-8a1f-e053d0ea9810",
       "source": "lever",
       "posted_at": "2026-08-06T15:53:56.357Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -568,7 +568,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5063479007",
       "source": "greenhouse",
       "posted_at": "2026-08-05T16:50:49-04:00",
-      "scraped_at": "2026-08-17T15:19:31.069Z",
+      "scraped_at": "2026-08-17T15:21:15.900Z",
       "status": "open"
     },
     {
@@ -589,7 +589,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5088318007",
       "source": "greenhouse",
       "posted_at": "2026-08-05T16:49:00-04:00",
-      "scraped_at": "2026-08-17T15:19:31.069Z",
+      "scraped_at": "2026-08-17T15:21:15.899Z",
       "status": "open"
     },
     {
@@ -610,7 +610,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4673704006",
       "source": "greenhouse",
       "posted_at": "2026-08-04T17:23:20-04:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -631,7 +631,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8558888002",
       "source": "greenhouse",
       "posted_at": "2026-08-04T13:12:21-04:00",
-      "scraped_at": "2026-08-17T15:19:28.224Z",
+      "scraped_at": "2026-08-17T15:21:12.093Z",
       "status": "open"
     },
     {
@@ -652,7 +652,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4569892006",
       "source": "greenhouse",
       "posted_at": "2026-08-04T11:06:43-04:00",
-      "scraped_at": "2026-08-17T15:19:30.080Z",
+      "scraped_at": "2026-08-17T15:21:14.613Z",
       "status": "open"
     },
     {
@@ -673,7 +673,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8653557002",
       "source": "greenhouse",
       "posted_at": "2026-08-03T15:13:32-04:00",
-      "scraped_at": "2026-08-17T15:19:28.225Z",
+      "scraped_at": "2026-08-17T15:21:12.094Z",
       "status": "open"
     },
     {
@@ -694,7 +694,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8555388002",
       "source": "greenhouse",
       "posted_at": "2026-07-31T17:24:20-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -715,7 +715,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8554267002",
       "source": "greenhouse",
       "posted_at": "2026-07-31T00:28:40-04:00",
-      "scraped_at": "2026-08-17T15:19:28.220Z",
+      "scraped_at": "2026-08-17T15:21:12.090Z",
       "status": "open"
     },
     {
@@ -736,7 +736,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5091107007",
       "source": "greenhouse",
       "posted_at": "2026-07-29T21:32:56-04:00",
-      "scraped_at": "2026-08-17T15:19:31.069Z",
+      "scraped_at": "2026-08-17T15:21:15.899Z",
       "status": "open"
     },
     {
@@ -757,7 +757,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4719779005",
       "source": "greenhouse",
       "posted_at": "2026-07-29T19:22:53-04:00",
-      "scraped_at": "2026-08-17T15:19:28.954Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -778,7 +778,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4719723005",
       "source": "greenhouse",
       "posted_at": "2026-07-29T16:57:32-04:00",
-      "scraped_at": "2026-08-17T15:19:28.917Z",
+      "scraped_at": "2026-08-17T15:21:13.212Z",
       "status": "open"
     },
     {
@@ -799,7 +799,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8654361002",
       "source": "greenhouse",
       "posted_at": "2026-07-29T16:03:55-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -820,7 +820,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8079940",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:11-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -841,7 +841,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8079969",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:11-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -862,7 +862,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8008777",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:11-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -883,7 +883,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904083",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -904,7 +904,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7871429",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -925,7 +925,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904090",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -946,7 +946,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7877826",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -967,7 +967,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7843865",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.361Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -988,7 +988,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7843746",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.362Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -1009,7 +1009,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7871753",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.362Z",
+      "scraped_at": "2026-08-17T15:21:13.808Z",
       "status": "open"
     },
     {
@@ -1030,7 +1030,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904086",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.362Z",
+      "scraped_at": "2026-08-17T15:21:13.808Z",
       "status": "open"
     },
     {
@@ -1051,7 +1051,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7877827",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.362Z",
+      "scraped_at": "2026-08-17T15:21:13.808Z",
       "status": "open"
     },
     {
@@ -1072,7 +1072,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904058",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T15:19:29.362Z",
+      "scraped_at": "2026-08-17T15:21:13.808Z",
       "status": "open"
     },
     {
@@ -1093,7 +1093,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7445800",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:08-04:00",
-      "scraped_at": "2026-08-17T15:19:29.362Z",
+      "scraped_at": "2026-08-17T15:21:13.807Z",
       "status": "open"
     },
     {
@@ -1114,7 +1114,7 @@
       "apply_url": "https://jobs.lever.co/entrata/b5f583d7-97ad-4526-bf5f-640449cf1c04",
       "source": "lever",
       "posted_at": "2026-07-27T20:11:11.397Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -1135,7 +1135,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8649613002",
       "source": "greenhouse",
       "posted_at": "2026-07-24T16:04:03-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -1156,7 +1156,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/5826347004",
       "source": "greenhouse",
       "posted_at": "2026-07-22T17:48:38-04:00",
-      "scraped_at": "2026-08-17T15:19:28.923Z",
+      "scraped_at": "2026-08-17T15:21:13.216Z",
       "status": "open"
     },
     {
@@ -1177,7 +1177,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8644888002",
       "source": "greenhouse",
       "posted_at": "2026-07-22T10:18:20-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.447Z",
       "status": "open"
     },
     {
@@ -1198,7 +1198,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8553757002",
       "source": "greenhouse",
       "posted_at": "2026-07-17T00:10:45-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -1219,7 +1219,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8628385002",
       "source": "greenhouse",
       "posted_at": "2026-07-16T13:22:23-04:00",
-      "scraped_at": "2026-08-17T15:19:28.219Z",
+      "scraped_at": "2026-08-17T15:21:12.089Z",
       "status": "open"
     },
     {
@@ -1240,7 +1240,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649741005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:58:39-04:00",
-      "scraped_at": "2026-08-17T15:19:28.955Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -1261,7 +1261,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649747005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:57:36-04:00",
-      "scraped_at": "2026-08-17T15:19:28.955Z",
+      "scraped_at": "2026-08-17T15:21:13.250Z",
       "status": "open"
     },
     {
@@ -1282,7 +1282,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649714005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:55:13-04:00",
-      "scraped_at": "2026-08-17T15:19:28.955Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -1303,7 +1303,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649735005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:53:17-04:00",
-      "scraped_at": "2026-08-17T15:19:28.955Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -1324,7 +1324,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4648940005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:51:45-04:00",
-      "scraped_at": "2026-08-17T15:19:28.954Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -1345,7 +1345,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649743005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:51:20-04:00",
-      "scraped_at": "2026-08-17T15:19:28.954Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -1366,7 +1366,7 @@
       "apply_url": "https://jobs.lever.co/entrata/030f0323-e269-423f-8ff7-26c426627814",
       "source": "lever",
       "posted_at": "2026-07-15T15:09:58.063Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -1387,7 +1387,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/5679921004",
       "source": "greenhouse",
       "posted_at": "2026-07-13T18:15:31-04:00",
-      "scraped_at": "2026-08-17T15:19:28.923Z",
+      "scraped_at": "2026-08-17T15:21:13.216Z",
       "status": "open"
     },
     {
@@ -1408,7 +1408,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612815002",
       "source": "greenhouse",
       "posted_at": "2026-07-08T20:32:55-04:00",
-      "scraped_at": "2026-08-17T15:19:28.222Z",
+      "scraped_at": "2026-08-17T15:21:12.092Z",
       "status": "open"
     },
     {
@@ -1429,7 +1429,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8494488002",
       "source": "greenhouse",
       "posted_at": "2026-07-08T15:03:47-04:00",
-      "scraped_at": "2026-08-17T15:19:28.225Z",
+      "scraped_at": "2026-08-17T15:21:12.094Z",
       "status": "open"
     },
     {
@@ -1450,7 +1450,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8506942002",
       "source": "greenhouse",
       "posted_at": "2026-07-07T20:39:56-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -1471,7 +1471,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8555056002",
       "source": "greenhouse",
       "posted_at": "2026-07-07T01:04:09-04:00",
-      "scraped_at": "2026-08-17T15:19:28.219Z",
+      "scraped_at": "2026-08-17T15:21:12.089Z",
       "status": "open"
     },
     {
@@ -1492,7 +1492,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8580894002",
       "source": "greenhouse",
       "posted_at": "2026-07-07T00:20:56-04:00",
-      "scraped_at": "2026-08-17T15:19:28.219Z",
+      "scraped_at": "2026-08-17T15:21:12.089Z",
       "status": "open"
     },
     {
@@ -1513,7 +1513,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8602141002",
       "source": "greenhouse",
       "posted_at": "2026-07-07T00:20:56-04:00",
-      "scraped_at": "2026-08-17T15:19:28.219Z",
+      "scraped_at": "2026-08-17T15:21:12.089Z",
       "status": "open"
     },
     {
@@ -1534,7 +1534,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8620251002",
       "source": "greenhouse",
       "posted_at": "2026-07-03T22:45:43-04:00",
-      "scraped_at": "2026-08-17T15:19:28.222Z",
+      "scraped_at": "2026-08-17T15:21:12.092Z",
       "status": "open"
     },
     {
@@ -1555,7 +1555,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8610390002",
       "source": "greenhouse",
       "posted_at": "2026-06-30T12:08:19-04:00",
-      "scraped_at": "2026-08-17T15:19:28.225Z",
+      "scraped_at": "2026-08-17T15:21:12.094Z",
       "status": "open"
     },
     {
@@ -1576,7 +1576,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612777002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:11:14-04:00",
-      "scraped_at": "2026-08-17T15:19:28.220Z",
+      "scraped_at": "2026-08-17T15:21:12.090Z",
       "status": "open"
     },
     {
@@ -1597,7 +1597,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612775002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:10:43-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -1618,7 +1618,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612773002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:10:07-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -1639,7 +1639,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8590605002",
       "source": "greenhouse",
       "posted_at": "2026-06-23T18:29:04-04:00",
-      "scraped_at": "2026-08-17T15:19:28.222Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -1660,7 +1660,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8604291002",
       "source": "greenhouse",
       "posted_at": "2026-06-23T12:03:43-04:00",
-      "scraped_at": "2026-08-17T15:19:28.224Z",
+      "scraped_at": "2026-08-17T15:21:12.093Z",
       "status": "open"
     },
     {
@@ -1681,7 +1681,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4708324005",
       "source": "greenhouse",
       "posted_at": "2026-06-22T17:24:26-04:00",
-      "scraped_at": "2026-08-17T15:19:28.917Z",
+      "scraped_at": "2026-08-17T15:21:13.212Z",
       "status": "open"
     },
     {
@@ -1702,7 +1702,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8599136002",
       "source": "greenhouse",
       "posted_at": "2026-06-18T12:15:06-04:00",
-      "scraped_at": "2026-08-17T15:19:28.225Z",
+      "scraped_at": "2026-08-17T15:21:12.094Z",
       "status": "open"
     },
     {
@@ -1723,7 +1723,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8585877002",
       "source": "greenhouse",
       "posted_at": "2026-06-18T12:15:05-04:00",
-      "scraped_at": "2026-08-17T15:19:28.225Z",
+      "scraped_at": "2026-08-17T15:21:12.094Z",
       "status": "open"
     },
     {
@@ -1744,7 +1744,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4679227005",
       "source": "greenhouse",
       "posted_at": "2026-06-15T13:48:30-04:00",
-      "scraped_at": "2026-08-17T15:19:28.956Z",
+      "scraped_at": "2026-08-17T15:21:13.250Z",
       "status": "open"
     },
     {
@@ -1765,7 +1765,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8579230002",
       "source": "greenhouse",
       "posted_at": "2026-06-12T14:00:34-04:00",
-      "scraped_at": "2026-08-17T15:19:28.220Z",
+      "scraped_at": "2026-08-17T15:21:12.090Z",
       "status": "open"
     },
     {
@@ -1786,7 +1786,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4648939005",
       "source": "greenhouse",
       "posted_at": "2026-06-10T16:56:50-04:00",
-      "scraped_at": "2026-08-17T15:19:28.954Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -1807,7 +1807,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649730005",
       "source": "greenhouse",
       "posted_at": "2026-06-10T16:56:19-04:00",
-      "scraped_at": "2026-08-17T15:19:28.954Z",
+      "scraped_at": "2026-08-17T15:21:13.248Z",
       "status": "open"
     },
     {
@@ -1828,7 +1828,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8586040002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T12:21:34-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -1849,7 +1849,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8536000002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -1870,7 +1870,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8536016002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -1891,7 +1891,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478278002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -1912,7 +1912,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478075002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-17T15:19:30.669Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -1933,7 +1933,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8477160002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -1954,7 +1954,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478010002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -1975,7 +1975,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478011002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.668Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -1996,7 +1996,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478015002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.669Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -2017,7 +2017,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478096002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.669Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -2038,7 +2038,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7675303002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.669Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -2059,7 +2059,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7018933002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -2080,7 +2080,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7016479002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -2101,7 +2101,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8382201002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -2122,7 +2122,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7018970002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -2143,7 +2143,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019004002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.445Z",
       "status": "open"
     },
     {
@@ -2164,7 +2164,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7703930002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.446Z",
       "status": "open"
     },
     {
@@ -2185,7 +2185,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019066002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.446Z",
       "status": "open"
     },
     {
@@ -2206,7 +2206,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019077002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.446Z",
       "status": "open"
     },
     {
@@ -2227,7 +2227,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7704097002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.446Z",
       "status": "open"
     },
     {
@@ -2248,7 +2248,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8284279002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.446Z",
       "status": "open"
     },
     {
@@ -2269,7 +2269,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8285372002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.446Z",
       "status": "open"
     },
     {
@@ -2290,7 +2290,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8382200002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.670Z",
+      "scraped_at": "2026-08-17T15:21:15.446Z",
       "status": "open"
     },
     {
@@ -2311,7 +2311,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8494496002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.218Z",
+      "scraped_at": "2026-08-17T15:21:12.089Z",
       "status": "open"
     },
     {
@@ -2332,7 +2332,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8443189002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -2353,7 +2353,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8544188002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -2374,7 +2374,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8550531002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -2395,7 +2395,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8506614002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.221Z",
+      "scraped_at": "2026-08-17T15:21:12.091Z",
       "status": "open"
     },
     {
@@ -2416,7 +2416,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8555691002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.222Z",
+      "scraped_at": "2026-08-17T15:21:12.092Z",
       "status": "open"
     },
     {
@@ -2437,7 +2437,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8503086002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.222Z",
+      "scraped_at": "2026-08-17T15:21:12.092Z",
       "status": "open"
     },
     {
@@ -2458,7 +2458,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419915002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.222Z",
+      "scraped_at": "2026-08-17T15:21:12.092Z",
       "status": "open"
     },
     {
@@ -2479,7 +2479,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419907002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.223Z",
+      "scraped_at": "2026-08-17T15:21:12.092Z",
       "status": "open"
     },
     {
@@ -2500,7 +2500,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419926002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.223Z",
+      "scraped_at": "2026-08-17T15:21:12.092Z",
       "status": "open"
     },
     {
@@ -2521,7 +2521,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419919002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.223Z",
+      "scraped_at": "2026-08-17T15:21:12.092Z",
       "status": "open"
     },
     {
@@ -2542,7 +2542,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419917002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.223Z",
+      "scraped_at": "2026-08-17T15:21:12.093Z",
       "status": "open"
     },
     {
@@ -2563,7 +2563,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8472393002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.223Z",
+      "scraped_at": "2026-08-17T15:21:12.093Z",
       "status": "open"
     },
     {
@@ -2584,7 +2584,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8472378002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.224Z",
+      "scraped_at": "2026-08-17T15:21:12.093Z",
       "status": "open"
     },
     {
@@ -2605,7 +2605,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8462745002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T15:19:28.224Z",
+      "scraped_at": "2026-08-17T15:21:12.093Z",
       "status": "open"
     },
     {
@@ -2626,7 +2626,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4701569005",
       "source": "greenhouse",
       "posted_at": "2026-06-04T12:07:38-04:00",
-      "scraped_at": "2026-08-17T15:19:28.917Z",
+      "scraped_at": "2026-08-17T15:21:13.212Z",
       "status": "open"
     },
     {
@@ -2647,7 +2647,7 @@
       "apply_url": "https://job-boards.greenhouse.io/obligo/jobs/4430568004",
       "source": "greenhouse",
       "posted_at": "2026-06-03T11:11:13-04:00",
-      "scraped_at": "2026-08-17T15:19:30.072Z",
+      "scraped_at": "2026-08-17T15:21:14.699Z",
       "status": "open"
     },
     {
@@ -2668,7 +2668,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4686070006",
       "source": "greenhouse",
       "posted_at": "2026-06-02T18:08:33-04:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -2689,7 +2689,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4685760006",
       "source": "greenhouse",
       "posted_at": "2026-06-01T12:40:04-04:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -2710,7 +2710,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4661652005",
       "source": "greenhouse",
       "posted_at": "2026-05-28T18:27:22-04:00",
-      "scraped_at": "2026-08-17T15:19:28.955Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -2731,7 +2731,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4674416005",
       "source": "greenhouse",
       "posted_at": "2026-05-28T18:27:22-04:00",
-      "scraped_at": "2026-08-17T15:19:28.955Z",
+      "scraped_at": "2026-08-17T15:21:13.249Z",
       "status": "open"
     },
     {
@@ -2752,7 +2752,7 @@
       "apply_url": "https://jobs.lever.co/entrata/02480379-5daa-43d7-a6b8-396f2b26df39",
       "source": "lever",
       "posted_at": "2026-05-22T15:25:48.657Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -2773,7 +2773,7 @@
       "apply_url": "https://jobs.lever.co/entrata/6f285ba2-ee23-4bc6-898c-e7f83df34bc4",
       "source": "lever",
       "posted_at": "2026-05-18T22:58:50.738Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.983Z",
       "status": "open"
     },
     {
@@ -2794,7 +2794,7 @@
       "apply_url": "https://jobs.lever.co/entrata/8f6b75c0-5157-4db4-b600-6fa18303e16d",
       "source": "lever",
       "posted_at": "2026-05-18T20:16:32.103Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -2815,7 +2815,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4441476006",
       "source": "greenhouse",
       "posted_at": "2026-04-21T11:13:30-04:00",
-      "scraped_at": "2026-08-17T15:19:30.080Z",
+      "scraped_at": "2026-08-17T15:21:14.613Z",
       "status": "open"
     },
     {
@@ -2836,7 +2836,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4605270006",
       "source": "greenhouse",
       "posted_at": "2026-04-06T10:56:17-04:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -2857,7 +2857,7 @@
       "apply_url": "https://jobs.lever.co/entrata/dd699465-497c-49a2-8720-000db1d1feb0",
       "source": "lever",
       "posted_at": "2026-04-01T18:55:13.278Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -2878,7 +2878,7 @@
       "apply_url": "https://jobs.lever.co/entrata/11444128-f2b9-4af6-88a4-109859f182b8",
       "source": "lever",
       "posted_at": "2026-03-31T21:35:05.439Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -2899,7 +2899,7 @@
       "apply_url": "https://job-boards.greenhouse.io/obligo/jobs/5836724004",
       "source": "greenhouse",
       "posted_at": "2026-03-26T08:39:57-04:00",
-      "scraped_at": "2026-08-17T15:19:30.072Z",
+      "scraped_at": "2026-08-17T15:21:14.699Z",
       "status": "open"
     },
     {
@@ -2920,7 +2920,7 @@
       "apply_url": "https://job-boards.greenhouse.io/obligo/jobs/5791025004",
       "source": "greenhouse",
       "posted_at": "2026-03-12T13:26:00-04:00",
-      "scraped_at": "2026-08-17T15:19:30.073Z",
+      "scraped_at": "2026-08-17T15:21:14.699Z",
       "status": "open"
     },
     {
@@ -2941,7 +2941,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4655562006",
       "source": "greenhouse",
       "posted_at": "2026-02-18T11:28:16-05:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -2962,7 +2962,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4653759006",
       "source": "greenhouse",
       "posted_at": "2026-02-11T17:58:48-05:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -2983,7 +2983,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4648555006",
       "source": "greenhouse",
       "posted_at": "2026-01-27T12:59:25-05:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -3004,7 +3004,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4647432006",
       "source": "greenhouse",
       "posted_at": "2026-01-22T16:43:40-05:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -3025,7 +3025,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4410174006",
       "source": "greenhouse",
       "posted_at": "2025-10-14T16:06:51-04:00",
-      "scraped_at": "2026-08-17T15:19:30.079Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -3046,7 +3046,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4602222006",
       "source": "greenhouse",
       "posted_at": "2025-09-16T19:32:08-04:00",
-      "scraped_at": "2026-08-17T15:19:30.080Z",
+      "scraped_at": "2026-08-17T15:21:14.612Z",
       "status": "open"
     },
     {
@@ -3067,7 +3067,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/4401577007",
       "source": "greenhouse",
       "posted_at": "2025-07-21T10:46:40-04:00",
-      "scraped_at": "2026-08-17T15:19:31.069Z",
+      "scraped_at": "2026-08-17T15:21:15.899Z",
       "status": "open"
     },
     {
@@ -3088,7 +3088,7 @@
       "apply_url": "https://jobs.lever.co/entrata/0b76b68a-a15b-4846-b6c3-9697ccffb52e",
       "source": "lever",
       "posted_at": "2025-05-21T15:37:16.678Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -3109,7 +3109,7 @@
       "apply_url": "https://jobs.lever.co/entrata/ec44b2d5-088f-4f50-9fd1-8f5e7b6796c0",
       "source": "lever",
       "posted_at": "2024-01-10T20:36:36.072Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -3130,7 +3130,7 @@
       "apply_url": "https://jobs.lever.co/entrata/661bbcc5-3514-4ba3-b616-8838da6c53ec",
       "source": "lever",
       "posted_at": "2022-05-12T07:02:07.937Z",
-      "scraped_at": "2026-08-17T15:19:31.195Z",
+      "scraped_at": "2026-08-17T15:21:15.982Z",
       "status": "open"
     },
     {
@@ -3151,7 +3151,7 @@
       "apply_url": "https://careers.procore.com/jobs/search",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.521Z",
+      "scraped_at": "2026-08-17T15:21:12.798Z",
       "status": "open"
     },
     {
@@ -3172,7 +3172,7 @@
       "apply_url": "https://point.com/careers/job/sr-payroll-specialist-8643845002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3193,7 +3193,7 @@
       "apply_url": "https://point.com/careers/job/home-equity-closer-ph-8652969002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3214,7 +3214,7 @@
       "apply_url": "https://point.com/careers/job/account-coordinator-8676027002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3235,7 +3235,7 @@
       "apply_url": "https://point.com/careers/job/account-specialist-8691779002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3256,7 +3256,7 @@
       "apply_url": "https://point.com/careers/job/customer-experience-manager-8689234002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3277,7 +3277,7 @@
       "apply_url": "https://point.com/careers/job/operations-associate-8596528002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3298,7 +3298,7 @@
       "apply_url": "https://point.com/careers/job/lead-data-analyst-8627618002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3319,7 +3319,7 @@
       "apply_url": "https://point.com/careers/job/home-equity-funder-8649362002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3340,7 +3340,7 @@
       "apply_url": "https://point.com/careers/job/mortgage-funding-specialist-8649371002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3361,7 +3361,7 @@
       "apply_url": "https://point.com/careers/job/institutional-fundraising-lead-8646222002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3382,7 +3382,7 @@
       "apply_url": "https://point.com/careers/job/senior-hr-generalist-8687847002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3403,7 +3403,7 @@
       "apply_url": "https://point.com/careers/job/senior-analyst-marketing-analytics-8574450002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3424,7 +3424,7 @@
       "apply_url": "https://point.com/careers/job/senior-manager-direct-mail-campaign-and-analytics-lead-8647612002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3445,7 +3445,7 @@
       "apply_url": "https://point.com/careers/job/lead-sdet-8645502002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3466,7 +3466,7 @@
       "apply_url": "https://point.com/careers/job/lead-sdet-8706963002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3487,7 +3487,7 @@
       "apply_url": "https://point.com/careers/job/account-manager-inside-sales-8625323002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3508,7 +3508,7 @@
       "apply_url": "https://point.com/careers/job/inside-sales-8340596002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3529,7 +3529,7 @@
       "apply_url": "https://point.com/careers/job/senior-default-servicing-associate-8649382002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3550,7 +3550,7 @@
       "apply_url": "https://point.com/careers/job/special-servicing-associate-iii-8649383002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3571,7 +3571,7 @@
       "apply_url": "https://point.com/careers/job/senior-software-engineer-8596679002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:28.958Z",
+      "scraped_at": "2026-08-17T15:21:13.386Z",
       "status": "open"
     },
     {
@@ -3592,7 +3592,7 @@
       "apply_url": "https://www.realpage.com/careers/benefits-wellness/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.675Z",
+      "scraped_at": "2026-08-17T15:21:14.140Z",
       "status": "open"
     },
     {
@@ -3613,7 +3613,7 @@
       "apply_url": "https://www.realpage.com/careers/locations/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.675Z",
+      "scraped_at": "2026-08-17T15:21:14.140Z",
       "status": "open"
     },
     {
@@ -3634,7 +3634,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/1ae929ab-3fb2-4917-83cf-9febfc1121e4",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3655,7 +3655,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/5a93fabd-52d3-4ffa-a5ee-33c90d40a3a9",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3676,7 +3676,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/e7a4e3b3-47f3-4ced-9e2d-69a60bade8bf",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3697,7 +3697,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/cd17914a-0f4c-4b68-83a2-8720e49da3db",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3718,7 +3718,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/f4d91ff1-8356-4bc9-ad51-b286993ee250",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3739,7 +3739,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/bc3a5556-20d2-421b-bd59-1cc24a25a13c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3760,7 +3760,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/00263a48-3158-443d-bbdc-7bf1249a57a7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3781,7 +3781,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/b990d5d5-0e72-49c7-983e-40b0b31e9e78",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3802,7 +3802,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/008edbb8-c859-46b7-894c-a37bbd109050",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3823,7 +3823,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/ac25579d-6556-449b-b674-08159e5b5d13",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3844,7 +3844,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/3969c70f-90f1-4424-88fc-507b3a17ce2e",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:29.660Z",
+      "scraped_at": "2026-08-17T15:21:14.194Z",
       "status": "open"
     },
     {
@@ -3865,7 +3865,7 @@
       "apply_url": "https://www.compass.com/careers/jobs",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -3886,7 +3886,7 @@
       "apply_url": "https://www.compass.com/careers/departments/business-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -3907,7 +3907,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-growth",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -3928,7 +3928,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -3949,7 +3949,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-success-team",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -3970,7 +3970,7 @@
       "apply_url": "https://www.compass.com/careers/departments/data-and-analytics",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -3991,7 +3991,7 @@
       "apply_url": "https://www.compass.com/careers/departments/engineering",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4012,7 +4012,7 @@
       "apply_url": "https://www.compass.com/careers/departments/escrow",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4033,7 +4033,7 @@
       "apply_url": "https://www.compass.com/careers/departments/executive",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4054,7 +4054,7 @@
       "apply_url": "https://www.compass.com/careers/departments/expansion",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4075,7 +4075,7 @@
       "apply_url": "https://www.compass.com/careers/departments/facilities-and-office-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4096,7 +4096,7 @@
       "apply_url": "https://www.compass.com/careers/departments/finance-and-accounting",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4117,7 +4117,7 @@
       "apply_url": "https://www.compass.com/careers/departments/information-technology",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4138,7 +4138,7 @@
       "apply_url": "https://www.compass.com/careers/departments/invoicing-and-incentives",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4159,7 +4159,7 @@
       "apply_url": "https://www.compass.com/careers/departments/learning-and-development",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4180,7 +4180,7 @@
       "apply_url": "https://www.compass.com/careers/departments/legal",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4201,7 +4201,7 @@
       "apply_url": "https://www.compass.com/careers/departments/luxury-marketing",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4222,7 +4222,7 @@
       "apply_url": "https://www.compass.com/careers/departments/manda-integration",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4243,7 +4243,7 @@
       "apply_url": "https://www.compass.com/careers/departments/marketing-and-creative",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4264,7 +4264,7 @@
       "apply_url": "https://www.compass.com/careers/departments/new-development",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4285,7 +4285,7 @@
       "apply_url": "https://www.compass.com/careers/departments/operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4306,7 +4306,7 @@
       "apply_url": "https://www.compass.com/careers/departments/people-and-culture",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4327,7 +4327,7 @@
       "apply_url": "https://www.compass.com/careers/departments/pr-communications",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4348,7 +4348,7 @@
       "apply_url": "https://www.compass.com/careers/departments/product-and-user-experience",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4369,7 +4369,7 @@
       "apply_url": "https://www.compass.com/careers/departments/security-and-compliance",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4390,7 +4390,7 @@
       "apply_url": "https://www.compass.com/careers/departments/strategic-growth",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4411,7 +4411,7 @@
       "apply_url": "https://www.compass.com/careers/departments/strategic-partnerships",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4432,7 +4432,7 @@
       "apply_url": "https://www.compass.com/careers/departments/title",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4453,7 +4453,7 @@
       "apply_url": "https://www.compass.com/careers/departments/transaction-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.261Z",
+      "scraped_at": "2026-08-17T15:21:15.031Z",
       "status": "open"
     },
     {
@@ -4474,7 +4474,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/40594c89-8739-4809-ba63-e20f0ea5e735",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4495,7 +4495,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/0033b91a-171d-4fed-9ca9-67aabb1a5756",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4516,7 +4516,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/4df4efbb-f4b5-49fa-840c-45690056af1b",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4537,7 +4537,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/19d4de81-3c98-481e-9783-c6cf0b77c9cd",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4558,7 +4558,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/cf7b2875-34d8-4261-9709-cf967751a1c7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4579,7 +4579,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/822d0469-28a7-4441-a0b4-539dfbb7046c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4600,7 +4600,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/1f89fd20-cc7e-4c5c-9c84-592406bbd8e0",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4621,7 +4621,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/338d0e73-fc31-452d-b98c-d37c52e67dd7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4642,7 +4642,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/23b8eb78-b0dc-48e0-9933-50ed5587295f",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4663,7 +4663,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/b31f3e88-2b52-468e-b841-cc5775b85271",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4684,7 +4684,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/5a2ac2dc-adc4-4543-a2d5-458f0eabd6ad",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4705,7 +4705,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/cdb6349f-91f9-47f9-984b-fd19a329a563",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4726,7 +4726,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/2bc51270-c3d1-4d04-b3d0-7407407ccc96",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4747,7 +4747,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/337d8f93-b0d3-4765-9a32-bede74a246dc",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4768,7 +4768,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/219799ca-8d34-4198-abe4-23c209d77a73",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.854Z",
       "status": "open"
     },
     {
@@ -4789,7 +4789,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/bff7249a-258e-436b-a9c1-16702c166f38",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4810,7 +4810,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/e5eff67b-b4bb-4508-aa94-9543a3ac68e3",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4831,7 +4831,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/398ba713-ea93-408d-9b67-aeb8fda33695",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4852,7 +4852,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/eff58373-8f43-4d2a-8132-6576ccc366ee",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4873,7 +4873,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/73d46cb1-ba2a-4e95-941e-2218b9aa8237",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4894,7 +4894,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/4130ca5d-dce7-45e5-b49e-b7409cc6a07d",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4915,7 +4915,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/a5c93eac-c299-4832-bcfd-90e3daaa4b75",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4936,7 +4936,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/0dc4f5a7-e5c3-4027-bf78-bca413498c9c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4957,7 +4957,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/245e388e-13f8-461b-9f46-bacd201c3be3",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4978,7 +4978,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/ea1e09d4-f490-4b59-ab29-b86334046bf8",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -4999,7 +4999,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/819b73d8-7750-47df-a3c8-929101e90606",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.169Z",
+      "scraped_at": "2026-08-17T15:21:14.855Z",
       "status": "open"
     },
     {
@@ -5020,7 +5020,7 @@
       "apply_url": "https://recruiting.paylocity.com/recruiting/jobs/All/65717b9a-7d08-4867-8ae9-5f3553eff988/Binway-LLC",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:30.654Z",
+      "scraped_at": "2026-08-17T15:21:15.479Z",
       "status": "open"
     },
     {
@@ -5041,7 +5041,7 @@
       "apply_url": "https://smartrent.com/careers/apply/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:31.328Z",
+      "scraped_at": "2026-08-17T15:21:16.226Z",
       "status": "open"
     },
     {
@@ -5062,7 +5062,7 @@
       "apply_url": "https://smartrent.com/careers/apply/operations/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:31.328Z",
+      "scraped_at": "2026-08-17T15:21:16.226Z",
       "status": "open"
     },
     {
@@ -5083,7 +5083,7 @@
       "apply_url": "https://smartrent.com/careers/apply/technology-and-development/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:31.328Z",
+      "scraped_at": "2026-08-17T15:21:16.226Z",
       "status": "open"
     },
     {
@@ -5104,7 +5104,7 @@
       "apply_url": "https://smartrent.com/careers/apply/sales-and-marketing/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:31.328Z",
+      "scraped_at": "2026-08-17T15:21:16.226Z",
       "status": "open"
     },
     {
@@ -5125,7 +5125,7 @@
       "apply_url": "https://smartrent.com/careers/apply/general-and-administrative/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T15:19:31.328Z",
+      "scraped_at": "2026-08-17T15:21:16.226Z",
       "status": "open"
     }
   ]
