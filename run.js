@@ -278,7 +278,11 @@ function isNotAJob(title) {
   const t = title.trim().toLowerCase().replace(/[.!→>»]+$/, '').trim();
 
   // Whole-phrase CTAs and nav labels.
-  if (/^(apply|apply now|view|view all|view more|view jobs?|see all|see more|see jobs?|learn more|read more|explore|explore all|search|search jobs?|browse|browse jobs?|all jobs?|all openings?|open (roles?|positions?|jobs?)|current openings?|join us|join our team|work (with|for) us|careers?|jobs?|opportunities|life at .*|our (culture|team|values|benefits)|benefits|culture|diversity.*|back|next|previous|home|contact( us)?|sign in|log ?in|register|subscribe|newsletter|privacy.*|terms.*|cookie.*)$/i.test(t)) return true;
+  if (/^(apply|apply now|view|view all|view more|view jobs?|see all|see more|see jobs?|learn more|read more|explore|explore all|search|search jobs?|browse|browse jobs?|all jobs?|all openings?|current openings?|join us|join our team|work (with|for) us|careers?|jobs?|opportunities|life at .*|our (culture|team|values|benefits)|benefits|culture|diversity.*|back|next|previous|home|contact( us)?|sign in|log ?in|register|subscribe|newsletter|privacy.*|terms.*|cookie.*)$/i.test(t)) return true;
+
+  // "Open Opportunities", "Open Roles", "Current Openings", "Available Positions"
+  // — a generic index label, not a specific posting.
+  if (/^(open|current|available|latest|all|our|more)\s+(opportunit\w*|roles?|positions?|jobs?|openings?|vacanc\w*)$/i.test(t)) return true;
 
   // Phrases that begin like a CTA — "See all opportunities", "View our openings".
   if (/^(see|view|browse|explore|search|find|discover|check out|learn)\b.{0,40}\b(job|jobs|role|roles|opening|openings|opportunit\w*|position|positions|career|careers|team)\b/i.test(t)) return true;
@@ -399,20 +403,36 @@ for (let i = 0; i < ready.length; i += CONCURRENCY) {
 
 const okResults = results.filter((r) => r.ok);
 const failed = results.filter((r) => !r.ok && !r.skipped);
+const failedIds0 = new Set(failed.map((r) => r.company.id));
 const fresh = okResults.flatMap((r) => r.jobs);
 
 // Carry over jobs from sources that failed this run. A scrape failure is not
 // evidence that a company stopped hiring, and dropping them would make the
 // board look like the market emptied out.
-const failedIds = new Set(failed.map((r) => r.company.id));
+// Anything this run did not freshly produce is carried over from the previous
+// feed. Two distinct cases, and missing the second one is what made
+// `--hub=opco` followed by `--hub=proptech` show only PropTech:
+//
+//   1. a company that FAILED this run — a scrape failure is not evidence that
+//      a company stopped hiring
+//   2. a company that was OUT OF SCOPE this run — `--hub=`, `--only=` and
+//      `active:false` all narrow the target list, and those companies' roles
+//      must survive untouched
+//
+// In short: a scrape updates the companies it covered and leaves the rest alone.
+const scrapedIds = new Set(okResults.map((r) => r.company.id));
 const previous = await loadPrevious(OUT);
-const carried = previous.filter((j) => failedIds.has(j.company_id));
+const carried = previous.filter((j) => !scrapedIds.has(j.company_id));
+
+const outOfScope = carried.filter((j) => !failedIds0.has(j.company_id)).length;
+const fromFailed = carried.length - outOfScope;
 
 const all = [...fresh, ...carried];
 
 console.log('\n' + '-'.repeat(60));
 console.log(`scraped   ${fresh.length} roles from ${okResults.length} sources`);
-if (carried.length) console.log(`carried   ${carried.length} roles from ${failed.length} failed source(s)`);
+if (fromFailed) console.log(`carried   ${fromFailed} roles from ${failed.length} failed source(s)`);
+if (outOfScope) console.log(`kept      ${outOfScope} roles from companies not in this run`);
 if (pending.length) console.log(`skipped   ${pending.length} companies with no method — run scripts/detect-ats.js`);
 if (failed.length) {
   console.log(`\nfailed ${failed.length}:`);
