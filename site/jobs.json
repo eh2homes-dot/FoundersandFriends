@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-08-02T06:00:00Z",
+  "count": 1,
+  "note": "Placeholder. Replaced the first time the scraper runs.",
+  "jobs": [
+    {
+      "id": "sample:1",
+      "hub": "opco",
+      "title": "Director of Operations",
+      "company": "Progress Residential",
+      "category": "Leadership",
+      "segment": "Single-Family",
+      "level": "Director",
+      "location": "Phoenix, AZ",
+      "employment_type": "full-time",
+      "comp_min": 145000,
+      "comp_max": 180000,
+      "summary": "Own P&L for 4,200 homes across three Southwest markets.",
+      "description": "This is placeholder data so the page has something to render before the first scrape.",
+      "apply_url": null,
+      "source": "sample",
+      "posted_at": "2026-07-30T00:00:00Z",
+      "scraped_at": "2026-08-02T06:00:00Z",
+      "status": "open"
+    }
+  ]
+}
