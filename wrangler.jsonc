@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "foundersandfriends",
+  "compatibility_date": "2026-08-01",
+
+  // Serve ONLY the site folder. This is the important line: pointing at "."
+  // would sweep in node_modules, which wrangler installs during the build, and
+  // the deploy dies on Cloudflare's 25 MiB per-asset limit.
+  //
+  // If your Worker is not called "foundersandfriends", change the name above
+  // to match, or the deploy creates a second Worker instead of updating yours.
+  "assets": {
+    "directory": "./site",
+    "not_found_handling": "single-page-application"
+  }
+}
