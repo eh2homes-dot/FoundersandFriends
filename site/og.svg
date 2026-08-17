@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- The share card: the matching web itself, which is what makes this board
+       recognisable. 1200x630 is what Slack, LinkedIn, iMessage and X crop from.
+
+       Editing: role titles are the <text class="role"> lines, companies the
+       blocks near the right. Keep roles to ~9 and titles under ~34 characters
+       or they collide. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B0618"/>
+      <stop offset="45%" stop-color="#160A2E"/>
+      <stop offset="100%" stop-color="#07040F"/>
+    </linearGradient>
+    <radialGradient id="glowGreen" cx="8%" cy="80%" r="55%">
+      <stop offset="0%" stop-color="#00FF88" stop-opacity=".10"/>
+      <stop offset="100%" stop-color="#00FF88" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowPurple" cx="92%" cy="10%" r="55%">
+      <stop offset="0%" stop-color="#7F4DE0" stop-opacity=".30"/>
+      <stop offset="100%" stop-color="#7F4DE0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="thread" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00FF88" stop-opacity=".75"/>
+      <stop offset="100%" stop-color="#7F4DE0" stop-opacity=".75"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00FF88"/>
+      <stop offset="55%" stop-color="#F4F3FA"/>
+      <stop offset="100%" stop-color="#A98FEC"/>
+    </linearGradient>
+    <linearGradient id="ffThread" gradientUnits="userSpaceOnUse" x1="60" y1="122" x2="140" y2="122">
+      <stop offset="0%" stop-color="#5EFA8E"/><stop offset="100%" stop-color="#7C4DEB"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- cyber grid -->
+  <g stroke="#C8C5DA" stroke-opacity=".045" stroke-width="1">
+    <path d="M0 46H1200M0 92H1200M0 138H1200M0 184H1200M0 230H1200M0 276H1200M0 322H1200M0 368H1200M0 414H1200M0 460H1200M0 506H1200M0 552H1200M0 598H1200"/>
+    <path d="M46 0V630M92 0V630M138 0V630M184 0V630M230 0V630M276 0V630M322 0V630M368 0V630M414 0V630M460 0V630M506 0V630M552 0V630M598 0V630M644 0V630M690 0V630M736 0V630M782 0V630M828 0V630M874 0V630M920 0V630M966 0V630M1012 0V630M1058 0V630M1104 0V630M1150 0V630"/>
+  </g>
+  <rect width="1200" height="630" fill="url(#glowPurple)"/>
+  <rect width="1200" height="630" fill="url(#glowGreen)"/>
+
+  <!-- header bar, as on the site -->
+  <rect x="0" y="0" width="1200" height="96" fill="#0B0618" fill-opacity=".82"/>
+  <line x1="0" y1="96" x2="1200" y2="96" stroke="#C8C5DA" stroke-opacity=".12"/>
+  <g transform="translate(42,22) scale(0.26)">
+    <rect x="0" y="0" width="200" height="200" rx="28" fill="#1B1130"/>
+    <!-- The house is the industry: scattered-site real estate.
+         Inside it, the business itself — a green candidate wired to a purple
+         employer, in the same colours the board uses for open roles and companies.
+         The thread between them is the product. -->
+    <path d="M100 44 L158 88 L158 156 L42 156 L42 88 Z" fill="none" stroke="#5EFA8E"
+          stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M70 122 L 130 122" stroke="url(#ffThread)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="68" cy="122" r="16" fill="#5EFA8E"/>
+    <circle cx="132" cy="122" r="18" fill="#1B1130" stroke="#7C4DEB" stroke-width="9"/>
+  </g>
+  <text x="104" y="54" font-family="'Bricolage Grotesque',Helvetica,Arial,sans-serif"
+        font-size="32" font-weight="700" letter-spacing="-.8" fill="url(#ink)">Founders &amp; Friends</text>
+  <text x="106" y="74" font-family="'IBM Plex Mono',monospace"
+        font-size="12" letter-spacing="4" fill="#9D95BD">TALENT NETWORK</text>
+
+  <g font-family="'IBM Plex Mono',monospace" font-size="13" letter-spacing="2.5">
+    <rect x="880" y="30" width="132" height="36" rx="18" fill="#3BE8FF" fill-opacity=".07" stroke="#3BE8FF" stroke-opacity=".35"/>
+    <circle cx="902" cy="48" r="5" fill="#3BE8FF"/>
+    <text x="916" y="53" fill="#3BE8FF">SYNDEO</text>
+    <rect x="1024" y="30" width="150" height="36" rx="18" fill="#00FF88" fill-opacity=".08" stroke="#00FF88" stroke-opacity=".4"/>
+    <circle cx="1046" cy="48" r="5" fill="#00FF88"/>
+    <text x="1060" y="53" fill="#00FF88">NEWSLETTER</text>
+  </g>
+
+  <!-- column heads -->
+  <g font-family="'IBM Plex Mono',monospace" font-size="14" letter-spacing="3" fill="#9D95BD">
+    <text x="420" y="140" text-anchor="middle">10 OPENINGS</text>
+    <text x="960" y="140" text-anchor="middle">4 COMPANIES</text>
+  </g>
+
+  <!-- threads: every role wired to its employer -->
+  <g fill="none" stroke="url(#thread)" stroke-width="1.5">
+    <path d="M470 178 C 650 178, 790 200, 900 200"/>
+    <path d="M470 222 C 650 222, 790 200, 900 200"/>
+    <path d="M470 266 C 650 266, 790 200, 900 200"/>
+    <path d="M470 310 C 650 310, 790 200, 900 200"/>
+    <path d="M470 354 C 650 354, 790 330, 900 330"/>
+    <path d="M470 398 C 650 398, 790 330, 900 330"/>
+    <path d="M470 442 C 650 442, 790 460, 900 460"/>
+    <path d="M470 486 C 650 486, 790 460, 900 460"/>
+    <path d="M470 530 C 650 530, 790 590, 900 590"/>
+    <path d="M470 574 C 650 574, 790 590, 900 590"/>
+  </g>
+
+  <!-- travelling pulses -->
+  <g fill="#00FF88">
+    <circle cx="612" cy="182" r="3.4"/><circle cx="726" cy="252" r="3.4"/>
+    <circle cx="590" cy="312" r="3.4"/><circle cx="748" cy="344" r="3.4"/>
+    <circle cx="668" cy="446" r="3.4"/><circle cx="800" cy="560" r="3.4"/>
+  </g>
+
+  <!-- role dots and titles, titles to the LEFT as on the site -->
+  <g font-family="'Onest',Helvetica,Arial,sans-serif" font-size="17" fill="#CFC9E4" text-anchor="end">
+    <text class="role" x="440" y="184">Accountant, HAP</text>
+    <text class="role" x="440" y="228">Analyst, Asset Management</text>
+    <text class="role" x="440" y="272">Customer Service Representative</text>
+    <text class="role" x="440" y="316">Product Manager, Resident Platform</text>
+    <text class="role" x="440" y="360">Regional Leasing Manager</text>
+    <text class="role" x="440" y="404">Renovation Project Manager</text>
+    <text class="role" x="440" y="448">Maintenance Superintendent</text>
+    <text class="role" x="440" y="492">Director of Operations</text>
+    <text class="role" x="440" y="536">Member Operations Lead</text>
+    <text class="role" x="440" y="580">Pricing &amp; Revenue Analyst</text>
+  </g>
+  <g>
+    <g fill="#00FF88" opacity=".26"><circle cx="470" cy="178" r="12"/><circle cx="470" cy="222" r="12"/><circle cx="470" cy="266" r="12"/><circle cx="470" cy="310" r="12"/><circle cx="470" cy="354" r="12"/><circle cx="470" cy="398" r="12"/><circle cx="470" cy="442" r="12"/><circle cx="470" cy="486" r="12"/><circle cx="470" cy="530" r="12"/><circle cx="470" cy="574" r="12"/></g>
+    <g fill="#00FF88" stroke="#04120A" stroke-width="1.5"><circle cx="470" cy="178" r="7"/><circle cx="470" cy="222" r="7"/><circle cx="470" cy="266" r="7"/><circle cx="470" cy="310" r="7"/><circle cx="470" cy="354" r="7"/><circle cx="470" cy="398" r="7"/><circle cx="470" cy="442" r="7"/><circle cx="470" cy="486" r="7"/><circle cx="470" cy="530" r="7"/><circle cx="470" cy="574" r="7"/></g>
+  </g>
+
+  <!-- companies: purple, sized by how much each is hiring -->
+  <g>
+    <circle cx="900" cy="200" r="26" fill="#0B0618" stroke="#7F4DE0" stroke-width="2.6"/>
+    <circle cx="900" cy="200" r="32" fill="none" stroke="#7F4DE0" stroke-opacity=".3"/>
+    <text x="900" y="207" font-family="'IBM Plex Mono',monospace" font-size="17" fill="#A98FEC" text-anchor="middle">4</text>
+    <text x="944" y="195" font-family="'Onest',Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#F6F4FF">Invitation Homes</text>
+    <text x="944" y="218" font-family="'IBM Plex Mono',monospace" font-size="12" letter-spacing="1.6" fill="#9D95BD">4 OPENINGS</text>
+
+    <circle cx="900" cy="330" r="22" fill="#0B0618" stroke="#7F4DE0" stroke-width="2.6"/>
+    <circle cx="900" cy="330" r="28" fill="none" stroke="#7F4DE0" stroke-opacity=".3"/>
+    <text x="900" y="337" font-family="'IBM Plex Mono',monospace" font-size="16" fill="#A98FEC" text-anchor="middle">2</text>
+    <text x="940" y="325" font-family="'Onest',Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#F6F4FF">Tricon Residential</text>
+    <text x="940" y="348" font-family="'IBM Plex Mono',monospace" font-size="12" letter-spacing="1.6" fill="#9D95BD">2 OPENINGS</text>
+
+    <circle cx="900" cy="460" r="22" fill="#0B0618" stroke="#7F4DE0" stroke-width="2.6"/>
+    <circle cx="900" cy="460" r="28" fill="none" stroke="#7F4DE0" stroke-opacity=".3"/>
+    <text x="900" y="467" font-family="'IBM Plex Mono',monospace" font-size="16" fill="#A98FEC" text-anchor="middle">2</text>
+    <text x="940" y="455" font-family="'Onest',Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#F6F4FF">Progress Residential</text>
+    <text x="940" y="478" font-family="'IBM Plex Mono',monospace" font-size="12" letter-spacing="1.6" fill="#9D95BD">2 OPENINGS</text>
+
+    <circle cx="900" cy="590" r="22" fill="#0B0618" stroke="#7F4DE0" stroke-width="2.6"/>
+    <circle cx="900" cy="590" r="28" fill="none" stroke="#7F4DE0" stroke-opacity=".3"/>
+    <text x="900" y="597" font-family="'IBM Plex Mono',monospace" font-size="16" fill="#A98FEC" text-anchor="middle">2</text>
+    <text x="940" y="585" font-family="'Onest',Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#F6F4FF">Belong</text>
+    <text x="940" y="608" font-family="'IBM Plex Mono',monospace" font-size="12" letter-spacing="1.6" fill="#9D95BD">2 OPENINGS</text>
+  </g>
+
+  <rect x="0" y="626" width="1200" height="4" fill="url(#thread)"/>
+</svg>
