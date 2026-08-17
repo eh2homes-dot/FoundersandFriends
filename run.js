@@ -419,6 +419,25 @@ if (failed.length) {
   failed.forEach((r) => console.log(`  ${r.company.name.padEnd(30).slice(0, 30)} ${r.reason}`));
 }
 
+// A priority company failing empties the hub it anchors, so say so loudly
+// rather than leaving it as one line among forty.
+const priorityFailed = failed.filter((r) => r.company.priority);
+if (priorityFailed.length) {
+  console.log('\n' + '!'.repeat(60));
+  console.log('PRIORITY COMPANIES FAILED — the board will look empty without these:');
+  priorityFailed.forEach((r) => console.log(`  ${r.company.name}: ${r.reason}`));
+  console.log('!'.repeat(60));
+}
+
+// Per-hub totals, so "no OpCo roles" is visible in the log rather than only
+// on the live site.
+for (const h of ['opco', 'proptech']) {
+  const n = all.filter((j) => j.hub === h).length;
+  const src = new Set(all.filter((j) => j.hub === h).map((j) => j.company)).size;
+  console.log(`${h.padEnd(9)} ${String(n).padStart(4)} roles from ${src} companies`);
+  if (n === 0) console.log(`          ^ nothing for the ${h} hub — check the failures above`);
+}
+
 // Refuse to publish an empty feed. Better to leave yesterday's file in place
 // than to replace a working board with nothing.
 if (!all.length) {
