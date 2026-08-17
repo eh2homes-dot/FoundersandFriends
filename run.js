@@ -172,29 +172,54 @@ async function lever(company) {
 }
 
 async function workday(company) {
-  // Workday's CXS endpoint needs tenant + site, which differ per client. Both
-  // are in the careers URL: {tenant}.wdN.myworkdayjobs.com/{site}
+  // Workday's CXS endpoint needs a tenant and a site path, both of which vary
+  // per client and both of which live in the careers URL:
+  //     {tenant}.wdN.myworkdayjobs.com/{site}
   const host = company.atsSlug || '';
   const m = (company.careersUrl || '').match(/myworkdayjobs\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?([^/?#]+)/);
   const site = company.atsSite || (m && m[1]);
-  if (!host || !site) throw new Error('workday needs atsSlug (host) and a site path in careersUrl');
+  if (!host || !site) throw new Error('workday needs atsSlug (the host) and a site path');
 
   const tenant = host.split('.')[0];
   const url = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
-  const res = await get(url, { headers: { 'Content-Type': 'application/json' } });
-  if (!res.ok) throw new Error('workday HTTP ' + res.status);
 
-  const body = await res.json();
-  const posts = body.jobPostings || [];
-  if (!posts.length) throw new Error('workday returned no jobPostings');
+  // This endpoint is a POST with a JSON body, not a GET. A GET returns 405 and
+  // looks like the company simply has no openings, which is worse than an error.
+  // It also pages 20 at a time, so a large operator needs several calls.
+  const all = [];
+  const PAGE = 20;
+  for (let offset = 0; offset < 400; offset += PAGE) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'User-Agent': UA,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ appliedFacets: {}, limit: PAGE, offset, searchText: '' }),
+    });
+    if (!res.ok) throw new Error('workday HTTP ' + res.status);
 
-  return posts.map((j) => ({
+    const body = await res.json();
+    const posts = body.jobPostings || [];
+    all.push(...posts);
+
+    const total = body.total ?? all.length;
+    if (posts.length < PAGE || all.length >= total) break;
+    await sleep(200);              // be polite between pages
+  }
+
+  if (!all.length) throw new Error('workday returned no jobPostings');
+
+  return all.map((j) => ({
     sourceId: String(j.bulletFields?.[0] || j.externalPath),
     title: j.title,
     location: j.locationsText || 'Remote',
-    url: `https://${host}${j.externalPath}`,
-    description: '',                 // detail needs a second call per job
-    postedAt: null,
+    // externalPath already starts with a slash, and the public job URL lives
+    // under the site path rather than the bare host
+    url: `https://${host}/${site}${j.externalPath}`,
+    description: '',               // full text needs a second call per job
+    postedAt: /^\d{4}-\d{2}-\d{2}/.test(j.startDate || '') ? j.startDate : null,
     ...parseComp(j.title),
   }));
 }
