@@ -1,0 +1,11 @@
+# There are no secrets in this project — the job feed is a committed
+# JSON file and the site needs no API key. Kept for anything added later.
+.env
+.env.*
+*.key
+
+node_modules/
+dist/
+.DS_Store
+*.log
+npm-debug.log*
