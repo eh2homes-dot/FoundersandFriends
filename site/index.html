@@ -3,7 +3,33 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Founders &amp; Friends — OpCo Hub (Preview)</title>
+<title>Founders &amp; Friends — OpCo Hub</title>
+<meta name="description" content="Open roles across single-family rental operators and the technology companies serving them. Leasing, maintenance, asset management, product, and leadership — updated weekly." />
+
+<!-- Canonical, so shares and search results settle on one address. Change
+     this if you move to a custom domain. -->
+<link rel="canonical" href="https://foundersandfriends.eh2homes.workers.dev/" />
+<meta name="robots" content="index, follow" />
+<meta name="theme-color" content="#0B0618" />
+
+<!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
+     shared. Without these a share renders as a bare URL. -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Founders &amp; Friends" />
+<meta property="og:title" content="Founders &amp; Friends — OpCo Hub" />
+<meta property="og:description" content="Open roles across single-family rental operators and the technology companies serving them. Updated weekly." />
+<meta property="og:url" content="https://foundersandfriends.eh2homes.workers.dev/" />
+<meta property="og:image" content="https://foundersandfriends.eh2homes.workers.dev/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Founders &amp; Friends — the talent network for single-family rental" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Founders &amp; Friends — OpCo Hub" />
+<meta name="twitter:description" content="Open roles across single-family rental operators and the technology companies serving them." />
+<meta name="twitter:image" content="https://foundersandfriends.eh2homes.workers.dev/og.png" />
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -1367,6 +1393,11 @@ const rail = $('rail'), lines = $('lines'), cardsEl = $('cards'), dotsEl = $('do
 
 let query = '', company = 'All', progress = {}, dragging = null, raf = null;
 let page = 0, slideDir = 'right';
+/* Which role's drawer is open, so an outbound click can be attributed to it.
+   Declared here rather than beside the tracking code: openDrawer assigns it,
+   and a `let` further down the file would still be in its temporal dead zone
+   at that point — the assignment throws and the click loses its attribution. */
+let openJobId = null;
 const PER_PAGE = 3;
 const paths = new Map(), anchors = new Map(), dotEls = new Map(), groups = new Map();
 const connected = new Set();
@@ -1751,7 +1782,11 @@ let scrim, drawer;
 function openDrawer(id){
   const j = hubJobs().find(x => x.id === id);
   if (!j) return;
+  track('open_role', { role: j.title, company: j.company, category: j.category, source: j.source });
   closeDrawer();
+  // After closeDrawer, not before — closeDrawer clears this, so assigning
+  // first would wipe the attribution the outbound click depends on.
+  openJobId = id;
   cardsEl.querySelector(`[data-id="${id}"]`)?.classList.add('is-opened');
 
   scrim = document.createElement('div');
@@ -1795,6 +1830,7 @@ function openDrawer(id){
 
 function closeDrawer(keepFocus){
   apply = null;
+  openJobId = null;
   scrim?.remove(); drawer?.remove();
   scrim = drawer = null;
   document.body.style.overflow = '';
@@ -1818,6 +1854,7 @@ const STAGE_LABELS = [
 ];
 
 function openApply(job){
+  track('start_apply', { role: job.title, company: job.company });
   apply = { job, step: 1, data: apply?.data || {}, review: null };
   renderApply();
 }
@@ -2145,6 +2182,12 @@ function stageThree(){
 
 function submitApply(){
   const { job, data } = apply;
+  track('submit_apply', {
+    role: job.title,
+    company: job.company,
+    // the review score, so you can see whether stronger candidates finish
+    score: apply.review?.score ?? null,
+  });
   fireBeam();
   drawer.innerHTML = `
     <div class="drawer-top">
@@ -2541,6 +2584,7 @@ function openMatch(key){
   // A purple dot is a company: list everything they have open.
   const name = key.slice(2);
   jobs = list.filter(j => j.company === name);
+  track('open_company', { company: name, openings: jobs.length });
   title = name;
   sub = `${jobs.length} open across ${new Set(jobs.map(j => j.category)).size} role families`;
   if (!jobs.length) return;
@@ -2720,6 +2764,8 @@ function setHub(next){
   query = ''; $('search').value = '';
   company = 'All'; page = 0; slideDir = 'right';
   closeDrawer();
+
+  track('view_hub', { openings: (HUBS[hub].jobs || []).length });
 
   renderPills();
   renderStats();
@@ -2914,7 +2960,137 @@ function paintHubCards(){
   });
 }
 
+
+/* ==========================================================================
+   CLICK TRACKING
+   --------------------------------------------------------------------------
+   A job board you cannot measure is a job board you cannot improve. This
+   records which roles get opened, which companies get explored, and which
+   applications get started.
+   ========================================================================== */
+
+const TRACK = {
+  // Cloudflare Web Analytics: Dashboard → Analytics & Logs → Web Analytics →
+  // Add a site, then paste the token here. Free, cookieless, no consent banner
+  // needed in most jurisdictions because it stores nothing about the person.
+  cloudflareToken: '',            // e.g. 'a1b2c3d4e5f6...'
+
+  // Anything else that exposes a global. Plausible and Fathom both work with
+  // no change; leave empty to skip.
+  // Set to true once you have added the provider's own script tag.
+  plausible: false,
+
+  // Optional: write one row per outbound click into Supabase, using the
+  // schema in db/click-tracking.sql. Aggregate analytics tells you how many
+  // clicks; this tells you exactly which role, which company, which hub — the
+  // difference between a page-view number and something you can query.
+  //
+  // The PUBLISHABLE (anon) key is correct here. The table's RLS policy grants
+  // anon INSERT and nothing else, so a visitor can record a click but can
+  // never read, change, or delete one. Never put the service key here.
+  supabase: {
+    url: '',        // https://YOUR-PROJECT.supabase.co
+    key: '',        // sb_publishable_… (or the legacy anon key)
+    table: 'job_clicks',
+  },
+
+  // Prints every event to the console so you can watch it work before wiring
+  // a provider. Turn off for production.
+  debug: false,
+};
+
+const SUPABASE_CLICKS_READY = Boolean(TRACK.supabase.url && TRACK.supabase.key);
+
+/**
+ * Records a click-through to a real posting.
+ *
+ * Deliberately fire-and-forget: `keepalive` lets the request survive the page
+ * unloading as the visitor navigates away, and a failure is swallowed. Losing
+ * an analytics row is never a reason to interrupt someone applying for a job.
+ */
+function logClick(job, url) {
+  if (!SUPABASE_CLICKS_READY) return;
+  const endpoint = TRACK.supabase.url.replace(/\/+$/, '') + '/rest/v1/' + TRACK.supabase.table;
+  try {
+    fetch(endpoint, {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        apikey: TRACK.supabase.key,
+        Authorization: 'Bearer ' + TRACK.supabase.key,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        job_id: job?.id ?? null,
+        job_title: job?.title ?? null,
+        company: job?.company ?? null,
+        hub: job?.hub ?? hub,
+        url: url || null,
+        source: job?.source ?? null,
+      }),
+    }).catch(() => {});
+  } catch (_) { /* never block the click */ }
+}
+
+/**
+ * One funnel, five steps. Keeping the names stable matters more than the
+ * provider — you can swap analytics tools later without losing the shape of
+ * the data.
+ *
+ *   view_hub      which hub people land on and switch to
+ *   open_role     a role drawer was opened (from graph, list or panel)
+ *   open_company  a company's postings were listed
+ *   start_apply   the Apply Now button was pressed
+ *   submit_apply  the application wizard was completed
+ *   outbound      someone left for the original posting
+ */
+function track(event, props) {
+  const payload = { ...props, hub, view };
+
+  if (TRACK.debug) console.log('[track]', event, payload);
+
+  // Cloudflare Web Analytics collects page and custom events once its script
+  // is present; the guard means no error when the token is blank.
+  if (window.__cfBeacon && typeof window.__cfBeacon.trackEvent === 'function') {
+    try { window.__cfBeacon.trackEvent(event, payload); } catch (_) {}
+  }
+
+  if (TRACK.plausible && typeof window.plausible === 'function') {
+    try { window.plausible(event, { props: payload }); } catch (_) {}
+  }
+}
+
+/** Loads the Cloudflare beacon only if a token has been set. */
+function initTracking() {
+  if (!TRACK.cloudflareToken) return;
+  const s = document.createElement('script');
+  s.defer = true;
+  s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  s.setAttribute('data-cf-beacon', JSON.stringify({ token: TRACK.cloudflareToken }));
+  document.head.append(s);
+}
+
+/* Outbound clicks: every link that leaves the site, captured in one place so
+   new links are covered automatically rather than needing their own handler. */
+document.addEventListener('click', (e) => {
+  const a = e.target.closest?.('a[href^="http"], a[href^="mailto:"]');
+  if (!a) return;
+  const href = a.getAttribute('href') || '';
+  if (href.startsWith('http') && a.hostname === window.location.hostname) return;
+  track('outbound', {
+    url: href,
+    label: (a.textContent || '').trim().slice(0, 60),
+    kind: href.startsWith('mailto:') ? 'email' : 'link',
+  });
+
+  // If the click came from inside an open role, attribute it to that role.
+  const job = openJobId ? hubJobs().find(j => j.id === openJobId) : null;
+  logClick(job, href);
+}, true);
+
 /* ---------- boot ---------- */
+initTracking();
 wireHubCards();
 initData();
 new ResizeObserver(() => { if (view === 'list') measure(); }).observe(rail);
