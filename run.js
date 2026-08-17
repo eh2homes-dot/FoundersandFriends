@@ -48,17 +48,55 @@ function get(url, opts = {}) {
 }
 
 /** Strip HTML to readable text — descriptions arrive as markup from every ATS. */
+/**
+ * HTML to readable text.
+ *
+ * Greenhouse and some Workday tenants return content that is HTML-ESCAPED —
+ * `&lt;p&gt;` rather than `<p>`. Stripping tags before decoding entities would
+ * leave those escaped tags behind as visible text, which is exactly what
+ * happened. So: decode first, strip second, and repeat while the string keeps
+ * changing to catch double-escaping.
+ */
+function decodeEntities(s) {
+  return String(s)
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;|&#34;/gi, '"')
+    .replace(/&#39;|&apos;|&rsquo;|&#8217;/gi, "'")
+    .replace(/&ldquo;|&rdquo;|&#8220;|&#8221;/gi, '"')
+    .replace(/&ndash;|&#8211;/gi, '–')
+    .replace(/&mdash;|&#8212;/gi, '—')
+    .replace(/&hellip;|&#8230;/gi, '…')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
+    .replace(/&amp;/gi, '&');          // last, or it re-creates other entities
+}
+
+function stripTags(s) {
+  return String(s)
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<[^>]+>/g, '');
+}
+
 function toText(html) {
   if (!html) return '';
-  return String(html)
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|li|h[1-6])>/gi, '\n')
-    .replace(/<li[^>]*>/gi, '- ')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n))
-    .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+  let s = String(html);
+
+  // Alternate decode/strip until it settles. Two passes handles the normal
+  // double-escaped case; the cap stops a pathological input looping.
+  for (let i = 0; i < 4; i++) {
+    const before = s;
+    s = stripTags(decodeEntities(s));
+    if (s === before) break;
+  }
+
+  return s
+    .replace(/\r/g, '')
+    .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .replace(/[ \t]{2,}/g, ' ')
     .trim();
@@ -229,6 +267,32 @@ async function workday(company) {
  * job links; a JavaScript-rendered board returns nothing here, which is why
  * detect-ats.js refuses to assign this method unless it sees real links.
  */
+/**
+ * Navigation and call-to-action links live under /careers/ too, and the DOM
+ * adapter cannot tell them from postings by URL alone. "See all opportunities"
+ * got through an earlier exact-match filter and appeared on the board as a
+ * role, which is worse than missing a real one — it makes the whole feed look
+ * untrustworthy. When in doubt, drop it.
+ */
+function isNotAJob(title) {
+  const t = title.trim().toLowerCase().replace(/[.!→>»]+$/, '').trim();
+
+  // Whole-phrase CTAs and nav labels.
+  if (/^(apply|apply now|view|view all|view more|view jobs?|see all|see more|see jobs?|learn more|read more|explore|explore all|search|search jobs?|browse|browse jobs?|all jobs?|all openings?|open (roles?|positions?|jobs?)|current openings?|join us|join our team|work (with|for) us|careers?|jobs?|opportunities|life at .*|our (culture|team|values|benefits)|benefits|culture|diversity.*|back|next|previous|home|contact( us)?|sign in|log ?in|register|subscribe|newsletter|privacy.*|terms.*|cookie.*)$/i.test(t)) return true;
+
+  // Phrases that begin like a CTA — "See all opportunities", "View our openings".
+  if (/^(see|view|browse|explore|search|find|discover|check out|learn)\b.{0,40}\b(job|jobs|role|roles|opening|openings|opportunit\w*|position|positions|career|careers|team)\b/i.test(t)) return true;
+
+  // Location or department index pages rather than a specific posting.
+  if (/^(all|browse by|filter by|jobs in|careers in|openings in)\b/i.test(t)) return true;
+
+  // A bare number, a date, or a single short word is not a job title.
+  if (/^[\d\s\-–—/,.]+$/.test(t)) return true;
+  if (!/\s/.test(t) && t.length < 8) return true;
+
+  return false;
+}
+
 async function dom(company) {
   const res = await get(company.careersUrl);
   if (!res.ok) throw new Error('dom HTTP ' + res.status);
@@ -241,7 +305,7 @@ async function dom(company) {
     const href = m[1];
     const title = toText(m[2]).split('\n')[0].trim();
     if (!title || title.length < 3 || title.length > 140) continue;
-    if (/^(apply|view|learn more|see all|read more)$/i.test(title)) continue;
+    if (isNotAJob(title)) continue;
     const url = href.startsWith('http') ? href : new URL(href, res.url).href;
     if (!seen.has(url)) seen.set(url, { sourceId: url, title, location: 'See posting', url, description: '', postedAt: null, min: null, max: null });
   }
@@ -265,6 +329,7 @@ function normalise(raw, company) {
     title: String(raw.title).trim(),
     company: company.name,
     company_id: company.id,
+    priority: company.priority === true,
     category: categorise(raw.title),
     segment: segmentOf(company),
     level: levelOf(raw.title),
