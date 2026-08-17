@@ -1,0 +1,97 @@
+name: Scrape jobs
+
+# GitHub runs this for you — no server, no database, no cron on your Mac.
+# run.js writes site/jobs.json, beside site/index.html — the folder Cloudflare
+# serves. Committing it triggers a rebuild.
+on:
+  schedule:
+    # 06:00 and 18:00 UTC daily. GitHub's scheduler is best-effort and can lag
+    # by several minutes under load; fine for a job board.
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
+    inputs:
+      hub:
+        description: 'Which hub to scrape'
+        type: choice
+        options: [both, opco, proptech]
+        default: both
+      detect:
+        description: 'Re-detect ATS for companies with no scrape method'
+        type: boolean
+        default: false
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # The only permission this needs: writing the feed back to the repo.
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # No install step: run.js and scripts/detect-ats.js use only built-in
+      # Node APIs (fetch, fs, URL). Nothing to install, nothing to break.
+
+      - name: Detect ATS for new companies
+        if: inputs.detect
+        run: node scripts/detect-ats.js
+
+      - name: Scrape OpCo hub
+        if: inputs.hub != 'proptech'
+        run: node run.js --hub=opco --out=site/jobs.json
+
+      - name: Scrape PropTech hub
+        if: inputs.hub != 'opco'
+        run: node run.js --hub=proptech --out=site/jobs.json
+
+      # Guard against publishing a broken or empty feed. A scrape that fails
+      # halfway should leave yesterday's feed in place, not replace it with
+      # nothing — the site would show "no roles" and look shut down.
+      - name: Validate the feed before committing
+        run: |
+          node -e "
+            const fs = require('fs');
+            const raw = fs.readFileSync('site/jobs.json', 'utf8');
+            const data = JSON.parse(raw);
+            const jobs = Array.isArray(data) ? data : data.jobs;
+            if (!Array.isArray(jobs)) throw new Error('feed is not an array of jobs');
+            if (jobs.length === 0) throw new Error('feed is empty — refusing to publish');
+            const bad = jobs.filter(j => !j.id || !j.title || !j.company);
+            if (bad.length) throw new Error(bad.length + ' rows missing id, title or company');
+            console.log('feed ok: ' + jobs.length + ' jobs');
+          "
+
+      - name: Commit the feed (and any newly detected ATS methods)
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add site/jobs.json config.js
+          if git diff --staged --quiet; then
+            echo "No change since the last scrape — nothing to commit."
+            exit 0
+          fi
+          COUNT=$(node -e "const d=require('./site/jobs.json');console.log((d.jobs||d).length)")
+          git commit -m "Update job feed: $COUNT roles"
+          git push
+
+      - name: Report
+        if: always()
+        run: |
+          echo "### Scrape run" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Finished: $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- Result: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f site/jobs.json ]; then
+            echo "- Roles in feed: $(node -e "const d=require('./site/jobs.json');console.log((d.jobs||d).length)")" >> $GITHUB_STEP_SUMMARY
+          fi
