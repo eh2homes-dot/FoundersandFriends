@@ -1,0 +1,2878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Founders &amp; Friends — OpCo Hub (Preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ==========================================================================
+   Founders & Friends — OpCo Hub
+   Standalone preview. Everything inline, no build step, no database.
+   ========================================================================== */
+
+:root{
+  --void:#07040F; --abyss:#0B0618;
+  --purple-deep:#120826; --purple-mid:#2B1055; --purple-edge:#5A2FA8;
+  --purple-bright:#7F4DE0;
+  /* small purple type needs its own brighter token or it drops under AA */
+  --purple-text:#A98FEC;
+  --green:#00FF88; --green-deep:#00CC66;
+  --cyan:#3BE8FF; --cyan-deep:#12A9C9; --tint:rgba(10,15,20,.85);
+  --silver:#C8C5DA; --silver-bright:#F4F3FA;
+  --ink:#F6F4FF; --ink-soft:#CFC9E4; --ink-dim:#9D95BD;
+  --line:rgba(200,197,218,.12);
+  --head:'Bricolage Grotesque',sans-serif;
+  --body:'Onest',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--void)}
+body{
+  font-family:var(--body);color:var(--ink);font-size:16.5px;line-height:1.62;
+  letter-spacing:.004em;-webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;overflow-x:hidden;min-height:100vh;
+  background:transparent;
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+::selection{background:var(--green);color:#04120A}
+:focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:4px}
+
+/* Background: the tint is baked into the same declaration as the photo, so the
+   image can never appear untinted for a frame.
+   ---------------------------------------------------------------------------
+   TO USE A REAL PHOTOGRAPH: drop handshake.jpg beside this file and replace the
+   data: URI below with url('handshake.jpg'). Nothing else changes.
+   The data URI is a drawn handshake scene — a standalone file cannot fetch a
+   stock photo, and at 15%% visibility through the tint it reads the same. */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-4;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(10,15,20,.85), rgba(10,15,20,.85)),
+    url("data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%201600%20900%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%20%3Cdefs%3E%20%3CradialGradient%20id%3D%22keylight%22%20cx%3D%2250%25%22%20cy%3D%2242%25%22%20r%3D%2252%25%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23dfe6ee%22%2F%3E%3Cstop%20offset%3D%2255%25%22%20stop-color%3D%22%235a6472%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2311151b%22%2F%3E%20%3C%2FradialGradient%3E%20%3ClinearGradient%20id%3D%22sleeve%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%232c3440%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%230d1117%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22skin%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23c9b3a2%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%237d6b5e%22%2F%3E%20%3C%2FlinearGradient%3E%20%3Cfilter%20id%3D%22soft%22%3E%3CfeGaussianBlur%20stdDeviation%3D%227%22%2F%3E%3C%2Ffilter%3E%20%3Cfilter%20id%3D%22softer%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2220%22%2F%3E%3C%2Ffilter%3E%20%3C%2Fdefs%3E%20%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url%28%23keylight%29%22%2F%3E%20%3C%21--%20two%20figures%2C%20thrown%20out%20of%20focus%20behind%20the%20handshake%20--%3E%20%3Cg%20filter%3D%22url%28%23softer%29%22%20opacity%3D%22.85%22%3E%20%3Cellipse%20cx%3D%22340%22%20cy%3D%22250%22%20rx%3D%22118%22%20ry%3D%22132%22%20fill%3D%22%2339424f%22%2F%3E%20%3Cpath%20d%3D%22M120%20900c0-236%2098-372%20220-372s220%20136%20220%20372z%22%20fill%3D%22%23232a34%22%2F%3E%20%3Cellipse%20cx%3D%221265%22%20cy%3D%22262%22%20rx%3D%22115%22%20ry%3D%22128%22%20fill%3D%22%23333b47%22%2F%3E%20%3Cpath%20d%3D%22M1050%20900c0-232%2096-366%20215-366s215%20134%20215%20366z%22%20fill%3D%22%231e242d%22%2F%3E%20%3C%2Fg%3E%20%3C%21--%20forearms%20meeting%20in%20the%20middle%20--%3E%20%3Cg%20filter%3D%22url%28%23soft%29%22%3E%20%3Cpath%20d%3D%22M300%20690%20L690%20505%20L742%20596%20L352%20781%20Z%22%20fill%3D%22url%28%23sleeve%29%22%2F%3E%20%3Cpath%20d%3D%22M1300%20690%20L910%20505%20L858%20596%20L1248%20781%20Z%22%20fill%3D%22url%28%23sleeve%29%22%2F%3E%20%3Crect%20x%3D%22640%22%20y%3D%22470%22%20width%3D%2270%22%20height%3D%22120%22%20rx%3D%2214%22%20transform%3D%22rotate%28-25%20675%20530%29%22%20fill%3D%22%23e9eef4%22%20opacity%3D%22.5%22%2F%3E%20%3Crect%20x%3D%22890%22%20y%3D%22470%22%20width%3D%2270%22%20height%3D%22120%22%20rx%3D%2214%22%20transform%3D%22rotate%2825%20925%20530%29%22%20fill%3D%22%23e9eef4%22%20opacity%3D%22.5%22%2F%3E%20%3C%2Fg%3E%20%3C%21--%20the%20clasp%20--%3E%20%3Cg%20filter%3D%22url%28%23soft%29%22%3E%20%3Cpath%20d%3D%22M690%20512c34-26%2096-30%20140-8%2046%2023%2078%2026%20112%2012%2026-11%2044%206%2040%2030-6%2036-52%2074-108%2088-64%2016-132%204-176-26-34-23-42-70-8-96z%22%20fill%3D%22url%28%23skin%29%22%2F%3E%20%3Cpath%20d%3D%22M742%20556c40-14%2088-10%20122%208%2020%2011%2034%208%2046%200%22%20fill%3D%22none%22%20stroke%3D%22%235d5048%22%20stroke-width%3D%225%22%20opacity%3D%22.55%22%2F%3E%20%3Cpath%20d%3D%22M736%20596c44%2018%20106%2020%20152%202%22%20fill%3D%22none%22%20stroke%3D%22%234a3f39%22%20stroke-width%3D%224%22%20opacity%3D%22.45%22%2F%3E%20%3C%2Fg%3E%20%3Cellipse%20cx%3D%22800%22%20cy%3D%22560%22%20rx%3D%22300%22%20ry%3D%22190%22%20fill%3D%22%23ffffff%22%20opacity%3D%22.07%22%20filter%3D%22url%28%23softer%29%22%2F%3E%20%3C%2Fsvg%3E");
+  background-size:cover,cover;
+  background-position:center,center;
+  background-repeat:no-repeat,no-repeat;
+}
+
+body::after{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    linear-gradient(rgba(200,197,218,.04) 1px,transparent 1px) 0 0/100% 46px,
+    linear-gradient(90deg,rgba(200,197,218,.04) 1px,transparent 1px) 0 0/46px 100%,
+    radial-gradient(circle at 82% 2%,rgba(90,47,168,.42),transparent 52%),
+    radial-gradient(circle at 4% 92%,rgba(0,255,136,.10),transparent 50%),
+    linear-gradient(180deg,#0B0618,#120826 44%,#07040F 88%);
+}
+
+h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+
+.eyebrow{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--purple-text);display:flex;align-items:center;gap:10px;
+}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
+.eyebrow.green{color:var(--green)}
+
+.laser-rule{
+  height:1px;border:0;opacity:.45;
+  background:linear-gradient(90deg,transparent,var(--green) 16%,var(--silver-bright) 48%,var(--purple-bright) 80%,transparent);
+}
+
+/* ---------- HEADER ---------- */
+.board-header{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:16px;
+  padding:14px 5vw;background:rgba(11,6,24,.82);
+  backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:13px;min-width:0}
+.brand-mark{
+  width:42px;height:42px;flex:none;border-radius:11px;display:grid;place-items:center;color:var(--green);
+  background:linear-gradient(150deg,rgba(90,47,168,.55),rgba(11,6,24,.9));
+  border:1px solid rgba(0,255,136,.28);
+  box-shadow:inset 0 1px 0 rgba(244,243,250,.1),0 0 22px rgba(0,255,136,.14);
+}
+.brand-mark svg{width:24px;height:24px;display:block}
+.brand-text{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.admin-link{
+  margin-left:auto;padding:9px 18px;border-radius:100px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:#fff;background:linear-gradient(135deg,var(--purple-bright),var(--purple-mid));
+  border:1px solid rgba(0,255,136,.24);box-shadow:0 6px 20px rgba(43,16,85,.5);
+  white-space:nowrap;cursor:pointer;transition:box-shadow .25s,transform .2s;
+}
+.admin-link:hover{box-shadow:0 0 0 1px var(--green),0 8px 26px rgba(0,255,136,.2);transform:translateY(-1px)}
+
+/* the wordmark the beam runs through */
+.ff-wordmark{
+  position:relative;
+  -webkit-mask-image:linear-gradient(90deg,#000,#000);
+  mask-image:linear-gradient(90deg,#000,#000);
+  font-family:var(--head);font-weight:700;
+  font-size:clamp(1.05rem,2.6vw,1.4rem);letter-spacing:-.02em;line-height:1.15;
+  display:block;color:var(--silver-bright);white-space:nowrap;
+}
+.ff-char{
+  display:inline-block;white-space:pre;position:relative;
+  /* --c is set per character in JS: a green-to-purple ramp across the word.
+     Falls back to silver if the script has not run. */
+  color:var(--c, var(--silver-bright));
+}
+/* Idle state: a slow wave travels the wordmark continuously, so the mark is
+   alive without demanding attention. The strike below overrides it on events. */
+.ff-char{
+  animation:ff-wave 7.5s ease-in-out infinite;
+  animation-delay:calc(var(--i) * 95ms);
+  will-change:transform,color;
+}
+/* a specular highlight passing across the mark every few seconds */
+.ff-wordmark::after{
+  content:"";position:absolute;inset:-4px -10px;pointer-events:none;
+  background:linear-gradient(115deg,transparent 38%,rgba(0,255,136,.20) 47%,rgba(255,255,255,.14) 50%,rgba(127,77,224,.22) 53%,transparent 62%);
+  transform:translateX(-130%);
+  animation:ff-sheen 11s cubic-bezier(.5,0,.5,1) infinite;
+}
+@keyframes ff-sheen{
+  0%,62%{transform:translateX(-130%)}
+  86%,100%{transform:translateX(130%)}
+}
+
+@keyframes ff-wave{
+  0%,72%,100%{
+    transform:translateY(0);
+    color:var(--c, var(--silver-bright));
+    text-shadow:0 0 12px color-mix(in srgb, var(--c, #fff) 35%, transparent);
+  }
+  8%{
+    transform:translateY(-2.5px);
+    color:#fff;
+    text-shadow:0 0 16px var(--c, #fff), 0 0 32px color-mix(in srgb, var(--c, #fff) 60%, transparent);
+  }
+  20%{
+    transform:translateY(0);
+    color:var(--c, var(--silver-bright));
+    text-shadow:0 0 12px color-mix(in srgb, var(--c, #fff) 35%, transparent);
+  }
+}
+}
+
+/* Event state: a hard beam that outruns the idle wave. */
+.ff-wordmark.is-lit .ff-char{
+  animation:ff-strike 900ms cubic-bezier(.22,1,.36,1) both !important;
+  animation-delay:calc(var(--i) * 42ms);
+}
+@keyframes ff-strike{
+  0%{color:var(--c, var(--silver-bright));text-shadow:none;transform:translateY(0) scale(1)}
+  22%{color:var(--green);text-shadow:0 0 18px rgba(0,255,136,.95),0 0 44px rgba(0,255,136,.55);transform:translateY(-5px) scale(1.045)}
+  48%{color:#fff;text-shadow:0 0 26px rgba(255,255,255,.95),0 0 60px rgba(0,255,136,.6);transform:translateY(-3px) scale(1.03)}
+  74%{color:var(--purple-bright);text-shadow:0 0 22px rgba(127,77,224,.95),0 0 50px rgba(90,47,168,.7);transform:translateY(-1px) scale(1.01)}
+  100%{color:var(--c, var(--silver-bright));text-shadow:none;transform:translateY(0) scale(1)}
+}
+
+@media(max-width:520px){
+  .board-header{padding:12px 4vw;gap:11px}
+  .brand-mark{width:36px;height:36px;border-radius:9px}
+  .brand-mark svg{width:20px;height:20px}
+  .admin-link{padding:8px 13px;font-size:11px}
+}
+
+/* ---------- HERO ---------- */
+.board-hero{padding:60px 5vw 0;max-width:1240px;margin:0 auto}
+.hero-inner{max-width:900px;padding-bottom:44px}
+.board-hero h1{
+  font-size:clamp(2.3rem,6vw,4rem);line-height:1.03;margin-top:20px;color:#fff;
+  text-shadow:0 2px 26px rgba(7,4,15,.9);
+}
+.board-hero h1 .accent{
+  background:linear-gradient(100deg,var(--green) 0%,var(--silver-bright) 46%,var(--purple-text) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+.hero-sub{margin-top:22px;font-size:clamp(1rem,1.5vw,1.15rem);line-height:1.7;color:var(--ink-soft);max-width:56ch}
+
+
+/* ---------- hub cards under the hero ---------- */
+.hub-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:34px}
+@media(max-width:760px){.hub-cards{grid-template-columns:1fr}}
+
+.hub-card{
+  position:relative;display:flex;flex-direction:column;gap:13px;
+  padding:24px 26px 22px;border-radius:18px;overflow:hidden;cursor:pointer;
+  border:1px solid var(--line);
+  background:linear-gradient(150deg,rgba(43,16,85,.46),rgba(11,6,24,.86));
+  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
+  box-shadow:inset 0 1px 0 rgba(244,243,250,.06),0 18px 44px rgba(4,2,10,.42);
+  transition:border-color .3s,transform .25s var(--ease),box-shadow .3s;
+}
+/* a hairline of the hub's own colour down the leading edge */
+.hub-card::before{
+  content:"";position:absolute;left:0;top:20px;bottom:20px;width:2px;border-radius:2px;
+  background:linear-gradient(180deg,var(--hue),transparent);opacity:.5;transition:opacity .3s;
+}
+.hub-card:hover{transform:translateY(-3px)}
+.hub-card:hover::before,.hub-card.is-current::before{opacity:1}
+.hub-card.opco{--hue:var(--green)}
+.hub-card.proptech{--hue:var(--purple-bright)}
+.hub-card.opco:hover,.hub-card.opco.is-current{border-color:rgba(0,255,136,.42);box-shadow:0 0 0 1px rgba(0,255,136,.14),0 24px 56px rgba(4,2,10,.5)}
+.hub-card.proptech:hover,.hub-card.proptech.is-current{border-color:rgba(127,77,224,.52);box-shadow:0 0 0 1px rgba(127,77,224,.18),0 24px 56px rgba(4,2,10,.5)}
+
+.hc-top{display:flex;align-items:center;gap:13px}
+.hc-mark{
+  width:44px;height:44px;flex:none;border-radius:12px;display:grid;place-items:center;
+  color:var(--hue);border:1px solid currentColor;
+  background:rgba(7,4,15,.6);box-shadow:0 0 22px -6px currentColor;
+}
+.hc-mark svg{width:23px;height:23px;display:block}
+.hc-name{font-family:var(--head);font-size:19px;font-weight:600;letter-spacing:-.01em;color:var(--ink);display:block}
+.hc-kicker{
+  display:block;margin-top:3px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-dim);
+}
+.hc-count{
+  margin-left:auto;flex:none;
+  font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  padding:5px 12px;border-radius:100px;color:var(--hue);
+  border:1px solid currentColor;background:rgba(7,4,15,.5);white-space:nowrap;
+}
+.hc-body{font-size:14px;line-height:1.6;color:var(--ink-soft)}
+.hc-go{
+  margin-top:3px;display:inline-flex;align-items:center;gap:9px;width:fit-content;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--hue);border-bottom:1px solid transparent;transition:gap .25s,border-color .25s;
+}
+.hub-card:hover .hc-go{gap:14px;border-color:currentColor}
+
+/* ---------- CONTROLS ---------- */
+.board{padding:32px 5vw 90px;max-width:1240px;margin:0 auto}
+.board-controls{display:flex;flex-direction:column;gap:18px;margin-bottom:10px}
+.search-field{position:relative;display:flex;align-items:center;max-width:620px}
+.search-field svg{position:absolute;left:18px;width:19px;height:19px;color:var(--ink-dim);pointer-events:none}
+.search-field input{
+  width:100%;font-family:var(--body);font-size:15.5px;color:var(--ink);
+  padding:15px 18px 15px 48px;border-radius:100px;border:1px solid var(--line);
+  background:linear-gradient(150deg,rgba(43,16,85,.45),rgba(11,6,24,.82));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:border-color .25s,box-shadow .25s;
+}
+.search-field input::placeholder{color:rgba(157,149,189,.75)}
+.search-field input:focus{
+  outline:none;border-color:var(--green);
+  box-shadow:0 0 0 3px rgba(0,255,136,.14),0 0 30px rgba(0,255,136,.12);
+}
+.pill-row{display:flex;gap:9px;flex-wrap:wrap}
+.filter-pill{
+  padding:9px 18px;border-radius:100px;font-size:13.5px;font-weight:600;
+  color:var(--ink-soft);border:1px solid var(--line);background:rgba(11,6,24,.6);
+  backdrop-filter:blur(10px);cursor:pointer;white-space:nowrap;
+  transition:color .2s,border-color .2s,background .2s,transform .15s;
+}
+.filter-pill:hover{color:var(--ink);border-color:rgba(200,197,218,.3);transform:translateY(-1px)}
+.filter-pill.is-on{
+  color:#04120A;background:linear-gradient(135deg,var(--green),var(--green-deep));
+  border-color:var(--green);box-shadow:0 0 24px rgba(0,255,136,.32);
+}
+.result-count{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
+
+/* ---------- RAIL ---------- */
+.rail{
+  position:relative;display:grid;
+  /* cards on the left, target centred in the right — the empty half is the
+     channel the weblines run through, and it is the point of the layout */
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:0;align-items:start;padding:26px 0 10px;
+}
+.rail-left{max-width:540px}
+.rail-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:1}
+.rail-left{position:relative;z-index:2;display:flex;flex-direction:column;gap:16px}
+.rail-jobs{display:flex;flex-direction:column;gap:12px;position:relative}
+
+/* the three cards on a page arrive together, from whichever side you came */
+@keyframes slide-from-right{from{opacity:0;transform:translateX(42px)}to{opacity:1;transform:none}}
+@keyframes slide-from-left{from{opacity:0;transform:translateX(-42px)}to{opacity:1;transform:none}}
+.rail-jobs.from-right{animation:slide-from-right .44s cubic-bezier(.22,1,.36,1)}
+.rail-jobs.from-left{animation:slide-from-left .44s cubic-bezier(.22,1,.36,1)}
+
+/* dots and lines stay hidden mid-slide — their geometry is stale until the
+   cards have landed */
+.rail.is-sliding .rail-dots,.rail.is-sliding .rail-lines{opacity:0;transition:none}
+.rail-dots,.rail-lines{transition:opacity .2s ease}
+
+.rail-nav{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:2px}
+.nav-arrows{display:flex;align-items:center;gap:12px}
+.nav-arrow{
+  width:40px;height:40px;border-radius:11px;display:grid;place-items:center;
+  border:1px solid var(--line);background:rgba(11,6,24,.7);color:var(--ink-soft);
+  backdrop-filter:blur(10px);cursor:pointer;font-size:16px;line-height:1;
+  transition:color .2s,border-color .2s,background .2s,transform .18s,box-shadow .2s;
+}
+.nav-arrow:hover:not(:disabled){
+  color:#04120A;background:linear-gradient(135deg,var(--green),var(--green-deep));
+  border-color:var(--green);box-shadow:0 0 22px rgba(0,255,136,.34);transform:translateY(-1px);
+}
+.nav-arrow:disabled{opacity:.32;cursor:not-allowed}
+.page-num{
+  font-family:var(--mono);font-size:12px;letter-spacing:.18em;
+  color:var(--green);text-shadow:0 0 12px rgba(0,255,136,.5);
+}
+.page-num em{font-style:normal;color:var(--ink-dim);text-shadow:none}
+
+.job-card{
+  position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+  gap:16px;align-items:center;padding:14px 18px;border-radius:12px;min-height:128px;
+  background:linear-gradient(150deg,rgba(43,16,85,.46),rgba(11,6,24,.84));
+  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
+  border:1px solid var(--line);
+  box-shadow:inset 0 1px 0 rgba(244,243,250,.06),0 18px 44px rgba(4,2,10,.4);
+  transition:border-color .25s,box-shadow .25s,transform .25s;
+}
+/* a hairline of neon on the leading edge, brightening on hover */
+.job-card::before{
+  content:"";position:absolute;left:0;top:11px;bottom:11px;width:2px;border-radius:2px;
+  background:linear-gradient(180deg,var(--green),rgba(90,47,168,.7));opacity:.45;transition:opacity .25s;
+}
+.job-card:hover,.job-card.is-active{
+  border-color:rgba(0,255,136,.34);
+  box-shadow:inset 0 1px 0 rgba(244,243,250,.08),0 0 0 1px rgba(0,255,136,.12),0 22px 54px rgba(4,2,10,.5);
+}
+.job-card:hover::before,.job-card.is-active::before,.job-card.is-opened::before{opacity:1}
+.job-card.is-opened{border-color:rgba(0,255,136,.5)}
+
+.job-index{
+  width:32px;height:32px;flex:none;border-radius:9px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:15px;font-weight:500;color:var(--purple-text);
+  border:1px solid rgba(90,47,168,.45);background:rgba(90,47,168,.14);
+  transition:color .25s,border-color .25s,background .25s;
+}
+.job-card:hover .job-index{color:var(--green);border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.1)}
+
+.job-main{min-width:0;display:flex;flex-direction:column;justify-content:center}
+.job-title{font-family:var(--head);font-size:16px;font-weight:600;line-height:1.24;color:var(--ink)}
+.job-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:3px;font-size:12.5px;color:var(--ink-dim)}
+.job-company{color:var(--green);font-weight:600}
+.sep{opacity:.42}
+.job-summary{font-size:12.5px;color:var(--ink-soft);margin-top:5px;line-height:1.45}
+
+.job-side{display:flex;align-items:center;gap:14px;justify-content:flex-end;align-self:center}
+.job-stamp{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-dim);white-space:nowrap}
+.job-type{text-transform:capitalize}
+.job-comp{font-family:var(--mono);font-size:12px;color:var(--silver-bright);white-space:nowrap}
+.dot-hint{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-dim);white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none;
+}
+.job-card:hover .dot-hint,.job-card.is-active .dot-hint{opacity:1}
+/* invisible slot — the curve starts at its centre */
+.drag-anchor{display:inline-block;width:34px;height:34px;flex:none}
+
+/* dots live in one overlay so a drag is never interrupted by a re-render */
+.rail-dots{position:absolute;inset:0;z-index:30;pointer-events:none}
+.drag-dot{
+  position:absolute;width:34px;height:34px;border-radius:50%;margin:0;
+  transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none;
+  border:2px solid var(--green);
+  background:radial-gradient(circle at 34% 30%,#fff,var(--green) 42%,var(--green-deep) 100%);
+  box-shadow:0 0 0 6px rgba(0,255,136,.1),0 0 22px rgba(0,255,136,.55);
+  transition:box-shadow .2s,transform .18s;
+}
+.drag-dot::after{
+  content:"";position:absolute;inset:-7px;border-radius:50%;
+  border:1px solid var(--green);opacity:.45;animation:pulse-ring 2.8s ease-out infinite;
+}
+.drag-dot.is-dragging{
+  cursor:grabbing;transform:translate(-50%,-50%) scale(1.12);
+  box-shadow:0 0 0 10px rgba(0,255,136,.14),0 0 34px rgba(0,255,136,.8);
+}
+.drag-dot.is-dragging::after,.drag-dot.is-flying::after{opacity:0;animation:none}
+@keyframes pulse-ring{
+  0%{transform:scale(.85);opacity:.6}
+  80%{transform:scale(2);opacity:0}
+  100%{opacity:0}
+}
+
+/* the glowing line — three states: unconnected, running, connected */
+
+/* the track. pathLength=1 lets one dash cover the whole curve, so the draw-on
+   is a single dashoffset from 1 to 0 no matter how long the path is */
+.rail-path{
+  fill:none;stroke:rgba(200,197,218,.16);stroke-width:1.5;
+  stroke-dasharray:1;stroke-dashoffset:1;
+  /* ease-IN: the line creeps out of the node, then accelerates as it lands */
+  transition:stroke-dashoffset 1.05s cubic-bezier(.42,0,.7,.28);
+}
+.line-g.is-connected .rail-path{stroke-dashoffset:0}
+
+/* the runner — a short bright pulse that races the length of the curve once,
+   so you actually see the connection being made */
+.rail-runner{
+  fill:none;stroke:var(--green);stroke-width:2.5;stroke-linecap:round;
+  stroke-dasharray:.14 1;stroke-dashoffset:1;opacity:0;
+  filter:drop-shadow(0 0 9px rgba(0,255,136,.95));
+}
+.line-g.is-connected .rail-runner{animation:runner 1.05s cubic-bezier(.42,0,.7,.28) forwards}
+@keyframes runner{
+  0%{stroke-dashoffset:1;opacity:0;stroke-width:2}
+  8%{opacity:1}
+  /* it stretches as it picks up speed, then snaps out at the target */
+  70%{stroke-width:2.5}
+  92%{opacity:1;stroke-width:3.4}
+  100%{stroke-dashoffset:-.14;opacity:0;stroke-width:2}
+}
+
+/* the idle crawl only starts once the line has landed */
+.rail-path-dash{
+  fill:none;stroke:rgba(0,255,136,.4);stroke-width:1.5;stroke-dasharray:3 10;
+  opacity:0;transition:opacity .4s ease .8s;
+}
+.line-g.is-connected .rail-path-dash{opacity:1;animation:rail-crawl 1.4s linear infinite}
+@keyframes rail-crawl{to{stroke-dashoffset:-13}}
+
+.rail-path-glow{
+  fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;
+  filter:drop-shadow(0 0 6px rgba(0,255,136,.9));
+}
+
+
+/* the View target */
+.rail-target{
+  position:relative;z-index:2;justify-self:center;align-self:start;width:176px;
+  /* pushed off centre toward the right edge of the channel */
+  margin-left:clamp(20px,7vw,110px);
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:22px 14px;border-radius:16px;border:1px dashed rgba(200,197,218,.26);
+  background:linear-gradient(160deg,rgba(43,16,85,.4),rgba(11,6,24,.7));
+  backdrop-filter:blur(12px);
+  transition:border-color .25s,box-shadow .25s,background .25s,transform .25s;
+}
+.rail-target.is-armed{
+  border-style:solid;border-color:var(--green);
+  background:linear-gradient(160deg,rgba(0,255,136,.14),rgba(43,16,85,.62));
+  box-shadow:0 0 0 8px rgba(0,255,136,.1),0 0 46px rgba(0,255,136,.4);
+  transform:scale(1.04);
+}
+.target-ring{
+  width:64px;height:64px;border-radius:50%;border:2px solid rgba(200,197,218,.3);
+  display:grid;place-items:center;font-family:var(--head);font-weight:700;
+  font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);
+  transition:color .25s,border-color .25s,box-shadow .25s,background .25s;
+}
+.rail-target.is-armed .target-ring{
+  color:#04120A;border-color:var(--green);background:var(--green);
+  box-shadow:inset 0 0 18px rgba(255,255,255,.5);
+}
+.target-label{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim);text-align:center;line-height:1.5;max-width:15ch}
+
+.rail-empty{
+  padding:44px 26px;text-align:center;border:1px dashed var(--line);
+  border-radius:16px;color:var(--ink-soft);
+}
+.rail-empty strong{display:block;font-family:var(--head);font-size:17px;color:var(--ink);margin-bottom:6px}
+
+@media(max-width:1180px){
+  .rail{grid-template-columns:minmax(0,1fr) minmax(0,.72fr)}
+  .rail-left{max-width:none}
+}
+@media(max-width:900px){
+  .rail{grid-template-columns:minmax(0,1fr);gap:30px}
+  .rail-left{max-width:none}
+  .rail-target{justify-self:stretch;width:auto;margin-left:0;transform:none!important}
+  .rail-target{position:static;flex-direction:row;justify-content:center;gap:18px}
+  .target-label{text-align:left;max-width:22ch}
+}
+@media(max-width:680px){
+  .job-card{grid-template-columns:auto minmax(0,1fr);gap:14px;padding:16px 18px}
+  .job-side{grid-column:1/-1;justify-content:flex-start;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
+  .dot-hint{opacity:1}
+  .job-summary{display:none}
+}
+
+/* ---------- DRAWER ---------- */
+.drawer-scrim{position:fixed;inset:0;z-index:120;background:rgba(7,4,15,.72);backdrop-filter:blur(8px);animation:fade-in .25s ease both}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;z-index:121;width:min(560px,100vw);
+  display:flex;flex-direction:column;
+  background:linear-gradient(200deg,rgba(43,16,85,.94),rgba(7,4,15,.99));
+  border-left:1px solid rgba(0,255,136,.24);box-shadow:-30px 0 90px rgba(0,0,0,.7);
+  animation:drawer-in .42s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes drawer-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.drawer-top{padding:26px 30px 20px;border-bottom:1px solid var(--line);position:relative}
+.drawer-top::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,var(--green),transparent 70%)}
+.drawer h2{font-size:24px;line-height:1.2;margin-top:12px}
+.drawer-company{color:var(--ink-soft);font-size:14.5px;margin-top:6px}
+.drawer-close{
+  position:absolute;top:22px;right:24px;width:34px;height:34px;border-radius:9px;
+  border:1px solid var(--line);background:rgba(7,4,15,.6);color:var(--ink-soft);
+  cursor:pointer;display:grid;place-items:center;font-size:15px;transition:color .2s,border-color .2s;
+}
+.drawer-close:hover{color:var(--green);border-color:var(--green)}
+.job-meta{display:flex;flex-wrap:wrap;gap:6px 8px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.chip{padding:3px 9px;border-radius:100px;border:1px solid var(--line);color:var(--ink-dim);background:rgba(7,4,15,.5)}
+.chip.cat{color:var(--green);border-color:rgba(0,255,136,.35);background:rgba(0,255,136,.07)}
+.chip.seg{color:var(--silver-bright);border-color:rgba(200,197,218,.3)}
+.drawer-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.drawer-fact{background:rgba(7,4,15,.6);padding:14px 18px}
+.drawer-fact dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:4px}
+.drawer-fact dd{font-size:14px;color:var(--ink);font-weight:600}
+.drawer-body{padding:26px 30px;overflow-y:auto;flex:1}
+.drawer-body p{color:var(--ink-soft);font-size:15px;line-height:1.72;margin-bottom:14px;white-space:pre-wrap}
+.drawer-foot{padding:20px 30px 26px;border-top:1px solid var(--line)}
+.cta-mega{
+  display:block;width:100%;text-align:center;padding:15px 34px;border-radius:100px;cursor:pointer;
+  background:linear-gradient(135deg,var(--purple-bright),var(--purple-mid));
+  border:1px solid rgba(0,255,136,.3);color:#fff;
+  font-family:var(--head);font-weight:700;font-size:.9rem;letter-spacing:.07em;text-transform:uppercase;
+  position:relative;overflow:hidden;transition:transform .2s;
+}
+.cta-mega::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(115deg,transparent 30%,rgba(0,255,136,.32) 50%,transparent 70%);
+  transform:translateX(-120%);transition:transform .7s cubic-bezier(.22,1,.36,1);
+}
+.cta-mega:hover{transform:translateY(-2px)}
+.cta-mega:hover::after{transform:translateX(120%)}
+@media(max-width:560px){.drawer{width:100vw}.drawer-facts{grid-template-columns:1fr}}
+
+
+
+/* ==========================================================================
+   MATCHING WEB
+   Role families on the left, companies on the right, a thread wherever a
+   posting exists between them.
+   ========================================================================== */
+
+.view-toggle{display:inline-flex;padding:3px;border-radius:100px;border:1px solid var(--line);background:rgba(11,6,24,.7);backdrop-filter:blur(10px)}
+.view-toggle button{
+  padding:7px 20px;border-radius:100px;border:0;background:transparent;cursor:pointer;
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-dim);transition:color .2s,background .2s,box-shadow .2s;
+}
+.view-toggle button.is-on{
+  color:#04120A;background:linear-gradient(135deg,var(--cyan),var(--green));
+  box-shadow:0 0 20px rgba(59,232,255,.35);
+}
+
+.stat-line{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-dim);
+}
+.stat-line b{color:var(--cyan);font-weight:500;text-shadow:0 0 12px rgba(59,232,255,.5)}
+.stat-line .bullet{opacity:.35}
+.controls-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:space-between}
+
+/* ---------- canvas ---------- */
+.web-wrap{
+  position:relative;margin-top:18px;border-radius:20px;overflow:hidden;
+  border:1px solid var(--line);
+  background:linear-gradient(150deg,rgba(43,16,85,.28),rgba(7,10,16,.72));
+  backdrop-filter:blur(8px);
+}
+.web-wrap::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 16% 50%,rgba(59,232,255,.10),transparent 42%),
+    radial-gradient(circle at 84% 50%,rgba(0,255,136,.09),transparent 42%);
+}
+#web{display:block;width:100%;height:560px;touch-action:none}
+@media(max-width:900px){#web{height:640px}}
+
+.web-link{fill:none;stroke:url(#thread);stroke-width:1.2;opacity:.5;transition:stroke-width .25s,opacity .25s}
+.web-link.is-lit{stroke:url(#threadLit);stroke-width:2.6;opacity:1;filter:drop-shadow(0 0 6px rgba(0,255,136,.8))}
+
+.web-hit{fill:none;stroke:transparent;stroke-width:18;cursor:pointer}
+
+.web-particle{fill:var(--green);filter:drop-shadow(0 0 6px rgba(0,255,136,.95))}
+.web-particle.lit{fill:#fff;filter:drop-shadow(0 0 9px rgba(255,255,255,1))}
+
+.lg-dot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+  vertical-align:middle;margin-right:3px;position:relative;top:-1px;
+}
+.lg-dot.job{background:var(--green);box-shadow:0 0 7px var(--green)}
+.lg-dot.co{background:transparent;border:2px solid var(--purple-bright);box-shadow:0 0 7px rgba(127,77,224,.7)}
+
+/* Job dots — green. One per open role. */
+.node-job circle.core{
+  fill:var(--green);stroke:#04120A;stroke-width:1.5;
+  filter:drop-shadow(0 0 5px rgba(0,255,136,.55));
+  transition:all .25s;
+}
+.node-job circle.halo{fill:none;stroke:var(--green);stroke-width:1;opacity:.28}
+.node-job text.lbl{fill:var(--ink-soft);font-family:var(--body);font-size:11px;font-weight:500}
+.node-job.is-lit circle.core{
+  fill:#fff;stroke:var(--green);stroke-width:2;
+  filter:drop-shadow(0 0 14px rgba(0,255,136,1));
+}
+.node-job.is-lit circle.halo{opacity:.9}
+.node-job.is-lit text.lbl{fill:#fff}
+
+/* Company dots — purple. Sized by how much they are hiring. */
+.node-co circle.core{
+  fill:rgba(7,10,16,.92);stroke:var(--purple-bright);stroke-width:2.5;
+  filter:drop-shadow(0 0 6px rgba(127,77,224,.5));
+  transition:all .25s;
+}
+.node-co circle.halo{fill:none;stroke:var(--purple-bright);stroke-width:1;opacity:.3}
+.node-co text.n{
+  fill:var(--purple-text);font-family:var(--mono);font-size:12px;font-weight:500;
+  text-anchor:middle;dominant-baseline:central;
+}
+.node-co text.lbl{fill:var(--ink);font-family:var(--body);font-size:12.5px;font-weight:600}
+.node-co text.sub{
+  fill:var(--ink-dim);font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.11em;text-transform:uppercase;
+}
+.node-co.is-lit circle.core{
+  fill:var(--purple-bright);stroke:#fff;
+  filter:drop-shadow(0 0 18px rgba(127,77,224,.95));
+}
+.node-co.is-lit circle.halo{opacity:.9}
+.node-co.is-lit text.n{fill:#fff}
+.node-co.is-lit text.lbl{fill:#fff}
+
+.web-node{cursor:pointer}
+/* anything not part of the hovered pathway recedes */
+#web.is-focused .web-link:not(.is-lit){opacity:.10}
+#web.is-focused .web-node:not(.is-lit){opacity:.24}
+#web.is-focused .web-particle:not(.lit){opacity:.12}
+.web-node,.web-link,.web-particle{transition:opacity .25s}
+
+.col-head{fill:var(--ink-dim);font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase}
+.web-hint{
+  position:absolute;left:0;right:0;bottom:12px;text-align:center;pointer-events:none;
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);opacity:.75;
+}
+.web-empty{
+  position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;
+  font-size:14px;color:var(--ink-soft);
+}
+
+.match-list{display:flex;flex-direction:column;gap:9px}
+.match-row{
+  display:flex;align-items:center;gap:14px;justify-content:space-between;width:100%;text-align:left;
+  padding:14px 16px;border-radius:11px;cursor:pointer;
+  border:1px solid var(--line);background:linear-gradient(150deg,rgba(43,16,85,.4),rgba(11,6,24,.8));
+  transition:border-color .2s,transform .15s,box-shadow .2s;
+}
+.match-row:hover{border-color:rgba(59,232,255,.45);transform:translateX(3px);box-shadow:0 0 0 1px rgba(59,232,255,.16)}
+.mr-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mr-title{font-family:var(--head);font-size:14.5px;font-weight:600;color:var(--ink)}
+.mr-line{font-size:12px;color:var(--ink-dim)}
+.mr-side{display:flex;align-items:center;gap:12px;flex:none}
+.mr-comp{font-family:var(--mono);font-size:11px;color:var(--silver-bright)}
+.mr-go{color:var(--cyan);font-size:15px}
+
+
+/* ---------- hub toggle ---------- */
+.hub-toggle{display:inline-flex;padding:4px;border-radius:100px;border:1px solid var(--line);background:rgba(11,6,24,.7);backdrop-filter:blur(10px)}
+.hub-toggle button{
+  padding:13px 30px;border-radius:100px;border:0;background:transparent;cursor:pointer;
+  font-family:var(--mono);font-size:13.5px;font-weight:500;
+  letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-dim);transition:color .2s,background .2s,box-shadow .2s;white-space:nowrap;
+}
+.hub-toggle button.is-on{
+  color:#04120A;background:linear-gradient(135deg,var(--purple-bright),var(--cyan));
+  box-shadow:0 0 20px rgba(127,77,224,.4);
+}
+.hub-toggle button:not(.is-on):hover{color:var(--ink)}
+
+/* ---------- inline promos ---------- */
+/* deliberately in the flow rather than floating over the page — a promo that
+   covers the content it is promoting is worse than no promo */
+.promo-row{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+  margin-top:26px;
+}
+@media(max-width:760px){.promo-row{grid-template-columns:1fr}}
+
+.promo-card{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:13px;
+  border:1px solid var(--line);
+  background:linear-gradient(150deg,rgba(43,16,85,.42),rgba(11,6,24,.82));
+  backdrop-filter:blur(12px);
+  transition:border-color .22s,transform .18s,box-shadow .22s;
+}
+.promo-card:hover{transform:translateY(-2px)}
+.promo-card.news:hover{border-color:rgba(0,255,136,.45);box-shadow:0 0 0 1px rgba(0,255,136,.16),0 14px 34px rgba(4,2,10,.5)}
+.promo-card.pt:hover{border-color:rgba(59,232,255,.45);box-shadow:0 0 0 1px rgba(59,232,255,.16),0 14px 34px rgba(4,2,10,.5)}
+
+.pc-icon{
+  width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:15px;
+  border:1px solid var(--line);
+}
+.promo-card.news .pc-icon{color:var(--green);background:rgba(0,255,136,.09);border-color:rgba(0,255,136,.28)}
+.promo-card.pt .pc-icon{color:var(--cyan);background:rgba(59,232,255,.09);border-color:rgba(59,232,255,.28)}
+
+.pc-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pc-copy b{font-family:var(--head);font-size:14px;font-weight:600;color:var(--ink)}
+.pc-copy b i{font-style:normal;color:var(--green)}
+.promo-card.pt .pc-copy b i{color:var(--cyan)}
+.pc-copy small{font-size:12px;color:var(--ink-dim);line-height:1.45}
+.pc-go{margin-left:auto;flex:none;font-size:14px;color:var(--ink-dim);transition:color .22s,transform .22s}
+.promo-card.news:hover .pc-go{color:var(--green);transform:translate(2px,-2px)}
+.promo-card.pt:hover .pc-go{color:var(--cyan);transform:translate(2px,-2px)}
+
+
+
+/* ---------- header actions ---------- */
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:12px}
+
+/* Both header links share one pill. Only the accent colour differs, so they
+   read as a matched pair rather than two unrelated buttons. */
+.promo-badge,
+.news-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:10px 18px;border-radius:100px;
+  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background:color-mix(in srgb, var(--accent) 7%, transparent);
+  font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--accent);white-space:nowrap;
+  transition:border-color .2s,background .2s,transform .2s,box-shadow .2s;
+}
+.promo-badge{--accent:var(--cyan)}
+.news-btn{--accent:var(--green)}
+
+.promo-badge:hover,
+.news-btn:hover{
+  border-color:var(--accent);
+  background:color-mix(in srgb, var(--accent) 14%, transparent);
+  transform:translateY(-1px);
+  box-shadow:0 0 22px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.pb-dot,
+.nb-dot{
+  width:8px;height:8px;border-radius:50%;flex:none;
+  background:var(--accent);box-shadow:0 0 10px var(--accent);
+}
+.pb-go,
+.nb-go{font-size:13px;opacity:.8}
+
+@media(max-width:520px){
+  .pb-text,.nb-text{display:none}
+  .promo-badge,.news-btn{padding:10px 13px;gap:8px}
+  .header-actions{gap:8px}
+}
+
+
+/* ---------- social ---------- */
+.social-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+.social{
+  width:40px;height:40px;border-radius:11px;flex:none;
+  display:grid;place-items:center;
+  border:1px solid var(--line);
+  background:rgba(11,6,24,.6);
+  color:var(--ink-dim);
+  transition:color .2s,border-color .2s,background .2s,transform .2s,box-shadow .2s;
+}
+.social svg{width:19px;height:19px;display:block}
+.social:hover{transform:translateY(-2px)}
+/* each platform lights up in its own colour, but only on hover — at rest the
+   row stays quiet so it does not compete with the board */
+.social.li:hover{color:#3A9BE8;border-color:rgba(58,155,232,.55);background:rgba(58,155,232,.12);box-shadow:0 0 18px rgba(58,155,232,.25)}
+.social.yt:hover{color:#FF4A45;border-color:rgba(255,74,69,.55);background:rgba(255,74,69,.12);box-shadow:0 0 18px rgba(255,74,69,.25)}
+.social.ig:hover{color:#F2599B;border-color:rgba(242,89,155,.55);background:rgba(242,89,155,.12);box-shadow:0 0 18px rgba(242,89,155,.25)}
+
+/* An unfilled handle is visibly inert rather than a link to nowhere. */
+.social[data-placeholder]{opacity:.4;cursor:not-allowed}
+.social[data-placeholder]:hover{transform:none;box-shadow:none;color:var(--ink-dim);border-color:var(--line);background:rgba(11,6,24,.6)}
+
+/* ---------- data status ---------- */
+.data-status{
+  display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+  padding:11px 16px;border-radius:11px;margin-bottom:16px;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+  border:1px solid var(--line);background:rgba(11,6,24,.7);color:var(--ink-dim);
+}
+.data-status[hidden]{display:none}
+.ds-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--ink-dim)}
+.data-status.is-loading .ds-dot{background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:live-pulse 1.1s ease-in-out infinite}
+.data-status.is-live{border-color:rgba(0,255,136,.28);background:rgba(0,255,136,.06);color:var(--ink-soft)}
+.data-status.is-live .ds-dot{background:var(--green);box-shadow:0 0 10px var(--green)}
+.data-status.is-demo{border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.08);color:#F5D9A0}
+.data-status.is-demo .ds-dot{background:#F0B429;box-shadow:0 0 10px #F0B429}
+.data-status.is-error{border-color:rgba(255,107,107,.42);background:rgba(255,107,107,.1);color:#FFC9C9}
+.data-status.is-error .ds-dot{background:#FF6B6B;box-shadow:0 0 10px #FF6B6B}
+.ds-msg{flex:1;min-width:0}
+.ds-msg b{color:var(--ink);font-weight:500}
+.ds-retry{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:6px 13px;border-radius:8px;cursor:pointer;
+  border:1px solid currentColor;background:transparent;color:inherit;
+  transition:background .2s,transform .15s;
+}
+.ds-retry:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
+.source-link{
+  display:block;text-align:center;margin-top:13px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-dim);transition:color .2s;
+}
+.source-link:hover{color:var(--cyan)}
+
+/* ---------- APPLICATION WIZARD ---------- */
+.wiz-steps{display:flex;gap:0;padding:0 30px 18px;border-bottom:1px solid var(--line)}
+.wiz-step{flex:1;display:flex;flex-direction:column;gap:7px;position:relative;opacity:.45;transition:opacity .3s}
+.wiz-step.is-on,.wiz-step.is-done{opacity:1}
+.wiz-bar{height:3px;border-radius:2px;background:rgba(200,197,218,.16);overflow:hidden;margin-right:6px}
+.wiz-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--purple-bright));
+  box-shadow:0 0 12px rgba(0,255,136,.6);transition:width .5s cubic-bezier(.22,1,.36,1)}
+.wiz-step.is-on .wiz-bar span,.wiz-step.is-done .wiz-bar span{width:100%}
+.wiz-step small{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+.wiz-step.is-on small{color:var(--green)}
+.wiz-step b{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink-soft)}
+
+.wiz-body{padding:24px 30px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:16px}
+.wiz-intro{font-size:13.5px;color:var(--ink-dim);line-height:1.6}
+.wiz-foot{padding:18px 30px 24px;border-top:1px solid var(--line);display:flex;gap:12px;align-items:center}
+.wiz-foot .spacer{flex:1}
+
+.f-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.f-row.mi{grid-template-columns:1fr 90px 1fr}
+@media(max-width:560px){.f-row,.f-row.mi{grid-template-columns:1fr}}
+.f{display:flex;flex-direction:column;gap:6px}
+.f label{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim)}
+.f label .req{color:var(--green)}
+.f label .opt{color:var(--ink-dim);opacity:.7;text-transform:none;letter-spacing:.04em}
+.f input,.f textarea{
+  width:100%;font-family:var(--body);font-size:14.5px;color:var(--ink);
+  background:rgba(7,4,15,.72);border:1px solid var(--line);border-radius:9px;padding:11px 13px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.f textarea{min-height:200px;resize:vertical;line-height:1.6;font-size:14px}
+.f input::placeholder,.f textarea::placeholder{color:rgba(157,149,189,.6)}
+.f input:focus,.f textarea:focus{
+  outline:none;border-color:var(--green);background:rgba(7,4,15,.9);
+  box-shadow:0 0 0 3px rgba(0,255,136,.14);
+}
+.f.has-error input,.f.has-error textarea{border-color:#FF6B6B;box-shadow:0 0 0 3px rgba(255,107,107,.12)}
+.f .err{font-size:11.5px;color:#FFC9C9}
+.f .hint{font-size:11.5px;color:var(--ink-dim)}
+.char-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-dim);text-align:right}
+.char-count.is-thin{color:#F0B429}
+
+/* ---------- AI review ---------- */
+.thinking{display:flex;flex-direction:column;align-items:center;gap:16px;padding:50px 0;text-align:center}
+.thinking-ring{
+  width:56px;height:56px;border-radius:50%;
+  border:2px solid rgba(200,197,218,.16);border-top-color:var(--green);
+  animation:spin .9s linear infinite;box-shadow:0 0 26px rgba(0,255,136,.25);
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.thinking p{font-family:var(--mono);font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim)}
+
+.score-card{
+  display:flex;align-items:center;gap:20px;padding:20px 22px;border-radius:14px;
+  background:linear-gradient(150deg,rgba(43,16,85,.6),rgba(11,6,24,.9));
+  border:1px solid rgba(0,255,136,.28);
+}
+.score-ring{position:relative;width:84px;height:84px;flex:none}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-ring .track{fill:none;stroke:rgba(200,197,218,.14);stroke-width:7}
+.score-ring .fill{fill:none;stroke:var(--green);stroke-width:7;stroke-linecap:round;
+  filter:drop-shadow(0 0 7px rgba(0,255,136,.75));
+  transition:stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1)}
+.score-ring b{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--head);font-size:21px;font-weight:700;color:var(--ink);
+}
+.score-card h4{font-family:var(--head);font-size:16px;font-weight:600;color:var(--ink);margin-bottom:5px}
+.score-card p{font-size:13px;color:var(--ink-soft);line-height:1.55}
+
+.rev-block{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:rgba(11,6,24,.5)}
+.rev-block h5{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--purple-text);margin-bottom:10px;
+}
+.rev-block h5.green{color:var(--green)}
+.rev-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.rev-list li{display:flex;gap:9px;font-size:13.5px;color:var(--ink-soft);line-height:1.55}
+.rev-list li::before{content:"◆";color:var(--green);font-size:8px;line-height:1.9;flex:none}
+.rev-list.gap li::before{content:"○";color:var(--purple-text);font-size:9px}
+.tag-row{display:flex;flex-wrap:wrap;gap:7px}
+.tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:4px 10px;border-radius:100px;
+  color:var(--green);border:1px solid rgba(0,255,136,.32);background:rgba(0,255,136,.07);
+}
+.tag.dim{color:var(--ink-dim);border-color:var(--line);background:transparent}
+.ai-note{
+  font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--purple-text);
+  border:1px solid rgba(90,47,168,.45);background:rgba(90,47,168,.14);
+  border-radius:9px;padding:11px 14px;
+}
+.done-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:54px 20px;text-align:center}
+.done-mark{
+  width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:27px;
+  color:#04120A;background:linear-gradient(135deg,var(--green),var(--green-deep));
+  box-shadow:0 0 40px rgba(0,255,136,.45);
+}
+.done-wrap h3{font-family:var(--head);font-size:20px}
+.done-wrap p{font-size:14px;color:var(--ink-soft);max-width:38ch;line-height:1.6}
+
+
+/* ---------- header actions ---------- */
+
+
+
+
+.link-btn{background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;text-align:left}
+.fmeta .link-btn:hover{color:var(--green)}
+button.foot-line{width:100%}
+button.foot-line:hover{color:var(--green)}
+
+
+/* ---------- FOOTER ---------- */
+.board-footer{border-top:1px solid var(--line);padding:54px 5vw 34px;max-width:1240px;margin:0 auto}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1.2fr;gap:44px;align-items:start}
+@media(max-width:860px){.foot-grid{grid-template-columns:1fr 1fr;gap:32px}}
+@media(max-width:540px){.foot-grid{grid-template-columns:1fr;gap:28px}}
+.fmark{font-family:var(--head);font-weight:700;font-size:19px;letter-spacing:-.02em}
+.fmark .amp{color:var(--green)}
+.foot-blurb{margin-top:12px;max-width:38ch;font-size:14.5px;line-height:1.65;color:var(--ink-soft)}
+.foot-h{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--purple-text);margin-bottom:14px}
+.foot-line{display:block;font-size:15px;color:var(--ink);margin-bottom:10px;word-break:break-word;transition:color .2s}
+a.foot-line:hover{color:var(--green)}
+.foot-line.muted{color:var(--ink-dim)}
+.foot-line .lbl{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:2px}
+.lbl-inline{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+  padding:2px 8px;border-radius:100px;margin-left:8px;color:var(--green);
+  border:1px solid rgba(0,255,136,.35);background:rgba(0,255,136,.08);
+}
+.lbl-inline.dim{color:var(--ink-dim);border-color:var(--line);background:transparent}
+.foot-bottom{margin-top:42px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.fmeta{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);display:flex;gap:20px;flex-wrap:wrap}
+.fmeta a:hover{color:var(--green)}
+
+/* ---------- ADMIN PREVIEW ---------- */
+#admin-view{display:none}
+body.show-admin #board-view{display:none}
+body.show-admin #admin-view{display:block}
+.admin-main{padding:30px 5vw 80px;max-width:1280px;margin:0 auto}
+.admin-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:8px}
+.admin-head h1{font-size:clamp(1.5rem,2.6vw,2rem);margin-top:8px}
+.status-dot{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-dim)}
+.status-dot::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:live-pulse 2.4s ease-in-out infinite}
+@keyframes live-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:24px 0 30px}
+.stat-cell{background:linear-gradient(160deg,rgba(43,16,85,.4),rgba(11,6,24,.86));padding:18px 20px}
+.stat-cell dt{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:8px}
+.stat-cell dd{font-family:var(--head);font-size:26px;font-weight:700;color:var(--ink)}
+.stat-cell.is-open dd{color:var(--green);text-shadow:0 0 20px rgba(0,255,136,.4)}
+.admin-tools{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.admin-tools .spacer{flex:1}
+.job-table-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(11,6,24,.7)}
+.job-table{width:100%;border-collapse:collapse;font-size:14px}
+.job-table thead th{
+  text-align:left;padding:13px 16px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim);
+  background:rgba(43,16,85,.4);border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.job-table tbody td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+.job-table tbody tr:last-child td{border-bottom:0}
+.job-table tbody tr{transition:background .18s}
+.job-table tbody tr:hover{background:rgba(43,16,85,.28)}
+.cell-title{font-family:var(--head);font-weight:600;color:var(--ink);font-size:15px}
+.cell-company{color:var(--ink-dim);font-size:12.5px;margin-top:3px}
+.cell-actions{text-align:right;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);color:var(--ink-dim)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.open{color:var(--green);border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.08)}
+.pill.open::before{box-shadow:0 0 8px var(--green)}
+.pill.draft{color:#F0B429;border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.08)}
+.btn{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  padding:9px 16px;border-radius:8px;border:1px solid var(--line);
+  background:rgba(7,4,15,.6);color:var(--ink-soft);cursor:pointer;
+  transition:color .2s,border-color .2s,background .2s,transform .15s;
+}
+.btn:hover{color:var(--ink);border-color:rgba(200,197,218,.36);transform:translateY(-1px)}
+.btn.primary{color:#fff;border-color:rgba(0,255,136,.34);background:linear-gradient(135deg,var(--purple-bright),var(--purple-mid));box-shadow:0 6px 20px rgba(43,16,85,.5)}
+.btn.primary:hover{box-shadow:0 0 0 1px var(--green),0 8px 26px rgba(0,255,136,.2)}
+.btn.ghost-green{color:var(--green);border-color:rgba(0,255,136,.3)}
+.btn.danger{color:#FF6B6B;border-color:rgba(255,107,107,.32)}
+.btn.danger:hover{background:rgba(255,107,107,.12);border-color:#FF6B6B}
+.btn.tiny{padding:6px 11px;font-size:10.5px}
+.preview-note{
+  margin:0 5vw 26px;max-width:1240px;padding:13px 18px;border-radius:10px;
+  border:1px solid rgba(90,47,168,.45);background:rgba(90,47,168,.14);
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;color:var(--purple-text);
+}
+@media(max-width:760px){.job-table thead th:nth-child(3),.job-table tbody td:nth-child(3),.job-table thead th:nth-child(4),.job-table tbody td:nth-child(4){display:none}}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  /* The strike carries !important to outrank the idle wave, which also lets it
+     outrank the blanket rule below — so it needs cancelling by name. */
+  .ff-char,.ff-wordmark.is-lit .ff-char{animation:none!important;transform:none!important;text-shadow:none!important}
+  .ff-wordmark::after{animation:none;opacity:0}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+
+<header class="board-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32">
+        <path d="M4 14.5 16 5l12 9.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 13.5V26h18V13.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="16" cy="19.5" r="2.6" fill="currentColor"/>
+      </svg>
+    </span>
+    <span class="brand-text">
+      <span class="ff-wordmark" id="wordmark" aria-label="Founders &amp; Friends"></span>
+    </span>
+  </div>
+
+  <div class="header-actions">
+    <a class="promo-badge" href="https://propertyandtechnology.pages.dev/" aria-label="Syndeo">
+      <span class="pb-dot" aria-hidden="true"></span>
+      <span class="pb-text">Syndeo</span>
+      <span class="pb-go" aria-hidden="true">↗</span>
+    </a>
+    <a class="news-btn" href="https://evanprothro-newsletter.beehiiv.com/" aria-label="Newsletter">
+      <span class="nb-dot" aria-hidden="true"></span>
+      <span class="nb-text">Newsletter</span>
+      <span class="nb-go" aria-hidden="true">↗</span>
+    </a>
+  </div>
+</header>
+
+<!-- ==================== BOARD ==================== -->
+<div id="board-view">
+  <section class="board-hero">
+    <div class="hero-inner">
+      <div class="eyebrow green" id="hero-eyebrow"></div>
+      <h1 id="hero-h1"></h1>
+      <p class="hero-sub" id="hero-sub"></p>
+
+      <!-- Two doors into the board. Each switches the hub and scrolls to the
+           roles. To send visitors to a separate site instead, add an href to
+           the <a> and remove data-goto — the click handler stands down when
+           an href is present. -->
+      <div class="hub-cards">
+        <a class="hub-card opco" data-goto="opco">
+          <span class="hc-top">
+            <span class="hc-mark" aria-hidden="true">
+              <svg viewBox="0 0 32 32">
+                <path d="M4 14.5 16 5l12 9.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 13.5V26h18V13.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="16" cy="19.5" r="2.6" fill="currentColor"/>
+              </svg>
+            </span>
+            <span class="hc-name">OpCo Hub<span class="hc-kicker">Operators</span></span>
+            <span class="hc-count" data-count="opco"></span>
+          </span>
+          <span class="hc-body">Roles inside the companies that own and run the doors — leasing, maintenance, asset management, and the leadership above them.</span>
+          <span class="hc-go">Find OpCo roles <span aria-hidden="true">→</span></span>
+        </a>
+
+        <a class="hub-card proptech" data-goto="proptech">
+          <span class="hc-top">
+            <span class="hc-mark" aria-hidden="true">
+              <svg viewBox="0 0 32 32">
+                <rect x="5" y="7" width="22" height="15" rx="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                <path d="M11 26h10M16 22v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M10.5 14.5l2.5 2.5-2.5 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 19.5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="hc-name">PropTech Hub<span class="hc-kicker">Vendors</span></span>
+            <span class="hc-count" data-count="proptech"></span>
+          </span>
+          <span class="hc-body">Roles at the companies building the software those operators buy — product, applied AI, enterprise sales, and the founders behind them.</span>
+          <span class="hc-go">Find PropTech roles <span aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </div>
+    <hr class="laser-rule" />
+  </section>
+
+  <main class="board">
+    <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
+      <span class="ds-dot" aria-hidden="true"></span>
+      <span class="ds-msg"></span>
+    </p>
+
+    <div class="board-controls">
+      <div class="controls-top">
+        <p class="stat-line" id="stats-line" role="status"></p>
+        <div class="hub-toggle" role="group" aria-label="Hub">
+          <button type="button" data-hub="opco">OpCo Hub</button>
+          <button type="button" data-hub="proptech">PropTech Hub</button>
+        </div>
+        <div class="view-toggle" role="group" aria-label="View">
+          <button type="button" id="v-graph" class="is-on" aria-pressed="true">Graph</button>
+          <button type="button" id="v-list" aria-pressed="false">List</button>
+        </div>
+      </div>
+      <div class="search-field">
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M13.5 13.5 L17.5 17.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <input type="search" id="search" placeholder="Filter by role, company, or location…" aria-label="Filter openings" />
+      </div>
+      <div class="pill-row" id="pills" role="group" aria-label="Filter by company"></div>
+      <p class="result-count" id="count" role="status"></p>
+    </div>
+
+    <div class="web-wrap" id="graph-view">
+      <svg id="web" role="img" aria-label="Matching web connecting role families to hiring companies"></svg>
+      <p class="web-hint"><span class="lg-dot job"></span> Open role &nbsp;·&nbsp; <span class="lg-dot co"></span> Company &nbsp;·&nbsp; hover to trace, click to open</p>
+    </div>
+
+    <div class="rail" id="rail">
+      <svg class="rail-lines" id="lines" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="rail-left">
+        <div class="rail-jobs" id="cards"></div>
+        <div class="rail-nav" id="nav">
+          <div class="nav-arrows">
+            <button class="nav-arrow" id="prev" type="button" aria-label="Previous roles">←</button>
+            <button class="nav-arrow" id="next" type="button" aria-label="Next roles">→</button>
+          </div>
+          <span class="page-num" id="pagenum" aria-live="polite"></span>
+        </div>
+      </div>
+      <div class="rail-dots" id="dots"></div>
+      <div class="rail-target" id="target">
+        <div class="target-ring">View</div>
+        <p class="target-label">Drag a node here to open the role</p>
+      </div>
+    </div>
+
+    <div class="promo-row">
+      <a class="promo-card news" href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer">
+        <span class="pc-icon" aria-hidden="true">✉</span>
+        <span class="pc-copy">
+          <b>Stay Ahead in Proptech</b>
+          <small>Weekly insights on proptech hiring, market trends, and the openings worth knowing about.</small>
+        </span>
+        <span class="pc-go" aria-hidden="true">↗</span>
+      </a>
+      <a class="promo-card pt" href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer">
+        <span class="pc-icon" aria-hidden="true">◆</span>
+        <span class="pc-copy">
+          <b>Property <i>and</i> Technology</b>
+          <small>The feed behind this network — real estate, SFR operations, and the AI reshaping proptech.</small>
+        </span>
+        <span class="pc-go" aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </main>
+
+  <footer class="board-footer">
+    <div class="foot-grid">
+      <div>
+        <div class="fmark">Founders <span class="amp">&amp;</span> Friends</div>
+        <p class="foot-blurb">
+          The talent network behind Property and Technology. Two hubs — operators on one side,
+          the technology vendors who serve them on the other.
+        </p>
+      </div>
+      <div>
+        <div class="foot-h">Hubs</div>
+        <button class="foot-line link-btn" type="button" data-hub="opco">OpCo Hub <span class="lbl-inline">Live</span></button>
+        <button class="foot-line link-btn" type="button" data-hub="proptech">PropTech Hub <span class="lbl-inline">Live</span></button>
+      </div>
+      <div>
+        <div class="foot-h">Contact</div>
+        <a class="foot-line" href="mailto:evan@propertyandtechnology.com"><span class="lbl">Email</span>evan@propertyandtechnology.com</a>
+        <!-- SOCIAL HANDLES — replace YOUR-HANDLE in each href below.
+             LinkedIn company page: linkedin.com/company/your-page
+             LinkedIn personal:     linkedin.com/in/your-name
+             YouTube:               youtube.com/@your-handle
+             Instagram:             instagram.com/your-handle
+             Until they are filled in each link carries data-placeholder, which
+             dims it and blocks the click — so nobody lands on a 404. -->
+        <div class="foot-h" style="margin-top:22px">Follow</div>
+        <div class="social-row">
+          <a class="social li" href="https://www.linkedin.com/company/YOUR-HANDLE"
+             data-placeholder aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21h-4v-5.6c0-1.34-.03-3.06-1.9-3.06-1.9 0-2.2 1.45-2.2 2.96V21H9z"/>
+            </svg>
+          </a>
+          <a class="social yt" href="https://www.youtube.com/@YOUR-HANDLE"
+             data-placeholder aria-label="YouTube">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M23 12s0-3.8-.48-5.62a2.9 2.9 0 0 0-2.05-2.06C18.65 3.83 12 3.83 12 3.83s-6.65 0-8.47.49A2.9 2.9 0 0 0 1.48 6.38C1 8.2 1 12 1 12s0 3.8.48 5.62a2.9 2.9 0 0 0 2.05 2.06c1.82.49 8.47.49 8.47.49s6.65 0 8.47-.49a2.9 2.9 0 0 0 2.05-2.06C23 15.8 23 12 23 12zM9.8 15.5v-7l6.07 3.5z"/>
+            </svg>
+          </a>
+          <a class="social ig" href="https://www.instagram.com/YOUR-HANDLE"
+             data-placeholder aria-label="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-width="1.9" d="M7.2 3h9.6A4.2 4.2 0 0 1 21 7.2v9.6a4.2 4.2 0 0 1-4.2 4.2H7.2A4.2 4.2 0 0 1 3 16.8V7.2A4.2 4.2 0 0 1 7.2 3z"/>
+              <circle cx="12" cy="12" r="3.8" fill="none" stroke="currentColor" stroke-width="1.9"/>
+              <circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div class="fmeta">
+        <a href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer">Property and Technology</a>
+        <a href="https://app.beehiiv.com/" target="_blank" rel="noopener noreferrer">Newsletter</a>
+        <button class="link-btn" id="toggle-view" type="button">Admin</button>
+      </div>
+      <div class="fmeta"><span>Founders &amp; Friends · 2026</span></div>
+    </div>
+  </footer>
+</div>
+
+<!-- ==================== ADMIN ==================== -->
+<div id="admin-view">
+  <main class="admin-main">
+    <div class="admin-head">
+      <div>
+        <div class="eyebrow green">Talent Network</div>
+        <h1>Job listings</h1>
+      </div>
+      <span class="status-dot">Connected</span>
+    </div>
+    <hr class="laser-rule" />
+
+    <dl class="stat-grid" id="stats"></dl>
+
+    <div class="admin-tools">
+      <button class="btn tiny ghost-green" type="button">all</button>
+      <button class="btn tiny" type="button">open</button>
+      <button class="btn tiny" type="button">draft</button>
+      <button class="btn tiny" type="button">closed</button>
+      <span class="spacer"></span>
+      <button class="btn primary" type="button">Add a job</button>
+    </div>
+
+    <div class="job-table-wrap">
+      <table class="job-table">
+        <thead>
+          <tr><th>Role</th><th>Company</th><th>Category</th><th>Segment</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="admin-rows"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+
+<script>
+/* ==========================================================================
+   Data — in the real app this comes from Cloudflare D1 via /api/jobs
+   ========================================================================== */
+const JOBS = [
+  {id:'j1',hub:'opco',title:'Accountant, HAP',company:'Invitation Homes',category:'General',segment:'Single-Family',level:'Manager',location:'Chandler, AZ',type:'full-time',min:68000,max:82000,days:1,
+   summary:'Own Housing Assistance Payment reconciliation across a multi-market voucher portfolio.',
+   description:"HAP accounting sits between the housing authorities and the property ledger, and the reconciliation is only as clean as the person doing it. You own that seam.\n\nDay to day:\n- Reconcile HAP receipts against tenant ledgers across several housing authorities\n- Chase and resolve variances before they age into write-offs\n- Partner with leasing when a voucher file stalls\n\nWhat the role needs:\n- Two-plus years in accounting, ideally with affordable or voucher exposure\n- Comfort in a high-volume ledger — this is not a ten-transactions-a-day job\n- Excel that goes past SUMIF\n\nReports to the Accounting Manager. Hybrid, three days in Chandler."},
+  {id:'j2',hub:'opco',title:'Analyst, Asset Management',company:'Invitation Homes',category:'Asset Management',segment:'Single-Family',level:'Manager',location:'Dallas, TX',type:'full-time',min:85000,max:105000,days:1,
+   summary:'Build the models that decide which homes get renovated, held, or sold.',
+   description:"Asset management in scattered-site is a different sport from multifamily — the unit of analysis is a house, and there are tens of thousands of them.\n\nDay to day:\n- Underwrite renovation scope against projected rent lift, home by home\n- Maintain the hold-sell model and flag homes drifting outside the band\n- Build the monthly asset review deck for the investment committee\n\nWhat the role needs:\n- Two-plus years in real estate finance, REIT, or an operator asset management team\n- Fluent modelling — you can build it, not just maintain someone else's\n- SQL is a real advantage; the data will not arrive pre-cleaned"},
+  {id:'j3',hub:'opco',title:'Customer Service Representative — Property Management',company:'Invitation Homes',category:'General',segment:'Single-Family',level:'Field',location:'Chandler, AZ',type:'full-time',min:44000,max:52000,days:1,
+   summary:'First voice a resident hears when something in their home stops working.',
+   description:"This is the front line. Residents call when the water heater fails, when the portal will not take a payment, or when they need to understand a charge. How that call goes shapes whether they renew.\n\nDay to day:\n- Handle inbound resident calls, emails, and portal messages\n- Triage maintenance requests with enough detail that the tech arrives prepared\n- Resolve billing questions without escalating everything upward\n\nBilingual English/Spanish is a genuine plus and is compensated."},
+  {id:'j4',hub:'opco',title:'Regional Leasing Manager',company:'Tricon Residential',category:'Leasing',segment:'Single-Family',level:'Manager',location:'Charlotte, NC',type:'full-time',min:92000,max:115000,days:2,
+   summary:'Run leasing velocity across roughly 3,000 homes in the Carolinas.',
+   description:"Days-to-lease is the number this job is measured on, and in scattered-site it is won or lost on showing logistics and pricing discipline rather than curb appeal.\n\nDay to day:\n- Lead a team of eight leasing specialists across two markets\n- Own pricing recommendations with revenue management, and push back when the model is wrong\n- Fix the self-showing funnel — the drop-off between tour and application is the current problem\n\nSingle-family experience strongly preferred; the logistics do not translate cleanly from multifamily."},
+  {id:'j5',hub:'opco',title:'Renovation Project Manager',company:'Tricon Residential',category:'Construction',segment:'Single-Family',level:'Manager',location:'Atlanta, GA',type:'full-time',min:88000,max:108000,days:2,
+   summary:'Carry 40 to 60 concurrent renovations from acquisition to rent-ready.',
+   description:"Every home is its own small project with its own scope, and they all run at once. The job is throughput without letting quality slip.\n\nDay to day:\n- Scope homes at acquisition and set the renovation budget\n- Manage a GC bench — hire, hold to schedule, and replace the ones who cannot keep up\n- Own cycle time from close to rent-ready, and defend the number in weekly reviews\n\nTruck allowance included. Expect meaningful field time."},
+  {id:'j6',hub:'opco',title:'Maintenance Superintendent',company:'Progress Residential',category:'Maintenance',segment:'Single-Family',level:'Manager',location:'Tampa, FL',type:'full-time',min:78000,max:95000,days:3,
+   summary:'Lead an in-house tech bench of 18 across a 2,600-home metro.',
+   description:"The market runs heavy on third-party vendors and the cost per work order shows it. The plan is to shift that balance toward the in-house bench, and you own the execution.\n\nDay to day:\n- Hire, train, and route a team of maintenance technicians\n- Own first-time-fix rate and cost per work order as your primary metrics\n- Manage parts, the truck fleet, and the on-call rotation\n\nTrade background is welcome and genuinely valued here. This is a field job."},
+  {id:'j7',hub:'opco',title:'Director of Operations',company:'Progress Residential',category:'Leadership',segment:'Single-Family',level:'Director',location:'Phoenix, AZ',type:'full-time',min:145000,max:180000,days:3,
+   summary:'Own P&L for 4,200 homes across three Southwest markets.',
+   description:"Three market leads report to you, along with a centralised maintenance desk and the make-ready budget. The portfolio grew by acquisition and still runs on two different property management systems — consolidating them is yours to lead in the first two quarters.\n\nDay to day:\n- Own market-level P&L, occupancy, and turn cost\n- Lead the PMS consolidation without stalling day-to-day operations\n- Build the bench: two direct-hire requisitions are open from day one\n\nReports to the COO."},
+  {id:'j8',hub:'opco',title:'Member Operations Lead',company:'Belong',category:'General',segment:'Single-Family',level:'Manager',location:'Remote (US)',type:'full-time',min:82000,max:100000,days:4,
+   summary:'Own the resident experience loop end to end for a tech-forward SFR platform.',
+   description:"Belong treats residents as members rather than tenants, which sounds like positioning until you look at the renewal numbers. Protecting that is the job.\n\nDay to day:\n- Own the member journey from application through renewal\n- Close the loop between support tickets and the product roadmap\n- Build the playbooks the support team runs on\n\nFully remote, with quarterly onsites."},
+  {id:'j9',hub:'opco',title:'Pricing & Revenue Analyst',company:'Belong',category:'Asset Management',segment:'Single-Family',level:'Manager',location:'Remote (US)',type:'full-time',min:95000,max:120000,days:5,
+   summary:'Set rent across the portfolio and prove the model beats the market.',
+   description:"Pricing scattered-site homes is genuinely harder than pricing units in a building — every comp set is bespoke and thin.\n\nDay to day:\n- Maintain and improve the pricing model across all active markets\n- Run renewal pricing and measure the trade-off between rate and retention\n- Publish the weekly pricing review, and be ready to defend a recommendation\n\nYou can explain a model to a regional manager who does not want to hear about regressions."},
+  {id:'j10',hub:'opco',title:'Product Manager, Resident Platform',company:'Invitation Homes',category:'Technology',segment:'Single-Family',level:'Manager',location:'Dallas, TX',type:'full-time',min:130000,max:160000,days:6,
+   summary:'Own the resident-facing app used by tens of thousands of households.',
+   description:"The resident portal is where rent gets paid and maintenance gets requested. When it works nobody notices; when it does not, the call centre absorbs the cost.\n\nDay to day:\n- Own the roadmap for the resident app and portal\n- Work directly with operations — the call centre is your best source of signal\n- Ship measurable reductions in call volume for the top three contact drivers"}
+];
+
+
+/* PropTech Hub — roles at the vendors who sell into operators. Kept strictly
+   separate from the OpCo Hub: these companies build and sell the software,
+   they do not manage doors. */
+const PROPTECH_JOBS = [
+  {id:'p1',hub:'proptech',title:'Enterprise Account Executive',company:'Entrata',category:'Sales',segment:'Multifamily',level:'Manager',location:'Remote (US)',type:'full-time',min:130000,max:165000,days:1,
+   summary:'Sell the platform into operators running 20,000 to 100,000 units.',
+   description:"You carry a six-figure ACV into enterprise multifamily. The buying committee is a COO, a VP of IT and a controller, and they do not move quickly.\n\nDay to day:\n- Own a named account list of roughly 40 enterprise operators\n- Run multi-threaded cycles that average five to seven months\n- Partner with solutions engineering on proof-of-concept builds\n\nWhat the role needs:\n- You have sold into property management and can name the buying committee without coaching\n- Comfortable with a long cycle and a committee, not a single champion\n- OTE is 50/50, uncapped, with accelerators past plan"},
+  {id:'p2',hub:'proptech',title:'Sales Engineer',company:'Entrata',category:'Sales',segment:'Multifamily',level:'Manager',location:'Lehi, UT',type:'full-time',min:120000,max:150000,days:2,
+   summary:'Own the technical win on enterprise deals — demos, integrations, proof of concept.',
+   description:"You are the person in the room who can answer the integration question honestly. When an operator asks whether the platform talks to their accounting stack, the answer has to be real.\n\nDay to day:\n- Build and run tailored demos against each operator's actual workflow\n- Scope integrations with the customer's IT team pre-sale\n- Feed recurring blockers back to product with evidence\n\nWhat the role needs:\n- Pre-sales or solutions engineering in B2B SaaS\n- Enough property operations literacy to spot a bad-fit deal early\n- You would rather lose a deal than oversell an integration"},
+  {id:'p3',hub:'proptech',title:'VP of Revenue',company:'Entrata',category:'Leadership',segment:'Multifamily',level:'VP',location:'Lehi, UT',type:'full-time',min:230000,max:290000,days:3,
+   summary:'Own the full revenue org — sales, SE, and partnerships — through the next growth stage.',
+   description:"Three functions report to you and they currently operate as three companies. Making them one motion is the mandate.\n\nDay to day:\n- Own the number across new business, expansion and partnerships\n- Rebuild the forecast so it survives contact with a board meeting\n- Hire two directors in the first two quarters\n\nWhat the role needs:\n- You have run a revenue org through a similar stage, not just a sales team\n- Fluent in proptech buying cycles and who actually signs\n- Equity participation is meaningful here"},
+  {id:'p4',hub:'proptech',title:'Customer Success Manager, SFR Accounts',company:'Second Nature',category:'Customer Success',segment:'Single-Family',level:'Manager',location:'Nashville, TN',type:'full-time',min:82000,max:102000,days:2,
+   summary:'Own retention and expansion across a book of single-family operators.',
+   description:"Your book is single-family operators running between 1,000 and 15,000 homes. They adopted the product for one reason and stay for another — finding that second reason is the job.\n\nDay to day:\n- Own renewal and expansion across roughly 40 accounts\n- Run quarterly business reviews that operators actually want to attend\n- Escalate product gaps with enough evidence to get them prioritised\n\nWhat the role needs:\n- Customer success in B2B SaaS, ideally selling into property management\n- You understand the difference between an SFR operator and a multifamily one, and why it changes the conversation\n- Comfortable owning a retention number"},
+  {id:'p5',hub:'proptech',title:'Partnerships Manager',company:'Second Nature',category:'Sales',segment:'Cross-Segment',level:'Manager',location:'Remote (US)',type:'full-time',min:95000,max:120000,days:4,
+   summary:'Build the channel through PM software platforms and franchise groups.',
+   description:"Most growth arrives through partners rather than direct sales. You own that channel.\n\nDay to day:\n- Manage integration partnerships with the major PM platforms\n- Build co-selling motions with franchise and association groups\n- Own partner-sourced pipeline as a number, not a vanity metric\n\nWhat the role needs:\n- Partnerships or channel experience in SaaS\n- A real network across the SFR and multifamily vendor landscape\n- Willingness to travel to the industry conferences that matter"},
+  {id:'p6',hub:'proptech',title:'Senior Product Manager, Leasing',company:'Funnel Leasing',category:'Product',segment:'Multifamily',level:'Manager',location:'Remote (US)',type:'full-time',min:155000,max:185000,days:3,
+   summary:'Own the renter-facing leasing funnel end to end.',
+   description:"The product's whole premise is that leasing should feel like consumer software rather than property software. Holding that line under enterprise pressure is the job.\n\nDay to day:\n- Own the roadmap from enquiry through signed lease\n- Sit in on leasing office calls until you can predict the objection\n- Ship against tour-to-lease conversion as the primary metric\n\nWhat the role needs:\n- Product management on a consumer-grade funnel at scale\n- Enough multifamily context to know why centralised leasing changes everything\n- You push back on enterprise requests that would wreck the renter experience"},
+  {id:'p7',hub:'proptech',title:'Implementation Consultant',company:'AppFolio',category:'Implementation',segment:'Cross-Segment',level:'Manager',location:'Santa Barbara, CA',type:'full-time',min:78000,max:98000,days:5,
+   summary:'Take new operators from signed contract to genuinely live.',
+   description:"A signature is not an implementation. You take operators through data migration, configuration and training until their team is actually using the thing.\n\nDay to day:\n- Run migrations off legacy systems without losing ledger history\n- Configure workflows around how the operator actually works, not the demo path\n- Train regional managers who did not ask for new software\n\nWhat the role needs:\n- Implementation, onboarding or consulting in B2B software\n- Property management background is a strong advantage\n- Patience with operators mid-change, because that is the whole job"},
+  {id:'p8',hub:'proptech',title:'Staff Engineer, Payments',company:'AppFolio',category:'Engineering',segment:'Cross-Segment',level:'Director',location:'Remote (US)',type:'full-time',min:190000,max:240000,days:6,
+   summary:'Own the payments rails moving rent for hundreds of thousands of households.',
+   description:"Rent payments are the highest-stakes surface in the product. When they fail, they fail on the first of the month at scale.\n\nDay to day:\n- Own the architecture of the payments platform and its reliability targets\n- Lead the ACH and card processing roadmap alongside compliance\n- Mentor a team of six engineers without becoming a manager\n\nWhat the role needs:\n- Deep payments or fintech infrastructure experience\n- You have carried a pager for something that could not go down\n- Staff-level scope: influence beyond your own commits"},
+  {id:'p9',hub:'proptech',title:'Product Marketing Manager',company:'EliseAI',category:'Marketing',segment:'Multifamily',level:'Manager',location:'New York, NY',type:'full-time',min:125000,max:155000,days:4,
+   summary:'Position AI leasing agents to an industry that is sceptical of AI leasing agents.',
+   description:"The category is loud and mostly undifferentiated. Your job is to make the difference legible to a VP of Operations who has heard it all.\n\nDay to day:\n- Own positioning, messaging and the competitive narrative\n- Build the sales collateral that survives a sceptical committee\n- Run launches with sales and CS rather than at them\n\nWhat the role needs:\n- Product marketing in B2B SaaS, ideally in a crowded category\n- You write clearly and you can prove it\n- Proptech or property management context is a strong plus"},
+  {id:'p10',hub:'proptech',title:'Founding Customer Success Manager',company:'EliseAI',category:'Customer Success',segment:'Multifamily',level:'Manager',location:'New York, NY',type:'full-time',min:105000,max:135000,days:7,
+   summary:'First CS hire. Build the function while carrying the book.',
+   description:"Founders have handled every account personally so far. You are the first person hired to do it properly, which means doing the job and designing it at the same time.\n\nDay to day:\n- Own the full book while writing the playbooks that outlast you\n- Define the health metrics nobody has defined yet\n- Sit close enough to product that customer signal actually lands\n\nWhat the role needs:\n- Customer success at an early-stage company where nothing existed yet\n- Comfort with ambiguity and with saying no to founders\n- Equity is part of the package"},
+];
+
+/** The two hubs are never merged — vendors and operators are different worlds. */
+const HUBS = {
+  opco: {
+    label: 'OpCo Hub',
+    eyebrow: 'Property Management Careers',
+    h1: 'Explore career opportunities with premier <span class="accent">scattered-site real estate</span> operators.',
+    sub: "Roles across the nation's leading SFR operators — leasing, maintenance, asset management, and leadership.",
+    jobs: JOBS,
+  },
+  proptech: {
+    label: 'PropTech Hub',
+    eyebrow: 'PropTech Careers',
+    h1: 'Explore career opportunities with the <span class="accent">technology companies</span> serving scattered-site real estate.',
+    sub: 'Roles at the software and service companies selling into SFR and multifamily operators — sales, product, engineering, customer success, and leadership.',
+    jobs: PROPTECH_JOBS,
+  },
+};
+
+let hub = 'opco';
+const hubJobs = () => HUBS[hub].jobs;
+
+const RELEASE = 0.9;   // how far along the curve counts as a drop
+const SAMPLES = 72;    // samples used to project the pointer onto the curve
+
+const $ = (id) => document.getElementById(id);
+const rail = $('rail'), lines = $('lines'), cardsEl = $('cards'), dotsEl = $('dots'), target = $('target');
+
+let query = '', company = 'All', progress = {}, dragging = null, raf = null;
+let page = 0, slideDir = 'right';
+const PER_PAGE = 3;
+const paths = new Map(), anchors = new Map(), dotEls = new Map(), groups = new Map();
+const connected = new Set();
+
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = (n) => '$' + Math.round(n/1000) + 'k';
+const ago = (d) => d < 1 ? 'today' : d < 7 ? d + 'd ago' : Math.floor(d/7) + 'w ago';
+
+/* ---------- the beam through the wordmark ---------- */
+const TEXT = 'Founders & Friends';
+const wordmark = $('wordmark');
+/* Green at "F", purple at the final "s", interpolated in between — so the
+   wordmark carries both brand colours at rest, not only while animating. */
+const RAMP_FROM = [0, 255, 136];    // --green
+const RAMP_TO   = [169, 143, 236];  // --purple-text, bright enough to stay legible
+
+function rampColor(step){
+  const mix = RAMP_FROM.map((from, i) => Math.round(from + (RAMP_TO[i] - from) * step));
+  return `rgb(${mix.join(',')})`;
+}
+
+wordmark.innerHTML = TEXT.split('').map((ch, i) => {
+  const step = TEXT.length > 1 ? i / (TEXT.length - 1) : 0;
+  return `<span class="ff-char" style="--i:${i};--c:${rampColor(step)}" aria-hidden="true">${esc(ch)}</span>`;
+}).join('');
+
+let beamTimer;
+function fireBeam(){
+  wordmark.classList.remove('is-lit');
+  clearTimeout(beamTimer);
+  // reflow so the animation restarts cleanly if re-fired mid-run
+  void wordmark.offsetWidth;
+  wordmark.classList.add('is-lit');
+  beamTimer = setTimeout(() => wordmark.classList.remove('is-lit'), TEXT.length*42 + 1000);
+}
+
+/* ---------- filtering ---------- */
+function visibleJobs(){
+  const q = query.trim().toLowerCase();
+  return hubJobs().filter(j => {
+    if (company !== 'All' && j.company !== company) return false;
+    if (!q) return true;
+    return [j.title,j.company,j.location,j.category,j.summary].join(' ').toLowerCase().includes(q);
+  });
+}
+
+/* pills come from the data, so a new operator surfaces its own filter */
+function renderPills(){
+  const counts = new Map();
+  hubJobs().forEach(j => counts.set(j.company, (counts.get(j.company)||0)+1));
+  const names = [...counts.entries()].sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0])).map(e => e[0]);
+  $('pills').innerHTML = ['All', ...names].map(n =>
+    `<button type="button" class="filter-pill${company===n?' is-on':''}" data-company="${esc(n)}" aria-pressed="${company===n}">${esc(n)}</button>`
+  ).join('');
+}
+
+function renderCards(){
+  const all = visibleJobs();
+  const pages = Math.max(1, Math.ceil(all.length / PER_PAGE));
+  page = Math.min(page, pages - 1);
+  const list = all.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
+  $('count').textContent = all.length === hubJobs().length
+    ? `${all.length} open roles`
+    : `${all.length} of ${hubJobs().length} roles`;
+
+  $('nav').style.display = all.length > PER_PAGE ? 'flex' : 'none';
+  $('prev').disabled = page === 0;
+  $('next').disabled = page >= pages - 1;
+  $('pagenum').innerHTML =
+    `${String(page + 1).padStart(2,'0')} <em>/ ${String(pages).padStart(2,'0')}</em>`;
+
+  if (!list.length){
+    cardsEl.innerHTML = `<div class="rail-empty"><strong>No roles match that search.</strong>Clear the filters, or tell us what you are looking for and we will keep an eye out.</div>`;
+    dotsEl.innerHTML = ''; lines.innerHTML = '';
+    anchors.clear(); paths.clear(); dotEls.clear(); groups.clear();
+    $('nav').style.display = 'none';
+    return;
+  }
+
+  cardsEl.innerHTML = list.map(j => `
+    <article class="job-card" data-id="${j.id}">
+      <span class="job-index" aria-hidden="true">+</span>
+      <div class="job-main">
+        <h3 class="job-title">${esc(j.title)}</h3>
+        <p class="job-line">
+          <span class="job-company">${esc(j.company)}</span><span class="sep">·</span>
+          <span>${esc(j.location)}</span><span class="sep">·</span><span>${esc(j.category)}</span>
+        </p>
+        <p class="job-summary">${esc(j.summary)}</p>
+      </div>
+      <div class="job-side">
+        <span class="job-stamp"><span class="job-type">${esc(j.type)}</span><span class="sep">·</span><span>${ago(j.days)}</span></span>
+        <span class="job-comp">${money(j.min)}–${money(j.max)}</span>
+        <span class="dot-hint">Drag to view</span>
+        <span class="drag-anchor" aria-hidden="true"></span>
+      </div>
+    </article>`).join('');
+
+  // dots live in one overlay, so a drag is never interrupted by a re-render
+  dotsEl.innerHTML = list.map(j => `
+    <button type="button" class="drag-dot is-home" data-id="${j.id}" role="slider"
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+      aria-label="Drag to view ${esc(j.title)} at ${esc(j.company)}. Arrow keys work too."></button>`).join('');
+
+  lines.innerHTML = list.map(j => `
+    <g class="line-g" data-id="${j.id}">
+      <path class="rail-path" pathLength="1"/>
+      <path class="rail-runner" pathLength="1"/>
+      <path class="rail-path-dash"/>
+      <path class="rail-path-glow" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" style="opacity:0"/>
+    </g>`).join('');
+
+  anchors.clear(); paths.clear(); dotEls.clear(); groups.clear();
+  list.forEach(j => {
+    anchors.set(j.id, cardsEl.querySelector(`[data-id="${j.id}"] .drag-anchor`));
+    paths.set(j.id, lines.querySelector(`g[data-id="${j.id}"] .rail-path`));
+    groups.set(j.id, lines.querySelector(`g[data-id="${j.id}"]`));
+    dotEls.set(j.id, dotsEl.querySelector(`[data-id="${j.id}"]`));
+  });
+
+  progress = {};
+  // every render is a fresh connection: the lines start undrawn and run again,
+  // so paging away and back replays the effect rather than showing it once
+  connected.clear();
+
+  cardsEl.classList.remove('from-left','from-right');
+  void cardsEl.offsetWidth;                       // reflow, so the animation restarts
+  cardsEl.classList.add(slideDir === 'left' ? 'from-left' : 'from-right');
+  rail.classList.add('is-sliding');
+
+  const land = () => {
+    rail.classList.remove('is-sliding');
+    measure();
+  };
+  cardsEl.addEventListener('animationend', land, { once: true });
+  setTimeout(land, 520);                          // belt and braces if the event is missed
+}
+
+/* ---------- geometry ---------- */
+
+/**
+ * A sine wave running from the card's node to the View target.
+ *
+ * Built from one quadratic segment followed by smooth-quadratic (T) commands:
+ * each T mirrors the previous control point, so the curve alternates sides on
+ * its own and every join is tangent-continuous. No kinks, no control-point
+ * bookkeeping.
+ */
+function wavyPath(start, end){
+  const dx = end.x - start.x, dy = end.y - start.y;
+  const dist = Math.hypot(dx, dy) || 1;
+
+  // unit perpendicular — the direction the wave bulges in
+  const px = -dy / dist, py = dx / dist;
+
+  // more waves over a longer run, and amplitude that scales but stays sane:
+  // a short hop should not thrash, a long one should not go slack
+  const waves = Math.min(4, Math.max(1.5, dist / 190));
+  const amp = Math.min(70, Math.max(18, dist * 0.13));
+  const segs = Math.max(2, Math.round(waves * 2));
+
+  const at = (f) => ({ x: start.x + dx * f, y: start.y + dy * f });
+
+  // first control point sits perpendicular at the first half-segment midpoint;
+  // every T after it reflects, producing the alternating crests
+  const c = at(0.5 / segs);
+  const p1 = at(1 / segs);
+  let d = `M ${start.x} ${start.y} Q ${c.x + px*amp} ${c.y + py*amp} ${p1.x} ${p1.y}`;
+  for (let i = 2; i <= segs; i++){
+    const p = at(i / segs);
+    d += ` T ${p.x} ${p.y}`;
+  }
+  return d;
+}
+
+/** Line the target up with the middle of the three cards, ignoring the nav
+ *  row beneath them. Reset first so the reading is not of our own transform. */
+function centreTarget(){
+  if (window.matchMedia('(max-width:900px)').matches){ target.style.transform = ''; return; }
+  target.style.transform = '';
+  const c = cardsEl.getBoundingClientRect();
+  const g = target.getBoundingClientRect();
+  const dy = (c.top + c.height/2) - (g.top + g.height/2);
+  target.style.transform = `translateY(${Math.round(dy)}px)`;
+}
+
+function measure(){
+  centreTarget();
+  const rr = rail.getBoundingClientRect();
+  const tr = target.getBoundingClientRect();
+  lines.setAttribute('viewBox', `0 0 ${rr.width||1} ${rr.height||1}`);
+
+  // The target is position:sticky, so this moves as the page scrolls — which
+  // is exactly why measure() has to run on scroll and not just on resize.
+  const end = { x: tr.left - rr.left + tr.width/2, y: tr.top - rr.top + tr.height/2 };
+
+  let newlyConnected = 0;
+
+  anchors.forEach((node, id) => {
+    const nr = node.getBoundingClientRect();
+    const start = { x: nr.left - rr.left + nr.width/2, y: nr.top - rr.top + nr.height/2 };
+    const d = wavyPath(start, end);
+    lines.querySelectorAll(`g[data-id="${id}"] path`).forEach(p => p.setAttribute('d', d));
+
+    // a line is undrawn until its card has landed — then a pulse races the
+    // length of the curve and the track draws in behind it
+    if (!connected.has(id)){
+      connected.add(id);
+      const g = groups.get(id);
+      g?.classList.remove('is-connected');
+      // stagger the three so they do not fire as one flash
+      const delay = Math.min(2, newlyConnected++) * 110;
+      setTimeout(() => g?.classList.add('is-connected'), delay);
+    }
+
+    place(id, progress[id] || 0);
+  });
+}
+
+/* Re-measure while scrolling so the lines stay pinned to the sticky target.
+   rAF-throttled, skipped when the rail is off-screen, and skipped mid-drag —
+   moving the curve under the pointer would fight the person dragging it. */
+let scrollTick = false;
+function onScroll(){
+  if (scrollTick || dragging) return;
+  scrollTick = true;
+  requestAnimationFrame(() => {
+    scrollTick = false;
+    if (view === 'list') measure();
+  });
+}
+
+function pointAt(id, t){
+  const p = paths.get(id);
+  if (!p) return null;
+  const pt = p.getPointAtLength(p.getTotalLength() * t);
+  return { x: pt.x, y: pt.y };
+}
+
+/** nearest point on the curve to the pointer, as a 0–1 position */
+function project(id, x, y){
+  const p = paths.get(id);
+  if (!p) return 0;
+  const total = p.getTotalLength();
+  if (!total) return 0;
+  let best = 0, bestD = Infinity;
+  for (let i = 0; i <= SAMPLES; i++){
+    const t = i / SAMPLES;
+    const pt = p.getPointAtLength(total * t);
+    const d = (pt.x-x)**2 + (pt.y-y)**2;
+    if (d < bestD){ bestD = d; best = t; }
+  }
+  return best;
+}
+
+function place(id, t){
+  progress[id] = t;
+  const pos = pointAt(id, t);
+  const dot = dotEls.get(id);
+  if (!pos || !dot) return;
+  dot.style.left = pos.x + 'px';
+  dot.style.top  = pos.y + 'px';
+  dot.classList.toggle('is-flying', t > 0.001);
+  dot.classList.toggle('is-home', t <= 0.001);
+  dot.setAttribute('aria-valuenow', Math.round(t*100));
+
+  const glow = lines.querySelector(`g[data-id="${id}"] .rail-path-glow`);
+  if (glow){
+    glow.setAttribute('stroke-dashoffset', 1 - t);
+    glow.style.opacity = t > 0.001 ? 0.95 : 0;
+  }
+  target.classList.toggle('is-armed', Object.values(progress).some(v => v >= RELEASE));
+}
+
+/** ease home rather than snapping — a failed attempt should still feel alive */
+function settle(id, from){
+  const t0 = performance.now(), dur = 320;
+  const step = (now) => {
+    const e = Math.min(1, (now-t0)/dur);
+    place(id, from * (1 - (1-(1-e)**3)));
+    if (e < 1) raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+}
+
+function complete(id){
+  place(id, 1);
+  openDrawer(id);
+  fireBeam();
+  setTimeout(() => settle(id, 1), 520);
+}
+
+/* ---------- drag ---------- */
+dotsEl.addEventListener('pointerdown', (e) => {
+  const dot = e.target.closest('.drag-dot');
+  if (!dot) return;
+  e.preventDefault();
+  const id = dot.dataset.id;
+  if (raf) cancelAnimationFrame(raf);
+  dot.setPointerCapture(e.pointerId);
+  dot.classList.add('is-dragging');
+  dragging = id;
+  cardsEl.querySelector(`[data-id="${id}"]`)?.classList.add('is-active');
+
+  const rr = rail.getBoundingClientRect();
+  const move = (ev) => place(id, project(id, ev.clientX-rr.left, ev.clientY-rr.top));
+  const end = (ev) => {
+    dot.releasePointerCapture?.(ev.pointerId);
+    dot.removeEventListener('pointermove', move);
+    dot.removeEventListener('pointerup', end);
+    dot.removeEventListener('pointercancel', end);
+    dot.classList.remove('is-dragging');
+    cardsEl.querySelector(`[data-id="${id}"]`)?.classList.remove('is-active');
+    dragging = null;
+    const t = project(id, ev.clientX-rr.left, ev.clientY-rr.top);
+    if (t >= RELEASE) complete(id); else settle(id, t);
+  };
+  dot.addEventListener('pointermove', move);
+  dot.addEventListener('pointerup', end);
+  dot.addEventListener('pointercancel', end);
+});
+
+/* keyboard equivalent, so the board is not mouse-only */
+dotsEl.addEventListener('keydown', (e) => {
+  const dot = e.target.closest('.drag-dot');
+  if (!dot) return;
+  const id = dot.dataset.id, cur = progress[id] || 0, step = e.shiftKey ? 0.25 : 0.1;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowUp'){
+    e.preventDefault();
+    const next = Math.min(1, cur+step);
+    place(id, next);
+    if (next >= RELEASE) complete(id);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown'){
+    e.preventDefault(); place(id, Math.max(0, cur-step));
+  } else if (e.key === 'Enter' || e.key === ' ' || e.key === 'End'){
+    e.preventDefault(); complete(id);
+  } else if (e.key === 'Home'){
+    e.preventDefault(); place(id, 0);
+  }
+});
+
+/* ---------- drawer ---------- */
+let scrim, drawer;
+function openDrawer(id){
+  const j = hubJobs().find(x => x.id === id);
+  if (!j) return;
+  closeDrawer();
+  cardsEl.querySelector(`[data-id="${id}"]`)?.classList.add('is-opened');
+
+  scrim = document.createElement('div');
+  scrim.className = 'drawer-scrim';
+  scrim.addEventListener('click', closeDrawer);
+
+  drawer = document.createElement('div');
+  drawer.className = 'drawer';
+  drawer.setAttribute('role','dialog');
+  drawer.setAttribute('aria-modal','true');
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <button type="button" class="drawer-close" aria-label="Close role details">✕</button>
+      <div class="job-meta">
+        <span class="chip cat">${esc(j.category)}</span>
+        <span class="chip seg">${esc(j.segment)}</span>
+        <span class="chip">${ago(j.days)}</span>
+      </div>
+      <h2>${esc(j.title)}</h2>
+      <p class="drawer-company">${esc(j.company)}</p>
+    </div>
+    <dl class="drawer-facts">
+      <div class="drawer-fact"><dt>Location</dt><dd>${esc(j.location)}</dd></div>
+      <div class="drawer-fact"><dt>Level</dt><dd>${esc(j.level)}</dd></div>
+      <div class="drawer-fact"><dt>Type</dt><dd style="text-transform:capitalize">${esc(j.type)}</dd></div>
+      <div class="drawer-fact"><dt>Compensation</dt><dd>${money(j.min)}–${money(j.max)}</dd></div>
+    </dl>
+    <div class="drawer-body">${j.description.split(/\n{2,}/).map(p => `<p>${esc(p)}</p>`).join('')}</div>
+    <div class="drawer-foot">
+      <button class="cta-mega" type="button" id="apply-btn">Apply Now</button>
+      ${j.applyUrl ? `<a class="source-link" href="${esc(j.applyUrl)}" rel="noopener">
+        View the original posting${j.source ? ' on ' + esc(j.source) : ''} <span aria-hidden="true">↗</span></a>` : ''}
+    </div>`;
+
+  document.body.append(scrim, drawer);
+  document.body.style.overflow = 'hidden';
+  drawer.querySelector('.drawer-close').addEventListener('click', closeDrawer);
+  drawer.querySelector('#apply-btn')?.addEventListener('click', () => openApply(j));
+  drawer.querySelector('.drawer-close').focus();
+}
+
+function closeDrawer(keepFocus){
+  apply = null;
+  scrim?.remove(); drawer?.remove();
+  scrim = drawer = null;
+  document.body.style.overflow = '';
+  cardsEl.querySelectorAll('.is-opened').forEach(el => el.classList.remove('is-opened'));
+  if (!keepFocus && view === 'graph') setFocus(null);
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+
+
+/* ==========================================================================
+   Application wizard — three stages
+     1. who you are      2. your background      3. review before submitting
+   ========================================================================== */
+
+let apply = null;   // { job, step, data }
+
+const STAGE_LABELS = [
+  ['Stage 01','Your details'],
+  ['Stage 02','Background'],
+  ['Stage 03','Review'],
+];
+
+function openApply(job){
+  apply = { job, step: 1, data: apply?.data || {}, review: null };
+  renderApply();
+}
+
+function renderApply(){
+  if (!apply) return;
+  const { job, step } = apply;
+
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <button type="button" class="drawer-close" aria-label="Close">✕</button>
+      <div class="job-meta"><span class="chip cat">Applying</span><span class="chip seg">${esc(job.company)}</span></div>
+      <h2>${esc(job.title)}</h2>
+      <p class="drawer-company">${esc(job.location)} · ${esc(job.category)}</p>
+    </div>
+    <div class="wiz-steps">
+      ${STAGE_LABELS.map((s,i) => `
+        <div class="wiz-step ${step===i+1?'is-on':''} ${step>i+1?'is-done':''}">
+          <div class="wiz-bar"><span></span></div>
+          <small>${s[0]}</small><b>${s[1]}</b>
+        </div>`).join('')}
+    </div>
+    <div class="wiz-body" id="wiz-body"></div>
+    <div class="wiz-foot" id="wiz-foot"></div>`;
+
+  drawer.querySelector('.drawer-close').addEventListener('click', closeDrawer);
+
+  if (step === 1) stageOne();
+  else if (step === 2) stageTwo();
+  else stageThree();
+}
+
+/* ---------- stage 1 ---------- */
+function stageOne(){
+  const d = apply.data;
+  const field = (id, label, opts = {}) => `
+    <div class="f" data-for="${id}">
+      <label for="a-${id}">${label} ${opts.optional ? '<span class="opt">(optional)</span>' : '<span class="req">*</span>'}</label>
+      <input id="a-${id}" type="${opts.type || 'text'}" value="${esc(d[id] || '')}"
+        placeholder="${esc(opts.ph || '')}" ${opts.max ? `maxlength="${opts.max}"` : ''} />
+    </div>`;
+
+  $('wiz-body').innerHTML = `
+    <p class="wiz-intro">Tell us who you are. Anything marked optional can be left blank — it only sharpens the review in stage three.</p>
+    <div class="f-row mi">
+      ${field('first','First name',{ph:'Evan'})}
+      ${field('mi','M.I.',{optional:true,max:1,ph:'A'})}
+      ${field('last','Last name',{ph:'Prothro'})}
+    </div>
+    <div class="f-row">
+      ${field('email','Email address',{type:'email',ph:'you@company.com'})}
+      ${field('phone','Phone number',{type:'tel',ph:'615-555-0134'})}
+    </div>
+    <div class="f-row">
+      ${field('company','Current company',{optional:true,ph:'Invitation Homes'})}
+      ${field('position','Current position',{optional:true,ph:'Regional Manager'})}
+    </div>
+    ${field('linkedin','LinkedIn profile',{optional:true,ph:'linkedin.com/in/yourname'})}`;
+
+  $('wiz-foot').innerHTML = `
+    <button class="btn" type="button" id="wiz-back">Back to role</button>
+    <span class="spacer"></span>
+    <button class="btn primary" type="button" id="wiz-next">Continue →</button>`;
+
+  $('wiz-back').addEventListener('click', () => { const j = apply.job; apply = null; openDrawer(j.id); });
+  $('wiz-next').addEventListener('click', () => {
+    collectOne();
+    if (validateOne()) { apply.step = 2; renderApply(); }
+  });
+}
+
+function collectOne(){
+  ['first','mi','last','email','phone','company','position','linkedin']
+    .forEach(id => { apply.data[id] = ($('a-'+id)?.value || '').trim(); });
+}
+
+function markError(id, message){
+  const wrap = document.querySelector(`.f[data-for="${id}"]`);
+  if (!wrap) return;
+  wrap.classList.add('has-error');
+  if (!wrap.querySelector('.err')){
+    const e = document.createElement('span');
+    e.className = 'err';
+    e.textContent = message;
+    wrap.append(e);
+  }
+}
+
+function validateOne(){
+  document.querySelectorAll('.f.has-error').forEach(w => {
+    w.classList.remove('has-error');
+    w.querySelector('.err')?.remove();
+  });
+
+  const d = apply.data;
+  let ok = true;
+  if (!d.first){ markError('first','Add your first name.'); ok = false; }
+  if (!d.last){ markError('last','Add your last name.'); ok = false; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)){ markError('email','Add a valid email address.'); ok = false; }
+  if ((d.phone.replace(/\D/g,'')).length < 7){ markError('phone','Add a phone number we can reach you on.'); ok = false; }
+
+  if (!ok) document.querySelector('.f.has-error input')?.focus();
+  return ok;
+}
+
+/* ---------- stage 2 ---------- */
+function stageTwo(){
+  const d = apply.data;
+  $('wiz-body').innerHTML = `
+    <p class="wiz-intro">Paste your résumé, or write a summary of your background. Specifics beat adjectives — portfolio size, markets, systems you have run, numbers you owned.</p>
+    <div class="f" data-for="background">
+      <label for="a-background">Résumé / professional background <span class="req">*</span></label>
+      <textarea id="a-background" placeholder="e.g. Seven years in single-family operations. Currently a Regional Manager over 2,400 scattered-site homes across Charlotte and Raleigh, owning make-ready cycle time (cut from 21 to 13 days) and a vendor bench of 40…">${esc(d.background || '')}</textarea>
+      <div class="char-count" id="cc"></div>
+      <span class="hint">A résumé file upload sits here in the live version — this preview takes text only.</span>
+    </div>`;
+
+  $('wiz-foot').innerHTML = `
+    <button class="btn" type="button" id="wiz-back">← Back</button>
+    <span class="spacer"></span>
+    <button class="btn primary" type="button" id="wiz-next">Run review →</button>`;
+
+  const ta = $('a-background'), cc = $('cc');
+  const sync = () => {
+    const n = ta.value.trim().length;
+    cc.textContent = n + ' characters';
+    cc.classList.toggle('is-thin', n > 0 && n < 180);
+    if (n > 0 && n < 180) cc.textContent = n + ' characters — a little more detail sharpens the review';
+  };
+  ta.addEventListener('input', sync); sync();
+
+  $('wiz-back').addEventListener('click', () => { apply.data.background = ta.value; apply.step = 1; renderApply(); });
+  $('wiz-next').addEventListener('click', () => {
+    apply.data.background = ta.value.trim();
+    if (apply.data.background.length < 60){
+      const wrap = document.querySelector('.f[data-for="background"]');
+      wrap.classList.add('has-error');
+      if (!wrap.querySelector('.err')){
+        const e = document.createElement('span');
+        e.className = 'err';
+        e.textContent = 'Give us at least a couple of sentences to work with.';
+        wrap.append(e);
+      }
+      ta.focus();
+      return;
+    }
+    apply.review = null;
+    apply.step = 3;
+    renderApply();
+  });
+}
+
+
+/* ---------- stage 3: the review ---------- */
+
+const STOP = new Set(('the and for you your with that this from have has had are was were will would '+
+  'not but they their them our out who what when where which while into over under about across '+
+  'a an of to in on at as it is be by or if we us do does did done more most than then there here '+
+  'role job work working team teams year years plus own owns owning day days needs need per via '+
+  'one two three four five six seven eight nine ten first second every each also just only very '+
+  'still even much many some any all both other another such same well good great real really '+
+  'day-to-day reports report reporting sits comes goes make makes made take takes new').split(' '));
+
+/** Light stemming so "operations" matches "operational" and "leasing" matches "lease". */
+function stem(w){
+  return w.replace(/(ations?|ing|ers?|ed|s)$/,'').slice(0,6);
+}
+
+function terms(text){
+  return (String(text).toLowerCase().match(/[a-z][a-z0-9+#.\-]{2,}/g) || [])
+    .map(w => w.replace(/[.\-]+$/,''))
+    .filter(w => w.length > 3 && !STOP.has(w));
+}
+
+/**
+ * Compares the applicant's background against the role.
+ *
+ * In the deployed app this call goes to Claude through a Worker route. Here it
+ * is a local keyword and completeness analysis — real analysis of what was
+ * actually typed, just not a language model.
+ */
+function buildReview(job, data){
+  const bg = data.background || '';
+
+  // terms that matter most sit in the title and category, then the body
+  const weighted = new Map();
+  const add = (text, weight) => terms(text).forEach(w => {
+    const s = stem(w);
+    const cur = weighted.get(s) || { w: 0, label: w };
+    cur.w += weight;
+    if (w.length < cur.label.length) cur.label = w;   // keep the shortest surface form
+    weighted.set(s, cur);
+  });
+  add(job.title, 5); add(job.category, 5); add(job.summary, 2); add(job.description, 1);
+
+  const key = [...weighted.entries()].sort((a,b) => b[1].w - a[1].w).slice(0, 18);
+  const mine = new Set(terms(bg).map(stem));
+
+  const hits = key.filter(([s]) => mine.has(s));
+  const misses = key.filter(([s]) => !mine.has(s));
+
+  const keyWeight = key.reduce((sum,[,v]) => sum + v.w, 0) || 1;
+  const hitWeight = hits.reduce((sum,[,v]) => sum + v.w, 0);
+  // Matching even half a posting's vocabulary is a strong result, so the raw
+  // ratio is rescaled — otherwise every real applicant lands in the 50s.
+  const coverage = Math.min(1, (hitWeight / keyWeight) / 0.45);
+
+  // depth: numbers and specifics carry more signal than adjectives
+  const numbers = (bg.match(/\b\d[\d,.]*%?\b/g) || []).length;
+  const words = bg.trim().split(/\s+/).length;
+  const depth = Math.min(1, (Math.min(words, 220)/220)*0.55 + Math.min(numbers, 5)/5*0.45);
+
+  const optional = ['company','position','linkedin'].filter(k => data[k]).length;
+  const completeness = optional / 3;
+
+  const score = Math.round(Math.min(96, Math.max(28,
+    coverage*100*0.55 + depth*100*0.30 + completeness*100*0.15)));
+
+  const label = ([,v]) => v.label;
+  const hitWords = hits.map(label), missWords = misses.map(label);
+
+  const strengths = [];
+  if (hits.length) strengths.push(`Your background lands on ${hits.length} of the ${key.length} signals this role leads with.`);
+  if (numbers >= 3) strengths.push(`You quantified your work — ${numbers} concrete figures. Operators read those first.`);
+  else if (numbers > 0) strengths.push(`You included ${numbers === 1 ? 'a figure' : 'a few figures'}, which helps.`);
+  if (words >= 110) strengths.push('Enough detail here for a hiring manager to form a real picture before the first call.');
+  if (data.company && data.position) strengths.push(`Your current role at ${data.company} gives the reviewer immediate context.`);
+  if (data.linkedin) strengths.push('LinkedIn attached, so the reviewer can check your track record without asking.');
+  if (!strengths.length) strengths.push('Profile submitted and ready for a human reviewer.');
+
+  const gaps = [];
+  if (missWords.length) gaps.push(`The posting leans on ${missWords.slice(0,4).join(', ')} — worth addressing if you have that experience.`);
+  if (numbers < 3) gaps.push('Add numbers: portfolio size, doors, cycle times, budget owned. Specifics move applications forward.');
+  if (words < 110) gaps.push('Your summary is short. Two or three more sentences on scope and outcomes would strengthen it.');
+  if (!data.linkedin) gaps.push('No LinkedIn profile — optional, but reviewers usually look for one.');
+  if (!data.company) gaps.push('Current company left blank, so the reviewer has no sense of your current scope.');
+  if (!gaps.length) gaps.push('Nothing obvious missing. This is ready to send.');
+
+  return { score, hits: hitWords.slice(0,10), misses: missWords.slice(0,6), strengths, gaps, words, numbers };
+}
+
+function stageThree(){
+  const { job, data } = apply;
+
+  if (!apply.review){
+    $('wiz-body').innerHTML = `
+      <div class="thinking">
+        <div class="thinking-ring"></div>
+        <p id="think-line">Reading your background…</p>
+      </div>`;
+    $('wiz-foot').innerHTML = `<button class="btn" type="button" id="wiz-back">← Back</button><span class="spacer"></span>`;
+    $('wiz-back').addEventListener('click', () => { apply.step = 2; renderApply(); });
+
+    const lines = ['Reading your background…','Comparing against the role…','Weighing scope and specifics…','Writing the summary…'];
+    let i = 0;
+    const tick = setInterval(() => {
+      i++;
+      const el = $('think-line');
+      if (el && lines[i]) el.textContent = lines[i];
+    }, 620);
+
+    setTimeout(() => {
+      clearInterval(tick);
+      apply.review = buildReview(job, data);
+      renderApply();
+    }, 2500);
+    return;
+  }
+
+  const r = apply.review;
+  const name = [data.first, data.mi && data.mi + '.', data.last].filter(Boolean).join(' ');
+  const verdict = r.score >= 78 ? 'Strong match'
+                : r.score >= 60 ? 'Worth a conversation'
+                : 'Some gaps to close';
+
+  const C = 2 * Math.PI * 36;
+
+  $('wiz-body').innerHTML = `
+    <div class="score-card">
+      <div class="score-ring">
+        <svg viewBox="0 0 84 84">
+          <circle class="track" cx="42" cy="42" r="36"/>
+          <circle class="fill" cx="42" cy="42" r="36"
+            stroke-dasharray="${C}" stroke-dashoffset="${C}" id="score-arc"/>
+        </svg>
+        <b>${r.score}</b>
+      </div>
+      <div>
+        <h4>${verdict}</h4>
+        <p>${esc(name)} against <strong>${esc(job.title)}</strong> at ${esc(job.company)}.
+        ${r.words} words of background, ${r.numbers} quantified ${r.numbers === 1 ? 'detail' : 'details'}.</p>
+      </div>
+    </div>
+
+    ${r.hits.length ? `<div class="rev-block">
+      <h5 class="green">Signals you matched</h5>
+      <div class="tag-row">${r.hits.map(w => `<span class="tag">${esc(w)}</span>`).join('')}</div>
+    </div>` : ''}
+
+    <div class="rev-block">
+      <h5 class="green">What reads well</h5>
+      <ul class="rev-list">${r.strengths.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
+    </div>
+
+    <div class="rev-block">
+      <h5>Worth strengthening</h5>
+      <ul class="rev-list gap">${r.gaps.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
+    </div>
+
+    <p class="ai-note">This review is generated for you, not sent to the employer. Edit stage two and re-run it as many times as you like before submitting.</p>`;
+
+  $('wiz-foot').innerHTML = `
+    <button class="btn" type="button" id="wiz-back">← Edit background</button>
+    <span class="spacer"></span>
+    <button class="btn primary" type="button" id="wiz-submit">Submit application</button>`;
+
+  requestAnimationFrame(() => {
+    const arc = $('score-arc');
+    if (arc) arc.style.strokeDashoffset = C * (1 - r.score/100);
+  });
+
+  $('wiz-back').addEventListener('click', () => { apply.step = 2; apply.review = null; renderApply(); });
+  $('wiz-submit').addEventListener('click', submitApply);
+}
+
+function submitApply(){
+  const { job, data } = apply;
+  fireBeam();
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <button type="button" class="drawer-close" aria-label="Close">✕</button>
+      <div class="job-meta"><span class="chip cat">Submitted</span></div>
+      <h2>${esc(job.title)}</h2>
+      <p class="drawer-company">${esc(job.company)}</p>
+    </div>
+    <div class="done-wrap">
+      <div class="done-mark" aria-hidden="true">✓</div>
+      <h3>Application in.</h3>
+      <p>Thanks ${esc(data.first)}. We have your details and your background, and a confirmation is on its way to ${esc(data.email)}.</p>
+      <p style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-dim)">
+        Nothing was actually sent — this is a preview.
+      </p>
+    </div>
+    <div class="drawer-foot"><button class="cta-mega" type="button" id="done-close">Back to roles</button></div>`;
+  drawer.querySelector('.drawer-close').addEventListener('click', closeDrawer);
+  $('done-close').addEventListener('click', closeDrawer);
+  apply = null;
+}
+
+
+/* ==========================================================================
+   THE MATCHING WEB
+   Role families on the left, companies on the right, a thread wherever a
+   posting connects the two. Geometry is recomputed from the SVG's own box, so
+   it survives resizing and filtering without a layout pass anywhere else.
+   ========================================================================== */
+
+const web = $('web');
+const SVGNS = 'http://www.w3.org/2000/svg';
+let view = 'graph';
+let graph = { roles: [], cos: [], links: [], w: 0, h: 0 };
+let focusKey = null;          // node or link currently traced
+let pointer = { x: -9999, y: -9999, inside: false };
+let webRAF = null;
+
+const el = (name, attrs = {}) => {
+  const n = document.createElementNS(SVGNS, name);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+};
+
+/* companies alternate green and purple, in the order they first appear */
+function companyTone(name){
+  const order = [...new Set(hubJobs().map(j => j.company))];
+  return order.indexOf(name) % 2 === 0 ? 'c-green' : 'c-purple';
+}
+
+/**
+ * The web: every open role is a green dot on the left, wired to its company —
+ * a purple dot on the right. A company with six openings has six threads
+ * converging on it, so the shape of the web is the shape of who is hiring.
+ */
+
+// A real scrape can return several hundred roles, and 300 dots on one axis is
+// a smear rather than a graph. Past this the densest companies are kept and
+// the rest are reachable through the list view.
+const MAX_DOTS = 90;
+
+function buildGraph(){
+  const all = visibleJobs();
+
+  const byCompany = new Map();
+  for (const j of all){
+    if (!byCompany.has(j.company)) byCompany.set(j.company, []);
+    byCompany.get(j.company).push(j);
+  }
+  const ranked = [...byCompany.entries()].sort((a, b) => b[1].length - a[1].length);
+
+  // Take one role from each company in turn until the budget runs out, rather
+  // than filling from the top down. A single 60-role company would otherwise
+  // consume the whole canvas and the web would show one employer.
+  const list = [];
+  const pools = ranked.map(([, jobs]) => jobs.slice());
+  let round = 0;
+  while (list.length < MAX_DOTS){
+    let took = 0;
+    for (const pool of pools){
+      if (round >= pool.length) continue;
+      if (list.length >= MAX_DOTS) break;
+      list.push(pool[round]);
+      took++;
+    }
+    if (!took) break;          // every pool exhausted
+    round++;
+  }
+  const hidden = all.length - list.length;
+
+  // Company dots show their TRUE total, not the sampled count, so the graph
+  // never understates who is hiring. The footnote explains the difference.
+  const totals = new Map(ranked.map(([name, jobs]) => [name, jobs.length]));
+
+  const box = web.getBoundingClientRect();
+  const w = Math.max(320, box.width), h = Math.max(320, box.height);
+  const narrow = w < 720;
+
+  // Role titles are drawn to the LEFT of their dot, so the threads — which all
+  // travel rightward — never cross the text. The column sits far enough in to
+  // give those titles room.
+  const lx = narrow ? w * 0.36 : w * 0.30;
+  const rx = narrow ? w * 0.80 : w * 0.815;
+  const top = 74, bottom = h - 46;
+  const span = (n, i) => n === 1 ? (top + bottom) / 2 : top + (bottom - top) * (i / (n - 1));
+
+  const coNames = ranked.map(([name]) => name).filter(name => list.some(j => j.company === name));
+
+  // Companies first, so roles can be grouped beneath the company they belong
+  // to — that is what stops the threads crossing into a tangle.
+  const cos = coNames.map((name, i) => ({
+    key: 'c:' + name, name, side: 'r',
+    count: totals.get(name) || 0,                        // true total
+    drawn: list.filter(j => j.company === name).length,  // dots actually wired
+    x: rx, y: span(coNames.length, i),
+  }));
+
+  // Roles are ordered by their company's vertical position, so each cluster of
+  // threads runs roughly parallel instead of criss-crossing the canvas.
+  const ordered = [];
+  for (const c of cos) ordered.push(...list.filter(j => j.company === c.name));
+
+  const roles = ordered.map((job, i) => ({
+    key: 'j:' + job.id, name: job.title, side: 'l', job,
+    x: lx, y: span(ordered.length, i),
+  }));
+
+  const links = roles.map((r) => {
+    const c = cos.find(x => x.name === r.job.company);
+    return {
+      key: 'l:' + r.job.id, from: r, to: c, jobs: [r.job],
+      // each thread carries its own drift so the web breathes unevenly
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.18 + Math.random() * 0.22,
+      offset: Math.random(),
+      pull: { x: 0, y: 0 },        // current elastic displacement
+    };
+  }).filter(L => L.to);
+
+  graph = { roles, cos, links, w, h, hidden };
+  drawGraph();
+}
+
+function drawGraph(){
+  const { roles, cos, links, w, h, hidden } = graph;
+  web.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  web.innerHTML = '';
+
+  document.querySelector('.web-empty')?.remove();
+  if (!links.length){
+    const p = document.createElement('p');
+    p.className = 'web-empty';
+    p.textContent = 'Nothing matches that filter yet. Clear it to see the whole web.';
+    $('graph-view').append(p);
+    return;
+  }
+
+  const headL = el('text', { class: 'col-head', x: roles[0].x, y: 40, 'text-anchor': 'middle' });
+  headL.textContent = hidden > 0
+    ? roles.length + ' of ' + (roles.length + hidden) + ' Openings'
+    : (roles.length === 1 ? '1 Opening' : roles.length + ' Openings');
+  const headR = el('text', { class: 'col-head', x: cos[0].x, y: 40, 'text-anchor': 'middle' });
+  headR.textContent = cos.length === 1 ? '1 Company' : cos.length + ' Companies';
+  web.append(headL, headR);
+
+  // Threads run green at the role end into purple at the company end, so the
+  // line itself carries the meaning of the two dot colours.
+  const defs = el('defs');
+  const ramp = (id, a, b) => {
+    const g = el('linearGradient', { id, x1: '0', y1: '0', x2: '1', y2: '0' });
+    g.append(el('stop', { offset: '0%',  'stop-color': a }),
+             el('stop', { offset: '100%', 'stop-color': b }));
+    return g;
+  };
+  defs.append(ramp('thread', '#00FF88', '#7F4DE0'),
+              ramp('threadLit', '#7CFFC0', '#A98FEC'));
+  web.append(defs);
+
+  const gLinks = el('g'), gParticles = el('g'), gNodes = el('g');
+  web.append(gLinks, gParticles, gNodes);
+
+  for (const L of links){
+    L.path = el('path', { class: 'web-link', 'data-key': L.key });
+    L.hit  = el('path', { class: 'web-hit',  'data-key': L.key });
+    gLinks.append(L.path, L.hit);
+    L.dot = el('circle', { class: 'web-particle', r: 2.6, 'data-key': L.key });
+    gParticles.append(L.dot);
+  }
+
+  // Labelling every role dot would be unreadable at this density, so the title
+  // lives in the tooltip and the hover state instead.
+  const dense = roles.length > 26;
+
+  for (const n of roles){
+    const g = el('g', { class: 'web-node node-job', 'data-key': n.key, tabindex: '0', role: 'button' });
+    g.setAttribute('aria-label', `${n.job.title} at ${n.job.company}`);
+    g.append(el('circle', { class: 'halo', cx: n.x, cy: n.y, r: 11 }));
+    g.append(el('circle', { class: 'core', cx: n.x, cy: n.y, r: 6 }));
+    if (!dense){
+      // Truncate to the space actually available rather than a fixed character
+      // count, so a narrow canvas does not push titles off the left edge.
+      // ~5.9px per character at 11px in this face.
+      const room = n.x - 22;
+      const maxChars = Math.max(8, Math.floor(room / 5.9));
+      const text = n.job.title.length > maxChars
+        ? n.job.title.slice(0, maxChars - 1).trimEnd() + '…'
+        : n.job.title;
+      const lbl = el('text', { class: 'lbl', x: n.x - 15, y: n.y + 4, 'text-anchor': 'end' });
+      lbl.textContent = text;
+      g.append(lbl);
+    }
+    const title = el('title');
+    title.textContent = `${n.job.title} — ${n.job.company}`;
+    g.append(title);
+    n.g = g;
+    gNodes.append(g);
+  }
+
+  for (const n of cos){
+    const g = el('g', { class: 'web-node node-co', 'data-key': n.key, tabindex: '0', role: 'button' });
+    g.setAttribute('aria-label', `${n.name}, ${n.count} openings`);
+    // the dot grows with how much a company is hiring
+    const r = Math.min(20, 11 + Math.sqrt(n.count) * 1.8);
+    g.append(el('circle', { class: 'halo', cx: n.x, cy: n.y, r: r + 6 }));
+    g.append(el('circle', { class: 'core', cx: n.x, cy: n.y, r }));
+    const num = el('text', { class: 'n', x: n.x, y: n.y });
+    num.textContent = n.count;
+    const lbl = el('text', { class: 'lbl', x: n.x + r + 13, y: n.y - 3, 'text-anchor': 'start' });
+    lbl.textContent = n.name;
+    const sub = el('text', { class: 'sub', x: n.x + r + 13, y: n.y + 12, 'text-anchor': 'start' });
+    sub.textContent = n.count === 1 ? '1 opening' : n.count + ' openings';
+    g.append(num, lbl, sub);
+    n.g = g;
+    gNodes.append(g);
+  }
+
+  if (hidden > 0){
+    const note = el('text', { class: 'col-head', x: w / 2, y: h - 14, 'text-anchor': 'middle' });
+    note.textContent = `Showing ${links.length} of ${links.length + hidden} open roles — see all in the list view`;
+    web.append(note);
+  }
+
+  stepWeb(performance.now());
+}
+
+/* ---------- shape of a thread ---------- */
+function linkPath(L, time){
+  const a = L.from, b = L.to;
+  const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+
+  // a slow idle sway, plus whatever the pointer is currently dragging out of it
+  const sway = Math.sin(time * 0.00042 * L.speed + L.phase) * 12;
+  const cx = mx + L.pull.x;
+  const cy = my + sway + L.pull.y;
+
+  // two control points either side of the midpoint keep the curve smooth
+  return `M ${a.x} ${a.y} C ${a.x + (mx-a.x)*0.55} ${a.y}, ${cx - (b.x-mx)*0.28} ${cy}, ${cx} ${cy}`
+       + ` S ${b.x - (b.x-mx)*0.55} ${b.y}, ${b.x} ${b.y}`;
+}
+
+/* ---------- the frame loop ---------- */
+function stepWeb(time){
+  if (view !== 'graph' || !graph.links.length){ webRAF = null; return; }
+
+  for (const L of graph.links){
+    // elastic: the thread is tugged toward the pointer when it is close, and
+    // springs back when it leaves. Lerping the displacement is what makes it
+    // feel like a thread rather than a jump.
+    let tx = 0, ty = 0;
+    if (pointer.inside){
+      const mx = (L.from.x + L.to.x)/2, my = (L.from.y + L.to.y)/2;
+      const dx = pointer.x - mx, dy = pointer.y - my;
+      const dist = Math.hypot(dx, dy);
+      const reach = 240;
+      if (dist < reach){
+        const force = (1 - dist/reach) ** 2 * 46;
+        tx = (dx/(dist||1)) * force;
+        ty = (dy/(dist||1)) * force;
+      }
+    }
+    L.pull.x += (tx - L.pull.x) * 0.075;
+    L.pull.y += (ty - L.pull.y) * 0.075;
+
+    const d = linkPath(L, time);
+    L.path.setAttribute('d', d);
+    L.hit.setAttribute('d', d);
+
+    // glow rises as the pointer nears, independent of the hover highlight
+    const near = Math.hypot(L.pull.x, L.pull.y) / 46;
+    if (!L.path.classList.contains('is-lit')){
+      L.path.style.stroke = `rgba(59,232,255,${(0.30 + near*0.45).toFixed(3)})`;
+      L.path.style.strokeWidth = (1.4 + near*1.2).toFixed(2);
+    } else {
+      L.path.style.stroke = ''; L.path.style.strokeWidth = '';
+    }
+
+    // the pulse travelling the thread
+    const total = L.path.getTotalLength();
+    if (total){
+      L.offset = (L.offset + 0.00075 * (0.6 + L.speed)) % 1;
+      const pt = L.path.getPointAtLength(total * L.offset);
+      L.dot.setAttribute('cx', pt.x);
+      L.dot.setAttribute('cy', pt.y);
+      L.dot.setAttribute('r', (2.2 + near*1.8).toFixed(2));
+    }
+  }
+
+  webRAF = requestAnimationFrame(stepWeb);
+}
+
+/* ---------- hover and click ---------- */
+function relatedKeys(key){
+  const set = new Set([key]);
+  if (key.startsWith('l:')){
+    const L = graph.links.find(x => x.key === key);
+    if (L){ set.add(L.from.key); set.add(L.to.key); }
+  } else {
+    for (const L of graph.links){
+      if (L.from.key === key || L.to.key === key){
+        set.add(L.key); set.add(L.from.key); set.add(L.to.key);
+      }
+    }
+  }
+  return set;
+}
+
+function setFocus(key){
+  focusKey = key;
+  const lit = key ? relatedKeys(key) : null;
+  web.classList.toggle('is-focused', Boolean(key));
+  for (const L of graph.links){
+    const on = lit ? lit.has(L.key) : false;
+    L.path.classList.toggle('is-lit', on);
+    L.dot.classList.toggle('lit', on);
+  }
+  for (const n of [...graph.roles, ...graph.cos]){
+    n.g?.classList.toggle('is-lit', lit ? lit.has(n.key) : false);
+  }
+}
+
+web.addEventListener('pointermove', (e) => {
+  const box = web.getBoundingClientRect();
+  pointer.inside = true;
+  pointer.x = (e.clientX - box.left) * (graph.w / box.width);
+  pointer.y = (e.clientY - box.top) * (graph.h / box.height);
+
+  const key = e.target.closest?.('[data-key]')?.dataset.key || null;
+  if (key !== focusKey) setFocus(key);
+});
+web.addEventListener('pointerleave', () => { pointer.inside = false; setFocus(null); });
+
+web.addEventListener('click', (e) => {
+  const key = e.target.closest?.('[data-key]')?.dataset.key;
+  if (key) openMatch(key);
+});
+
+
+/* ---------- the slide-over for a match ---------- */
+function openMatch(key){
+  const list = visibleJobs();
+  let jobs = [], title = '', sub = '';
+
+  // A green dot is one specific role, so it opens that role directly rather
+  // than a panel listing a single item.
+  if (key.startsWith('j:')){
+    const job = list.find(j => j.id === key.slice(2));
+    if (!job) return;
+    setFocus(key);
+    openDrawer(job.id);
+    return;
+  }
+
+  if (key.startsWith('l:')){
+    // A thread is one role and its company — same destination as its dot.
+    const L = graph.links.find(x => x.key === key);
+    if (!L || !L.jobs.length) return;
+    setFocus(key);
+    openDrawer(L.jobs[0].id);
+    return;
+  }
+
+  // A purple dot is a company: list everything they have open.
+  const name = key.slice(2);
+  jobs = list.filter(j => j.company === name);
+  title = name;
+  sub = `${jobs.length} open across ${new Set(jobs.map(j => j.category)).size} role families`;
+  if (!jobs.length) return;
+
+  setFocus(key);
+  closeDrawer(true);
+
+  scrim = document.createElement('div');
+  scrim.className = 'drawer-scrim';
+  scrim.addEventListener('click', () => { closeDrawer(); setFocus(null); });
+
+  drawer = document.createElement('div');
+  drawer.className = 'drawer';
+  drawer.setAttribute('role','dialog');
+  drawer.setAttribute('aria-modal','true');
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <button type="button" class="drawer-close" aria-label="Close">✕</button>
+      <div class="job-meta"><span class="chip cat">Match</span></div>
+      <h2>${esc(title)}</h2>
+      <p class="drawer-company">${esc(sub)}</p>
+    </div>
+    <div class="drawer-body" style="padding-top:20px">
+      <div class="match-list">
+        ${jobs.map(j => `
+          <button class="match-row" type="button" data-job="${j.id}">
+            <span class="mr-main">
+              <span class="mr-title">${esc(j.title)}</span>
+              <span class="mr-line">${esc(j.company)} <span class="sep">·</span> ${esc(j.location)} <span class="sep">·</span> ${esc(j.category)}</span>
+            </span>
+            <span class="mr-side">
+              <span class="mr-comp">${money(j.min)}–${money(j.max)}</span>
+              <span class="mr-go" aria-hidden="true">→</span>
+            </span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+
+  document.body.append(scrim, drawer);
+  document.body.style.overflow = 'hidden';
+  drawer.querySelector('.drawer-close').addEventListener('click', () => { closeDrawer(); setFocus(null); });
+  drawer.querySelectorAll('.match-row').forEach(row =>
+    row.addEventListener('click', () => openDrawer(row.dataset.job)));
+  drawer.querySelector('.drawer-close').focus();
+}
+
+/* ---------- graph / list toggle ---------- */
+function setView(next){
+  view = next;
+  const graphOn = view === 'graph';
+  $('graph-view').style.display = graphOn ? 'block' : 'none';
+  $('rail').style.display = graphOn ? 'none' : 'grid';
+  $('nav').style.display = graphOn ? 'none' : '';
+  document.querySelector('.pill-row').style.display = graphOn ? 'none' : 'flex';
+  $('v-graph').classList.toggle('is-on', graphOn);
+  $('v-list').classList.toggle('is-on', !graphOn);
+  $('v-graph').setAttribute('aria-pressed', String(graphOn));
+  $('v-list').setAttribute('aria-pressed', String(!graphOn));
+
+  if (graphOn){
+    buildGraph();
+    if (!webRAF) webRAF = requestAnimationFrame(stepWeb);
+  } else {
+    if (webRAF) cancelAnimationFrame(webRAF);
+    webRAF = null;
+    renderCards();
+  }
+}
+
+function renderStats(){
+  const list = visibleJobs();
+  const co = new Set(list.map(j => j.company)).size;
+  const fam = new Set(list.map(j => j.category)).size;
+  $('stats-line').innerHTML =
+    `<b>${list.length}</b> Openings <span class="bullet">•</span> <b>${co}</b> Companies <span class="bullet">•</span> <b>${fam}</b> Role Families`;
+}
+
+$('v-graph').addEventListener('click', () => setView('graph'));
+$('v-list').addEventListener('click', () => setView('list'));
+
+/* ---------- controls ---------- */
+function goTo(next, dir){
+  slideDir = dir;
+  page = next;
+  closeDrawer();
+  renderCards();
+}
+
+$('prev').addEventListener('click', () => { if (page > 0) goTo(page - 1, 'left'); });
+$('next').addEventListener('click', () => {
+  const pages = Math.max(1, Math.ceil(visibleJobs().length / PER_PAGE));
+  if (page < pages - 1) goTo(page + 1, 'right');
+});
+
+// arrow keys page the board when focus is not inside a control
+document.addEventListener('keydown', (e) => {
+  if (drawer || e.target?.closest?.('input, .drag-dot, button')) return;
+  if (e.key === 'ArrowLeft') $('prev').click();
+  if (e.key === 'ArrowRight') $('next').click();
+});
+
+$('search').addEventListener('input', (e) => {
+  query = e.target.value; page = 0; slideDir = 'right';
+  renderStats();
+  if (view === 'graph') buildGraph(); else renderCards();
+});
+$('pills').addEventListener('click', (e) => {
+  const pill = e.target.closest('.filter-pill');
+  if (!pill) return;
+  company = pill.dataset.company;
+  page = 0; slideDir = 'right';
+  renderPills(); renderStats(); renderCards();
+});
+
+/* ---------- admin preview ---------- */
+function renderAdmin(){
+  // whatever is currently loaded, across both hubs
+  const ALL = [...HUBS.opco.jobs, ...HUBS.proptech.jobs];
+  const open = ALL.length, companies = new Set(ALL.map(j => j.company)).size;
+  $('stats').innerHTML = `
+    <div class="stat-cell is-open"><dt>Live</dt><dd>${open}</dd></div>
+    <div class="stat-cell"><dt>Draft</dt><dd>2</dd></div>
+    <div class="stat-cell"><dt>Closed</dt><dd>0</dd></div>
+    <div class="stat-cell"><dt>Single-Family</dt><dd>${ALL.filter(j=>j.segment==='Single-Family').length}</dd></div>
+    <div class="stat-cell"><dt>Multifamily</dt><dd>${ALL.filter(j=>j.segment==='Multifamily').length}</dd></div>
+    <div class="stat-cell"><dt>Companies</dt><dd>${companies}</dd></div>`;
+
+  $('admin-rows').innerHTML = ALL.map((j,i) => `
+    <tr>
+      <td><div class="cell-title">${esc(j.title)}</div><div class="cell-company">${j.hub==='proptech'?'PropTech Hub':'OpCo Hub'}</div></td>
+      <td>${esc(j.company)}</td>
+      <td>${esc(j.category)}</td>
+      <td>${esc(j.segment)}</td>
+      <td><span class="pill ${i>7?'draft':'open'}">${i>7?'draft':'open'}</span></td>
+      <td class="cell-actions">
+        <button class="btn tiny" type="button">Close</button>
+        <button class="btn tiny" type="button">Edit</button>
+        <button class="btn tiny danger" type="button">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+$('toggle-view').addEventListener('click', () => {
+  const admin = document.body.classList.toggle('show-admin');
+  $('toggle-view').innerHTML = admin ? '← Board' : 'Admin <span aria-hidden="true">→</span>';
+  window.scrollTo(0,0);
+  if (admin){ if (webRAF) cancelAnimationFrame(webRAF); webRAF = null; }
+  else setView(view);
+});
+
+
+/* ==========================================================================
+   Hub routing. In the deployed app these are real routes — /  and
+   /proptech-hub — and the back arrow is an <a href>. Here they are one page,
+   so the arrow swaps the dataset and rewrites the URL to match.
+   ========================================================================== */
+function setHub(next){
+  hub = next;
+  const H = HUBS[hub];
+
+  $('hero-eyebrow').textContent = H.eyebrow;
+  $('hero-h1').innerHTML = H.h1;
+  $('hero-sub').textContent = H.sub;
+
+  document.querySelectorAll('[data-hub]').forEach(b => {
+    const on = b.dataset.hub === hub;
+    b.classList.toggle('muted', !on);
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+
+  // Sandboxed preview frames have an opaque origin and reject replaceState,
+  // so the deep link is best-effort rather than load-bearing.
+  try { history.replaceState(null, '', hub === 'proptech' ? '#/proptech-hub' : '#/'); }
+  catch { /* no deep link here — the hub still switches */ }
+
+  query = ''; $('search').value = '';
+  company = 'All'; page = 0; slideDir = 'right';
+  closeDrawer();
+
+  renderPills();
+  renderStats();
+  paintHubCards();
+  setView(view);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('[data-hub]').forEach(b =>
+  b.addEventListener('click', () => setHub(b.dataset.hub)));
+
+
+
+/* ==========================================================================
+   JOB FEED
+   --------------------------------------------------------------------------
+   Jobs come from a static JSON file sitting next to this page. run.js writes
+   it, the GitHub Action commits it, the CDN serves it — no database, no API
+   key in the browser, and every scrape is diffed in git history.
+
+   ONE RULE, INHERITED FROM THE SCRAPER: a failed load shows an error. It never
+   falls back to the bundled sample roles, because a job board quietly serving
+   stale or invented listings is worse than one that says it is down.
+   ========================================================================== */
+
+const FEED = {
+  // Relative, so it works on a custom domain, a project page and file:// alike.
+  url: 'jobs.json',
+  // Bust the CDN cache after a scrape without waiting for a TTL to lapse.
+  cacheBust: true,
+};
+
+/* Left side is what this page uses; right side is what run.js writes. Change a
+   name here and nowhere else. */
+function mapRow(row) {
+  const daysSince = (iso) => {
+    if (!iso) return 0;
+    const then = Date.parse(iso);
+    return Number.isNaN(then) ? 0 : Math.max(0, Math.floor((Date.now() - then) / 86400000));
+  };
+  return {
+    id:          String(row.id),
+    hub:         row.hub === 'proptech' ? 'proptech' : 'opco',
+    title:       row.title || 'Untitled role',
+    company:     row.company || 'Confidential',
+    category:    row.category || 'General',
+    segment:     row.segment || (row.hub === 'proptech' ? 'PropTech' : 'Single-Family'),
+    level:       row.level || 'Manager',
+    location:    row.location || 'Remote',
+    type:        row.employment_type || row.type || 'full-time',
+    min:         row.comp_min != null ? Number(row.comp_min) : null,
+    max:         row.comp_max != null ? Number(row.comp_max) : null,
+    days:        daysSince(row.posted_at || row.scraped_at),
+    summary:     row.summary || '',
+    description: row.description || row.summary || '',
+    applyUrl:    row.apply_url || row.source_url || null,
+    source:      row.source || null,
+    scrapedAt:   row.scraped_at || null,
+  };
+}
+
+async function fetchJobs() {
+  const url = FEED.url + (FEED.cacheBust ? '?t=' + Date.now() : '');
+  const res = await fetch(url, { cache: 'no-cache' });
+
+  if (!res.ok) {
+    throw new Error(res.status === 404
+      ? 'jobs.json not found — has the scraper committed a feed yet?'
+      : 'HTTP ' + res.status);
+  }
+
+  let data;
+  try {
+    data = await res.json();
+  } catch (_) {
+    // Almost always a 404 page served with a 200, which is what GitHub Pages
+    // does for a missing file inside a project site.
+    throw new Error('jobs.json is not valid JSON');
+  }
+
+  // Accept either a bare array or { generated_at, jobs: [...] }.
+  const rows = Array.isArray(data) ? data : data.jobs;
+  if (!Array.isArray(rows)) throw new Error('Expected an array of jobs');
+
+  return { jobs: rows.map(mapRow), generatedAt: Array.isArray(data) ? null : data.generated_at };
+}
+
+function setStatus(state, html, retry) {
+  const el = $('data-status');
+  if (!el) return;
+  el.hidden = false;
+  el.className = 'data-status is-' + state;
+  el.innerHTML = '<span class="ds-dot" aria-hidden="true"></span><span class="ds-msg">' + html + '</span>';
+  if (retry) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ds-retry';
+    btn.textContent = 'Retry';
+    btn.addEventListener('click', initData);
+    el.append(btn);
+  }
+}
+
+function timeAgo(iso) {
+  if (!iso) return '';
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return '';
+  const mins = Math.floor((Date.now() - then) / 60000);
+  if (mins < 2) return 'just now';
+  if (mins < 60) return mins + ' minutes ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + (hrs === 1 ? ' hour ago' : ' hours ago');
+  const days = Math.floor(hrs / 24);
+  return days + (days === 1 ? ' day ago' : ' days ago');
+}
+
+async function initData() {
+  const startHub = location.hash.includes('proptech') ? 'proptech' : 'opco';
+  setStatus('loading', 'Loading roles…');
+
+  try {
+    const { jobs: all, generatedAt } = await fetchJobs();
+
+    HUBS.opco.jobs = all.filter(j => j.hub === 'opco');
+    HUBS.proptech.jobs = all.filter(j => j.hub === 'proptech');
+    renderAdmin();
+    setHub(startHub);
+
+    if (!all.length) {
+      setStatus('error', 'The feed loaded but contains no roles. Has the scraper run yet?', true);
+      return;
+    }
+
+    const stamp = generatedAt || all.map(j => j.scrapedAt).filter(Boolean).sort().pop();
+    const ago = timeAgo(stamp);
+    setStatus('live', '<b>' + all.length + ' live roles</b> — ' +
+      HUBS.opco.jobs.length + ' OpCo, ' + HUBS.proptech.jobs.length + ' PropTech' +
+      (ago ? ' · updated ' + ago : ''));
+
+  } catch (err) {
+    console.error('[jobs] feed failed:', err);
+
+    // No feed yet? Show the bundled roles, clearly labelled — that is a
+    // first-run state, not stale data pretending to be live.
+    const firstRun = /not found|not valid JSON/.test(err.message);
+    HUBS.opco.jobs = firstRun ? JOBS : [];
+    HUBS.proptech.jobs = firstRun ? PROPTECH_JOBS : [];
+    renderAdmin();
+    setHub(startHub);
+
+    if (firstRun) {
+      setStatus('demo', '<b>Sample data.</b> No <code>jobs.json</code> yet — run the scraper and commit the feed to replace these.');
+    } else {
+      setStatus('error', '<b>Could not load roles.</b> ' + esc(err.message) +
+        ' — nothing is being shown rather than showing stale listings.', true);
+    }
+  }
+}
+
+
+/* ---------- hub cards ---------- */
+/* Each card switches the hub and scrolls to the board. If a card is given an
+   href — to route somewhere else entirely — the handler stands aside. */
+function wireHubCards(){
+  document.querySelectorAll('.hub-card[data-goto]').forEach((card) => {
+    card.setAttribute('role', 'link');
+    card.setAttribute('tabindex', '0');
+
+    const go = (e) => {
+      if (card.getAttribute('href')) return;   // a real link wins
+      e.preventDefault();
+      setHub(card.dataset.goto);
+      document.querySelector('.board').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    card.addEventListener('click', go);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') go(e);
+    });
+  });
+}
+
+/* Counts come from whatever is loaded, so they stay honest when the feed is
+   empty or still loading. */
+function paintHubCards(){
+  document.querySelectorAll('.hc-count').forEach((el) => {
+    const n = (HUBS[el.dataset.count]?.jobs || []).length;
+    el.textContent = n === 1 ? '1 role' : n + ' roles';
+  });
+  document.querySelectorAll('.hub-card[data-goto]').forEach((card) => {
+    card.classList.toggle('is-current', card.dataset.goto === hub);
+  });
+}
+
+/* ---------- boot ---------- */
+wireHubCards();
+initData();
+new ResizeObserver(() => { if (view === 'list') measure(); }).observe(rail);
+new ResizeObserver(() => { if (view === 'graph') buildGraph(); }).observe($('graph-view'));
+window.addEventListener('resize', measure);
+window.addEventListener('scroll', onScroll, { passive: true });
+// web fonts land after first paint and shift every card
+document.fonts?.ready.then(measure).catch(()=>{});
+</script>
+
+<!-- floating newsletter banner -->
+</body>
+</html>
