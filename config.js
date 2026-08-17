@@ -22,6 +22,59 @@
 
 export const COMPANIES = [
   // ---------------------------------------------------------------------------
+  // Verified proptech vendors. Every token below was confirmed against the live
+  // ATS API before being added — a token-name collision puts another company's
+  // jobs on your board, which is worse than a missing company. Two known traps:
+  // Greenhouse "lighthouse" is a hospitality-tech firm, and "haven" is a video
+  // game studio; neither is the proptech company of that name.
+  // ---------------------------------------------------------------------------
+  {
+    id: "lessen", name: "Lessen", hub: "proptech",
+    careersUrl: "https://jobs.lever.co/lessen", website: "https://www.lessen.com",
+    state: "Arizona", segment: "Property Maintenance & Renovation Tech",
+    verified: true, method: "lever", atsSlug: "lessen", active: true,
+  },
+  {
+    id: "findigs", name: "Findigs", hub: "proptech",
+    careersUrl: "https://jobs.lever.co/findigs", website: "https://findigs.com",
+    state: "New York", segment: "Rental Application & Screening Software",
+    verified: true, method: "lever", atsSlug: "findigs", active: true,
+  },
+  {
+    id: "esusu", name: "Esusu", hub: "proptech",
+    careersUrl: "https://boards.greenhouse.io/esusu", website: "https://esusurent.com",
+    state: "New York", segment: "Rent Reporting / Credit Building",
+    verified: true, method: "greenhouse", atsSlug: "esusu", active: true,
+  },
+  {
+    id: "property-meld", name: "Property Meld", hub: "proptech",
+    careersUrl: "https://property-meld.breezy.hr", website: "https://propertymeld.com",
+    state: "South Dakota", segment: "Maintenance Coordination SaaS",
+    verified: true, method: "breezy", atsSlug: "property-meld", active: true,
+  },
+  {
+    id: "showdigs", name: "Showdigs", hub: "proptech",
+    careersUrl: "https://showdigs.breezy.hr", website: "https://showdigs.com",
+    state: "Washington", segment: "Self-Touring & Showing Coordination",
+    verified: true, method: "breezy", atsSlug: "showdigs", active: true,
+  },
+  {
+    id: "lineage", name: "Lineage", hub: "proptech",
+    careersUrl: "https://boards.greenhouse.io/lineagehq", website: "https://www.lineage.com",
+    state: "New York", segment: "SFR Investing Infrastructure",
+    // the board token is "lineagehq", not "lineage"
+    verified: true, method: "greenhouse", atsSlug: "lineagehq", active: true,
+  },
+  {
+    id: "reffie", name: "Reffie", hub: "proptech",
+    careersUrl: "https://reffie.me/jobs", website: "https://reffie.me",
+    state: "New York", segment: "Leasing CRM & Workflow",
+    // No public ATS. Their careers site is server-rendered, so a small
+    // site-specific scraper reads it. Fragile by nature — it skips anything it
+    // cannot parse rather than guessing.
+    verified: true, method: "reffie", listUrl: "https://reffie.me/jobs", active: true,
+  },
+  // ---------------------------------------------------------------------------
   // Major SFR operators. These were missing from the leads sheet, which is a
   // vendor list — without them the OpCo hub had nothing to show.
   //
@@ -33,31 +86,36 @@ export const COMPANIES = [
     id: "invitation-homes",
     name: "Invitation Homes",
     hub: "opco",
-    careersUrl: "https://invitationhomes.wd1.myworkdayjobs.com/INVH",
+    // NOT Workday. The legacy invitationhomes.wd1.myworkdayjobs.com/INVH host is
+    // dead (422/500). Their careers site runs on Paradox.ai, which lists every
+    // job in an XML sitemap and embeds JobPosting JSON-LD on each page.
+    careersUrl: "https://careers.invitationhomes.com/",
     website: "https://www.invitationhomes.com",
     state: "Texas",
     segment: "SFR Property Management",
     verified: true,
-    method: "workday",
-    atsSlug: "invitationhomes.wd1.myworkdayjobs.com",
-    atsSite: "INVH",
-    priority: true,   // always shown on the graph, never crowded out
-    active: true,
+    method: "jsonld",
+    sitemap: "https://careers.invitationhomes.com/sitemap.xml",
+    atsSlug: null,
+    priority: true,
+    active: true
   },
   {
     id: "progress-residential",
     name: "Progress Residential",
     hub: "opco",
-    careersUrl: "https://progressresidential.wd1.myworkdayjobs.com/PR",
+    // The tenant is the PARENT company, Pretium Enterprise Services — not
+    // "progressresidential", which does not resolve.
+    careersUrl: "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR",
     website: "https://rentprogress.com",
     state: "Arizona",
     segment: "SFR Property Management",
     verified: true,
     method: "workday",
-    atsSlug: "progressresidential.wd1.myworkdayjobs.com",
+    atsSlug: "pretiumenterpriseservices.wd1.myworkdayjobs.com",
     atsSite: "PR",
-    priority: true,   // always shown on the graph, never crowded out
-    active: true,
+    priority: true,
+    active: true
   },
   {
     id: "tricon-residential",
@@ -96,7 +154,7 @@ export const COMPANIES = [
     state: "California",
     segment: "Property Management Software",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -109,7 +167,7 @@ export const COMPANIES = [
     state: "California",
     segment: "Construction Tech",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -161,8 +219,8 @@ export const COMPANIES = [
     state: "California",
     segment: "SFR Investment Marketplace",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "roofstock",
+    method: "greenhouse",
+    atsSlug: "roofstock",   // verified live
     active: true,
   },
   {
@@ -187,8 +245,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Title Insurance / Mortgage Tech",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "doma",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -213,7 +271,7 @@ export const COMPANIES = [
     state: "California",
     segment: "Home Equity Fintech",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -239,8 +297,8 @@ export const COMPANIES = [
     state: "California",
     segment: "SFR 1031 Exchange Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",
+    atsSlug: "flockhomes",   // verified live
     active: true,
   },
   {
@@ -291,8 +349,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Co-Ownership / Second Homes",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "pacaso",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -317,8 +375,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Real Estate Investor Lending",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",
+    atsSlug: "kiavi",   // verified live
     active: true,
   },
   {
@@ -369,8 +427,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Agent Matching / Real Estate Marketplace",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "homelight",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -434,7 +492,7 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Property Management Data & Software",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -486,7 +544,7 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Wire Fraud Prevention for RE Closings",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -499,8 +557,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Wire Fraud Prevention / Identity Verification",
     verified: false,
-    method: "lever",   // greenhouse | lever | workday | dom
-    atsSlug: "certifid",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -551,8 +609,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Property Tax Appeal Platform",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "ownwell",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -590,7 +648,7 @@ export const COMPANIES = [
     state: "New York",
     segment: "Real Estate Brokerage Tech",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -772,8 +830,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Security Deposit Alternative",
     verified: true,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "obligo",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -785,7 +843,7 @@ export const COMPANIES = [
     state: "New York",
     segment: "Lease Insurance / Insurtech",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -850,8 +908,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Home Trade-In / Mortgage Fintech",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "orchard",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -889,7 +947,7 @@ export const COMPANIES = [
     state: "Illinois",
     segment: "Resident Experience Platform",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -902,8 +960,8 @@ export const COMPANIES = [
     state: "Illinois",
     segment: "Smart Access (myQ/LiftMaster)",
     verified: false,
-    method: "workday",   // greenhouse | lever | workday | dom
-    atsSlug: "chamberlain.wd1.myworkdayjobs.com",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -915,7 +973,7 @@ export const COMPANIES = [
     state: "Illinois",
     segment: "Landlord Insurance / Insurtech",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -1006,8 +1064,8 @@ export const COMPANIES = [
     state: "Colorado",
     segment: "Landlord/DIY Property Management Software",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "turbotenant",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1058,7 +1116,7 @@ export const COMPANIES = [
     state: "Arizona",
     segment: "Smart Home / Multifamily IoT",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -1110,8 +1168,8 @@ export const COMPANIES = [
     state: "Utah",
     segment: "Property Management Software (AI leasing/payments)",
     verified: true,
-    method: "lever",   // greenhouse | lever | workday | dom
-    atsSlug: "entrata",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1136,7 +1194,7 @@ export const COMPANIES = [
     state: "Tennessee",
     segment: "Resident Benefits / Property Management SaaS",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -1214,8 +1272,8 @@ export const COMPANIES = [
     state: "Washington",
     segment: "Real Estate Marketplace",
     verified: true,
-    method: "workday",   // greenhouse | lever | workday | dom
-    atsSlug: "zillow.wd5.myworkdayjobs.com",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1279,8 +1337,8 @@ export const COMPANIES = [
     state: "Ohio",
     segment: "Real Estate/Property Management Software",
     verified: true,
-    method: "workday",   // greenhouse | lever | workday | dom
-    atsSlug: "mrisoftware.wd501.myworkdayjobs.com",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1384,6 +1442,9 @@ export const COMPANIES = [
     segment: "SFR Property Management",
     verified: false,
     method: "lever",
+    // Belong's public Lever pages 404, so every job link is rewritten to their
+    // working careers site. linkOverride does that.
+    linkOverride: "https://belonghome.com/careers",
     atsSlug: "belong",   // jobs.lever.co/belong
     priority: true,   // always shown on the graph, never crowded out
     active: true,
@@ -1423,7 +1484,7 @@ export const COMPANIES = [
     state: "Connecticut",
     segment: "Commercial Mortgage REIT",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -1527,8 +1588,8 @@ export const COMPANIES = [
     state: "South Carolina",
     segment: "World's Largest Multifamily Property Manager",
     verified: true,
-    method: "workday",   // greenhouse | lever | workday | dom
-    atsSlug: "greystar.wd1.myworkdayjobs.com",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1592,7 +1653,7 @@ export const COMPANIES = [
     state: "Iowa",
     segment: "Multifamily Property Management",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
