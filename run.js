@@ -160,6 +160,66 @@ function levelOf(title = '') {
 const segmentOf = (company) => (company.hub === 'proptech' ? 'PropTech' : 'Single-Family');
 
 /* ==========================================================================
+   US-ONLY FILTER
+   --------------------------------------------------------------------------
+   Several companies on the list hire outside the US — Tricon posts in Toronto,
+   Guesty in Tel Aviv, others in London and Manila. A board for US single-family
+   operators should not surface those.
+   ========================================================================== */
+
+// Two-letter postal codes, matched as a standalone token (", TX" or "TX,").
+const US_ABBR = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND',
+  'OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC','PR']);
+
+const US_STATE_NAMES = ['alabama','alaska','arizona','arkansas','california','colorado','connecticut',
+  'delaware','florida','georgia','hawaii','idaho','illinois','indiana','iowa','kansas','kentucky',
+  'louisiana','maine','maryland','massachusetts','michigan','minnesota','mississippi','missouri',
+  'montana','nebraska','nevada','new hampshire','new jersey','new mexico','new york','north carolina',
+  'north dakota','ohio','oklahoma','oregon','pennsylvania','rhode island','south carolina',
+  'south dakota','tennessee','texas','utah','vermont','virginia','washington','west virginia',
+  'wisconsin','wyoming','district of columbia','puerto rico'];
+
+// Countries and cities that appear in these companies' postings and are not US.
+const NON_US = ['canada','ontario','toronto','vancouver','british columbia','alberta','calgary',
+  'montreal','quebec','ottawa','winnipeg','edmonton','halifax',
+  'united kingdom','england','london','manchester','scotland','ireland','dublin',
+  'israel','tel aviv','jerusalem','herzliya',
+  'india','bangalore','bengaluru','mumbai','delhi','hyderabad','pune','gurgaon','chennai',
+  'philippines','manila','cebu','makati',
+  'mexico','mexico city','guadalajara','monterrey',
+  'brazil','sao paulo','argentina','colombia','bogota','costa rica',
+  'germany','berlin','munich','france','paris','spain','madrid','barcelona',
+  'netherlands','amsterdam','poland','warsaw','portugal','lisbon','romania','bucharest',
+  'australia','sydney','melbourne','new zealand','singapore','japan','tokyo','china','shanghai',
+  'hong kong','korea','seoul','vietnam','thailand','indonesia','jakarta','malaysia',
+  'united arab emirates','dubai','south africa','nigeria','kenya', 'emea','apac','latam'];
+
+/**
+ * Is this posting in the US?
+ *
+ * Deliberately asymmetric. A location that clearly names another country is
+ * dropped; anything else is kept. Getting this backwards — dropping whatever
+ * cannot be proven American — would silently discard real US roles whose
+ * location is written as "Field-based" or "Multiple locations", and a missing
+ * job is harder to notice than an extra one.
+ */
+function isUS(location, title) {
+  const s = String(location || '').toLowerCase().trim();
+  if (!s) return true;                       // unknown: keep
+
+  if (NON_US.some((k) => new RegExp('\\b' + k + '\\b').test(s))) return false;
+  if (/\b(united states|usa|u\.s\.a?\.?|america)\b/.test(s)) return true;
+  if (US_STATE_NAMES.some((n) => s.includes(n))) return true;
+  if ((String(location).match(/\b([A-Z]{2})\b/g) || []).some((a) => US_ABBR.has(a))) return true;
+
+  // "Remote" with no country attached: treat as US on a US board.
+  if (/\bremote\b|\banywhere\b|\bnationwide\b/.test(s)) return true;
+
+  return true;                               // nothing disqualifying found
+}
+
+/* ==========================================================================
    ADAPTERS
    Each returns an array of raw jobs, or throws. Throwing is how a source
    reports failure — the caller decides what to do about it.
@@ -356,10 +416,10 @@ async function scrapeOne(company) {
   if (!adapter) return { company, ok: false, skipped: true, reason: 'no scrape method set', jobs: [] };
   try {
     const raw = await adapter(company);
-    const jobs = raw
-      .filter((j) => j && j.title && j.sourceId)
-      .map((j) => normalise(j, company));
-    return { company, ok: true, jobs };
+    const usable = raw.filter((j) => j && j.title && j.sourceId);
+    const inUS = usable.filter((j) => isUS(j.location, j.title));
+    const dropped = usable.length - inUS.length;
+    return { company, ok: true, jobs: inUS.map((j) => normalise(j, company)), dropped };
   } catch (err) {
     return { company, ok: false, reason: err.message, jobs: [] };
   }
@@ -394,7 +454,8 @@ for (let i = 0; i < ready.length; i += CONCURRENCY) {
   for (const r of batch) {
     const label = r.company.name.padEnd(30).slice(0, 30);
     console.log(r.ok
-      ? `  ok    ${label} ${r.jobs.length} role${r.jobs.length === 1 ? '' : 's'}`
+      ? `  ok    ${label} ${r.jobs.length} role${r.jobs.length === 1 ? '' : 's'}` +
+        (r.dropped ? `  (${r.dropped} outside the US)` : '')
       : `  FAIL  ${label} ${r.reason}`);
   }
   results.push(...batch);
@@ -430,7 +491,9 @@ const fromFailed = carried.length - outOfScope;
 const all = [...fresh, ...carried];
 
 console.log('\n' + '-'.repeat(60));
+const droppedTotal = okResults.reduce((n, r) => n + (r.dropped || 0), 0);
 console.log(`scraped   ${fresh.length} roles from ${okResults.length} sources`);
+if (droppedTotal) console.log(`filtered  ${droppedTotal} roles outside the US`);
 if (fromFailed) console.log(`carried   ${fromFailed} roles from ${failed.length} failed source(s)`);
 if (outOfScope) console.log(`kept      ${outOfScope} roles from companies not in this run`);
 if (pending.length) console.log(`skipped   ${pending.length} companies with no method — run scripts/detect-ats.js`);
