@@ -117,18 +117,31 @@ function summarise(text, max = 180) {
  */
 function parseComp(text) {
   if (!text) return { min: null, max: null };
-  const t = String(text).replace(/,/g, '');
+  const t = String(text);
 
-  // "$120,000 - $150,000" or "$120k–$150k"
-  const range = t.match(/\$\s?(\d{2,3})(k|000)?\s*(?:-|–|—|to)\s*\$?\s?(\d{2,3})(k|000)?/i);
-  if (range) {
-    const scale = (n, suffix) => (suffix && suffix.toLowerCase() === 'k' ? +n * 1000 : (+n < 1000 ? +n * 1000 : +n));
-    const min = scale(range[1], range[2]);
-    const max = scale(range[3], range[4]);
-    // sanity: real salaries, right way round
-    if (min >= 20000 && max <= 1000000 && min <= max) return { min, max };
-  }
-  return { min: null, max: null };
+  // Capture the WHOLE digit run, then decide the scale. An earlier version let
+  // \d{2,3} match greedily, so "$70,000" came through as 700 with no suffix and
+  // was scaled to $700,000 — a tenfold error on a salary is worse than showing
+  // nothing at all.
+  const m = t.match(/\$\s*(\d[\d,]*(?:\.\d+)?)\s*([kK])?\s*(?:-|–|—|to|through)\s*\$?\s*(\d[\d,]*(?:\.\d+)?)\s*([kK])?/);
+  if (!m) return { min: null, max: null };
+
+  const scale = (digits, suffix) => {
+    const n = parseFloat(String(digits).replace(/,/g, ''));
+    if (!Number.isFinite(n)) return null;
+    if (suffix) return Math.round(n * 1000);          // "$145k"
+    if (n < 1000) return Math.round(n * 1000);        // "$145" meaning 145k
+    return Math.round(n);                             // "$145,000"
+  };
+
+  const min = scale(m[1], m[2]);
+  const max = scale(m[3], m[4]);
+
+  // Sanity: real annual salaries, the right way round. Hourly rates and
+  // typos are rejected rather than guessed at.
+  if (min == null || max == null) return { min: null, max: null };
+  if (min < 20000 || max > 1000000 || min > max) return { min: null, max: null };
+  return { min, max };
 }
 
 /**
@@ -379,7 +392,144 @@ async function dom(company) {
   return jobs;
 }
 
-const ADAPTERS = { greenhouse, lever, workday, dom };
+
+/**
+ * Careers sites that publish an XML sitemap and embed JobPosting JSON-LD on
+ * each page — how Paradox.ai-hosted sites (Invitation Homes) expose their
+ * roles. Plain HTTP, no headless browser, so it runs fine on a CI runner.
+ */
+async function jsonld(company) {
+  const sitemapUrl = company.sitemap;
+  if (!sitemapUrl) throw new Error('jsonld needs a "sitemap" URL in config');
+  const isJob = company.jobUrlPattern ? new RegExp(company.jobUrlPattern) : /\/job\//;
+  const MAX = 300;                      // cap the per-page fetches
+
+  const locs = (xml) => [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]);
+  const text = async (url) => {
+    const r = await get(url);
+    if (!r.ok) throw new Error(url + ' → ' + r.status);
+    return r.text();
+  };
+
+  // The top-level sitemap is often an index pointing at child sitemaps.
+  const top = locs(await text(sitemapUrl));
+  let urls = top.filter((u) => isJob.test(u));
+  if (!urls.length) {
+    for (const child of top.filter((u) => /sitemap/i.test(u) && u.endsWith('.xml'))) {
+      try { urls.push(...locs(await text(child)).filter((u) => isJob.test(u))); }
+      catch { /* skip an unreadable child sitemap */ }
+    }
+  }
+  urls = [...new Set(urls)].slice(0, MAX);
+  if (!urls.length) throw new Error('sitemap listed no job pages');
+
+  const jobs = [];
+  for (const url of urls) {
+    try {
+      const html = await text(url);
+      const blocks = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+      for (const raw of blocks) {
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch { continue; }
+        for (const it of Array.isArray(parsed) ? parsed : [parsed]) {
+          if (!it || it['@type'] !== 'JobPosting' || !it.title) continue;
+          let loc = it.jobLocation;
+          if (Array.isArray(loc)) loc = loc[0];
+          const addr = (loc && loc.address) || {};
+          const description = toText(it.description || '');
+          jobs.push({
+            sourceId: it.identifier?.value || it.url || url,
+            title: it.title,
+            location: [addr.addressLocality, addr.addressRegion].filter(Boolean).join(', ') || 'See posting',
+            url: it.url || url,
+            description,
+            postedAt: it.datePosted || null,
+            ...parseComp(description + ' ' + (it.baseSalary ? JSON.stringify(it.baseSalary) : '')),
+          });
+        }
+      }
+    } catch { /* skip an unreadable page rather than invent a row */ }
+    await sleep(120);                   // be polite: this is many page fetches
+  }
+  if (!jobs.length) throw new Error('no JobPosting JSON-LD found');
+  return jobs;
+}
+
+/** Breezy HR publishes a plain JSON board. Used by smaller proptech vendors. */
+async function breezy(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for breezy');
+  const res = await get(`https://${slug}.breezy.hr/json`);
+  if (!res.ok) throw new Error('breezy HTTP ' + res.status);
+  const body = await res.json();
+  if (!Array.isArray(body)) throw new Error('breezy returned no array');
+
+  return body.map((j) => {
+    const description = toText(j.description || '');
+    return {
+      sourceId: String(j.id || j.url),
+      title: j.name,
+      location: j.location?.name || 'Remote',
+      url: j.url,
+      description,
+      postedAt: j.published_date || null,
+      ...parseComp(description),
+    };
+  });
+}
+
+
+/**
+ * Reffie's careers page is Framer-hosted with no public ATS, but it is
+ * server-rendered: the listing links to /jobs/<slug> pages, each carrying an
+ * og:title of the form "Reffie | Role - Location".
+ *
+ * Site-specific and fragile by nature — Framer markup can change. It skips
+ * anything it cannot parse rather than guessing, so a redesign costs you the
+ * company's listings, never a page of invented ones.
+ */
+async function reffie(company) {
+  const listUrl = company.listUrl || company.careersUrl;
+  if (!listUrl) throw new Error('reffie needs a listUrl');
+  const origin = new URL(listUrl).origin;
+
+  const res = await get(listUrl);
+  if (!res.ok) throw new Error('reffie HTTP ' + res.status);
+  const html = await res.text();
+
+  const slugs = [...new Set([...html.matchAll(/jobs\/([a-z0-9][a-z0-9-]+)/gi)].map((m) => m[1].toLowerCase()))]
+    .filter((s) => s !== 'jobs');
+  if (!slugs.length) throw new Error('no job links found on the listing page');
+
+  const jobs = [];
+  for (const slug of slugs) {
+    const url = `${origin}/jobs/${slug}`;
+    try {
+      const page = await get(url);
+      if (!page.ok) continue;
+      const body = await page.text();
+      const og = (body.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i) || [])[1];
+      if (!og) continue;
+
+      const cleaned = toText(og).replace(/^\s*Reffie\s*[|｜]\s*/i, '').trim();
+      let title = cleaned, location = 'Remote';
+      const dash = cleaned.lastIndexOf(' - ');
+      if (dash > -1) {
+        title = cleaned.slice(0, dash).trim();
+        location = cleaned.slice(dash + 3).trim();
+      }
+      if (title && !isNotAJob(title)) {
+        jobs.push({ sourceId: slug, title, location, url, description: '', postedAt: null, min: null, max: null });
+      }
+    } catch { /* skip an unreadable page */ }
+    await sleep(150);
+  }
+
+  if (!jobs.length) throw new Error('no readable postings');
+  return jobs;
+}
+
+const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, reffie, dom };
 
 /* ==========================================================================
    RUN
@@ -416,7 +566,13 @@ async function scrapeOne(company) {
   if (!adapter) return { company, ok: false, skipped: true, reason: 'no scrape method set', jobs: [] };
   try {
     const raw = await adapter(company);
-    const usable = raw.filter((j) => j && j.title && j.sourceId);
+    // A few companies keep the ATS feed live but disable the public pages it
+    // links to (Belong's jobs.lever.co URLs all 404). Where linkOverride is
+    // set, point every job at their working careers site instead of a dead URL.
+    const raw2 = company.linkOverride
+      ? raw.map((j) => ({ ...j, url: company.linkOverride }))
+      : raw;
+    const usable = raw2.filter((j) => j && j.title && j.sourceId);
     const inUS = usable.filter((j) => isUS(j.location, j.title));
     const dropped = usable.length - inUS.length;
     return { company, ok: true, jobs: inUS.map((j) => normalise(j, company)), dropped };
