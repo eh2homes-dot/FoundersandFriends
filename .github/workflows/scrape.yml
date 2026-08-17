@@ -5,9 +5,19 @@ name: Scrape jobs
 # serves. Committing it triggers a rebuild.
 on:
   schedule:
-    # 06:00 and 18:00 UTC daily. GitHub's scheduler is best-effort and can lag
-    # by several minutes under load; fine for a job board.
-    - cron: '0 6,18 * * *'
+    # Daily at 07:00 UTC — 02:00 Eastern, 03:00 during daylight saving. Early
+    # enough that the board is fresh before the working day starts.
+    #
+    # GitHub's scheduler is best-effort and can lag by several minutes under
+    # load. It also disables cron on public repos after 60 days with no commits
+    # — daily runs keep that clock reset as long as the feed keeps changing.
+    #
+    #        ┌─ minute
+    #        │ ┌─ hour (UTC)
+    #        │ │ ┌─ day of month
+    #        │ │ │ ┌─ month
+    #        │ │ │ │ ┌─ day of week
+    - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
       hub:
@@ -38,7 +48,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # GitHub's runners force Node 24 now, and a workflow asking for 20
+          # produces a deprecation warning on every run. run.js needs 18+ for
+          # built-in fetch, so 24 is fine.
+          node-version: '24'
 
       # No install step: run.js and scripts/detect-ats.js use only built-in
       # Node APIs (fetch, fs, URL). Nothing to install, nothing to break.
@@ -47,13 +60,16 @@ jobs:
         if: inputs.detect
         run: node scripts/detect-ats.js
 
-      - name: Scrape OpCo hub
-        if: inputs.hub != 'proptech'
-        run: node run.js --hub=opco --out=site/jobs.json
+      # A single pass over every company when no hub is chosen. run.js merges
+      # correctly either way — a hub run now leaves the other hub's roles
+      # untouched — but one invocation is simpler and half the requests.
+      - name: Scrape both hubs
+        if: inputs.hub == '' || inputs.hub == 'both'
+        run: node run.js --out=site/jobs.json
 
-      - name: Scrape PropTech hub
-        if: inputs.hub != 'opco'
-        run: node run.js --hub=proptech --out=site/jobs.json
+      - name: Scrape one hub
+        if: inputs.hub == 'opco' || inputs.hub == 'proptech'
+        run: node run.js --hub=${{ inputs.hub }} --out=site/jobs.json
 
       # Guard against publishing a broken or empty feed. A scrape that fails
       # halfway should leave yesterday's feed in place, not replace it with
