@@ -118,13 +118,17 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:-.02em;text-wrap
 }
 .brand{display:flex;align-items:center;gap:13px;min-width:0}
 .brand-mark{
-  width:42px;height:42px;flex:none;border-radius:11px;display:grid;place-items:center;color:var(--green);
-  background:linear-gradient(150deg,rgba(90,47,168,.55),rgba(11,6,24,.9));
-  border:1px solid rgba(0,255,136,.28);
-  box-shadow:inset 0 1px 0 rgba(244,243,250,.1),0 0 22px rgba(0,255,136,.14);
+  width:44px;height:44px;flex:none;border-radius:12px;overflow:hidden;
+  display:grid;place-items:center;
+  box-shadow:0 0 22px rgba(0,255,136,.16),0 2px 10px rgba(4,2,10,.5);
 }
-.brand-mark svg{width:24px;height:24px;display:block}
+.brand-mark svg{width:100%;height:100%;display:block}
 .brand-text{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.ff-sub{
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--ink-dim);display:block;margin-top:3px;white-space:nowrap;
+}
+@media(max-width:520px){.ff-sub{display:none}}
 .admin-link{
   margin-left:auto;padding:9px 18px;border-radius:100px;
   font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
@@ -850,12 +854,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:-.02em;text-wrap
   transition:background .2s,transform .15s;
 }
 .ds-retry:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
-.source-link{
-  display:block;text-align:center;margin-top:13px;
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
-  color:var(--ink-dim);transition:color .2s;
+.apply-note{
+  display:block;text-align:center;margin-top:12px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;
+  color:var(--ink-dim);line-height:1.6;
 }
-.source-link:hover{color:var(--cyan)}
 
 /* ---------- APPLICATION WIZARD ---------- */
 .wiz-steps{display:flex;gap:0;padding:0 30px 18px;border-bottom:1px solid var(--line)}
@@ -1070,14 +1073,29 @@ body.show-admin #admin-view{display:block}
 
   <div class="brand">
     <span class="brand-mark" aria-hidden="true">
-      <svg viewBox="0 0 32 32">
-        <path d="M4 14.5 16 5l12 9.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M7 13.5V26h18V13.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="16" cy="19.5" r="2.6" fill="currentColor"/>
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <!-- userSpaceOnUse, because the thread is perfectly horizontal: a default
+               objectBoundingBox gradient has zero height there and renders nothing. -->
+          <linearGradient id="ffThread" gradientUnits="userSpaceOnUse" x1="60" y1="122" x2="140" y2="122">
+            <stop offset="0%" stop-color="#5EFA8E"/><stop offset="100%" stop-color="#7C4DEB"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="200" height="200" rx="28" fill="#1B1130"/>
+        <!-- The house is the industry: scattered-site real estate.
+             Inside it, the business itself — a green candidate wired to a purple
+             employer, in the same colours the board uses for open roles and companies.
+             The thread between them is the product. -->
+        <path d="M100 44 L158 88 L158 156 L42 156 L42 88 Z" fill="none" stroke="#5EFA8E"
+              stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M70 122 L 130 122" stroke="url(#ffThread)" stroke-width="8" stroke-linecap="round"/>
+        <circle cx="68" cy="122" r="16" fill="#5EFA8E"/>
+        <circle cx="132" cy="122" r="18" fill="#1B1130" stroke="#7C4DEB" stroke-width="9"/>
       </svg>
     </span>
     <span class="brand-text">
       <span class="ff-wordmark" id="wordmark" aria-label="Founders &amp; Friends"></span>
+      <span class="ff-sub">Talent Network</span>
     </span>
   </div>
 
@@ -1840,8 +1858,7 @@ function openDrawer(id){
     <div class="drawer-body">${readable(j.description).split(/\n{2,}/).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join('')}</div>
     <div class="drawer-foot">
       <button class="cta-mega" type="button" id="apply-btn">Apply Now</button>
-      ${j.applyUrl ? `<a class="source-link" href="${esc(j.applyUrl)}" rel="noopener">
-        View the original posting${j.source ? ' on ' + esc(j.source) : ''} <span aria-hidden="true">↗</span></a>` : ''}
+      <p class="apply-note">One application, reviewed by us, sent to ${esc(j.company)}.</p>
     </div>`;
 
   document.body.append(scrim, drawer);
@@ -2127,6 +2144,46 @@ function buildReview(job, data){
   return { score, hits: hitWords.slice(0,10), misses: missWords.slice(0,6), strengths, gaps, words, numbers };
 }
 
+/**
+ * Turns the model's reply into the same shape buildReview() produces, so the
+ * rest of stage three does not care which produced it.
+ *
+ * The prompt asks for a fixed format, but a model can still drift. Anything
+ * unparseable returns null and the caller falls back to the local analysis
+ * rather than showing a half-empty review.
+ */
+function parseAnalysis(text, job, data) {
+  if (!text || typeof text !== 'string') return null;
+
+  const section = (label, next) => {
+    const re = new RegExp(label + ':\\s*([\\s\\S]*?)(?=' + next + ':|MATCH SCORE:|$)', 'i');
+    const m = text.match(re);
+    if (!m) return [];
+    return m[1].split('\n')
+      .map((l) => l.replace(/^[\s\-•*]+/, '').trim())
+      .filter((l) => l.length > 2);
+  };
+
+  const strengths = section('STRENGTHS', 'GAPS');
+  const gaps = section('GAPS', 'MATCH SCORE');
+  const scoreMatch = text.match(/MATCH SCORE:\s*(\d{1,3})/i);
+  const score = scoreMatch ? Math.max(0, Math.min(100, parseInt(scoreMatch[1], 10))) : null;
+
+  if (!strengths.length || score == null) return null;
+
+  const bg = data.background || '';
+  return {
+    score,
+    strengths,
+    gaps: gaps.length ? gaps : ['Nothing obvious missing. This is ready to send.'],
+    hits: [],
+    misses: [],
+    words: bg.trim().split(/\s+/).length,
+    numbers: (bg.match(/\b\d[\d,.]*%?\b/g) || []).length,
+    ai: true,
+  };
+}
+
 function stageThree(){
   const { job, data } = apply;
 
@@ -2147,11 +2204,33 @@ function stageThree(){
       if (el && lines[i]) el.textContent = lines[i];
     }, 620);
 
-    setTimeout(() => {
+    // Ask the server for a real AI reading. If screening is not configured, or
+    // the call fails, fall back to the local keyword analysis — the candidate
+    // still gets feedback either way and never sees an error mid-application.
+    (async () => {
+      let review = null;
+      try {
+        const res = await fetch('/api/screen', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hub,
+            jobTitle: job.title,
+            company: job.company,
+            resume: data.background,
+            linkedin: data.linkedin || '',
+          }),
+        });
+        if (res.ok) {
+          const { analysis } = await res.json();
+          review = parseAnalysis(analysis, job, data);
+        }
+      } catch (_) { /* fall through to the local review */ }
+
       clearInterval(tick);
-      apply.review = buildReview(job, data);
+      apply.review = review || buildReview(job, data);
       renderApply();
-    }, 2500);
+    })();
     return;
   }
 
@@ -2195,7 +2274,8 @@ function stageThree(){
       <ul class="rev-list gap">${r.gaps.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
     </div>
 
-    <p class="ai-note">This review is generated for you, not sent to the employer. Edit stage two and re-run it as many times as you like before submitting.</p>`;
+    <p class="ai-note">${r.ai ? 'Reviewed by AI against this role.' : 'Quick match against the posting.'}
+      This is for you, not sent to the employer — edit stage two and re-run it as often as you like.</p>`;
 
   $('wiz-foot').innerHTML = `
     <button class="btn" type="button" id="wiz-back">← Edit background</button>
@@ -3025,6 +3105,42 @@ const TRACK = {
 };
 
 /**
+ * One funnel, five steps. Keeping the names stable matters more than the
+ * provider — you can swap analytics tools later without losing the shape of
+ * the data.
+ *
+ *   view_hub      which hub people land on and switch to
+ *   open_role     a role drawer was opened
+ *   open_company  a company's postings were listed
+ *   start_apply   the Apply Now button was pressed
+ *   submit_apply  the application wizard was completed
+ *   outbound      someone left the site
+ */
+function track(event, props) {
+  const payload = { ...props, hub, view };
+
+  if (TRACK.debug) console.log('[track]', event, payload);
+
+  if (window.__cfBeacon && typeof window.__cfBeacon.trackEvent === 'function') {
+    try { window.__cfBeacon.trackEvent(event, payload); } catch (_) {}
+  }
+
+  if (TRACK.plausible && typeof window.plausible === 'function') {
+    try { window.plausible(event, { props: payload }); } catch (_) {}
+  }
+}
+
+/** Loads the Cloudflare beacon only if a token has been set. */
+function initTracking() {
+  if (!TRACK.cloudflareToken) return;
+  const s = document.createElement('script');
+  s.defer = true;
+  s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  s.setAttribute('data-cf-beacon', JSON.stringify({ token: TRACK.cloudflareToken }));
+  document.head.append(s);
+}
+
+/**
  * Records a click-through to a real posting, to your own Worker.
  *
  * Deliberately fire-and-forget: `keepalive` lets the request survive the page
@@ -3068,8 +3184,7 @@ document.addEventListener('click', (e) => {
 
   // If the click came from inside an open role, attribute it to that role.
   const job = openJobId ? hubJobs().find(j => j.id === openJobId) : null;
-  const kind = a.classList.contains('source-link') ? 'source'
-             : a.classList.contains('cta-mega') ? 'apply'
+  const kind = a.classList.contains('cta-mega') ? 'apply'
              : href.startsWith('mailto:') ? 'email' : 'link';
   logClick(job, href, kind);
 }, true);
