@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T16:46:59.923Z",
+  "generated_at": "2026-08-17T16:48:07.458Z",
   "count": 237,
   "sources_ok": 18,
   "sources_failed": 8,
@@ -23,7 +23,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8719845002",
       "source": "greenhouse",
       "posted_at": "2026-08-16T16:32:23-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -45,7 +45,7 @@
       "apply_url": "https://job-boards.greenhouse.io/doma/jobs/8109028",
       "source": "greenhouse",
       "posted_at": "2026-08-14T21:21:47-04:00",
-      "scraped_at": "2026-08-17T16:46:56.473Z",
+      "scraped_at": "2026-08-17T16:48:03.001Z",
       "status": "open"
     },
     {
@@ -67,7 +67,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/6144675004",
       "source": "greenhouse",
       "posted_at": "2026-08-14T17:04:25-04:00",
-      "scraped_at": "2026-08-17T16:46:57.010Z",
+      "scraped_at": "2026-08-17T16:48:04.230Z",
       "status": "open"
     },
     {
@@ -89,7 +89,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8129457",
       "source": "greenhouse",
       "posted_at": "2026-08-13T21:28:59-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -111,7 +111,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8038650",
       "source": "greenhouse",
       "posted_at": "2026-08-13T21:18:36-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -133,7 +133,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4724138005",
       "source": "greenhouse",
       "posted_at": "2026-08-13T19:57:26-04:00",
-      "scraped_at": "2026-08-17T16:46:57.061Z",
+      "scraped_at": "2026-08-17T16:48:04.263Z",
       "status": "open"
     },
     {
@@ -155,7 +155,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/4097174004",
       "source": "greenhouse",
       "posted_at": "2026-08-13T15:02:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.010Z",
+      "scraped_at": "2026-08-17T16:48:04.230Z",
       "status": "open"
     },
     {
@@ -177,7 +177,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/4961261007",
       "source": "greenhouse",
       "posted_at": "2026-08-13T14:19:31-04:00",
-      "scraped_at": "2026-08-17T16:46:59.263Z",
+      "scraped_at": "2026-08-17T16:48:06.783Z",
       "status": "open"
     },
     {
@@ -199,7 +199,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8698299002",
       "source": "greenhouse",
       "posted_at": "2026-08-13T12:18:59-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
@@ -221,7 +221,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8706240002",
       "source": "greenhouse",
       "posted_at": "2026-08-13T11:14:09-04:00",
-      "scraped_at": "2026-08-17T16:46:56.513Z",
+      "scraped_at": "2026-08-17T16:48:03.029Z",
       "status": "open"
     },
     {
@@ -243,7 +243,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4723659005",
       "source": "greenhouse",
       "posted_at": "2026-08-12T16:40:07-04:00",
-      "scraped_at": "2026-08-17T16:46:57.061Z",
+      "scraped_at": "2026-08-17T16:48:04.263Z",
       "status": "open"
     },
     {
@@ -265,7 +265,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4723629005",
       "source": "greenhouse",
       "posted_at": "2026-08-12T15:27:31-04:00",
-      "scraped_at": "2026-08-17T16:46:57.060Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -287,7 +287,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4723615005",
       "source": "greenhouse",
       "posted_at": "2026-08-12T15:26:49-04:00",
-      "scraped_at": "2026-08-17T16:46:57.061Z",
+      "scraped_at": "2026-08-17T16:48:04.263Z",
       "status": "open"
     },
     {
@@ -309,7 +309,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4701392006",
       "source": "greenhouse",
       "posted_at": "2026-08-12T11:02:11-04:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -331,7 +331,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8697848002",
       "source": "greenhouse",
       "posted_at": "2026-08-11T17:40:07-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -353,7 +353,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8697558002",
       "source": "greenhouse",
       "posted_at": "2026-08-11T17:18:59-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -375,7 +375,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8697559002",
       "source": "greenhouse",
       "posted_at": "2026-08-11T17:18:50-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -397,7 +397,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/6140322004",
       "source": "greenhouse",
       "posted_at": "2026-08-10T17:32:53-04:00",
-      "scraped_at": "2026-08-17T16:46:57.011Z",
+      "scraped_at": "2026-08-17T16:48:04.230Z",
       "status": "open"
     },
     {
@@ -419,7 +419,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7948400",
       "source": "greenhouse",
       "posted_at": "2026-08-10T14:50:00-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -441,7 +441,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8693453002",
       "source": "greenhouse",
       "posted_at": "2026-08-10T12:47:48-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -463,7 +463,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8647520002",
       "source": "greenhouse",
       "posted_at": "2026-08-10T12:39:43-04:00",
-      "scraped_at": "2026-08-17T16:46:56.513Z",
+      "scraped_at": "2026-08-17T16:48:03.030Z",
       "status": "open"
     },
     {
@@ -485,7 +485,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8625411002",
       "source": "greenhouse",
       "posted_at": "2026-08-10T11:02:13-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -507,7 +507,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5164488007",
       "source": "greenhouse",
       "posted_at": "2026-08-09T13:14:03-04:00",
-      "scraped_at": "2026-08-17T16:46:59.263Z",
+      "scraped_at": "2026-08-17T16:48:06.782Z",
       "status": "open"
     },
     {
@@ -529,7 +529,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8645681002",
       "source": "greenhouse",
       "posted_at": "2026-08-09T00:01:56-04:00",
-      "scraped_at": "2026-08-17T16:46:56.517Z",
+      "scraped_at": "2026-08-17T16:48:03.034Z",
       "status": "open"
     },
     {
@@ -551,7 +551,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8692779002",
       "source": "greenhouse",
       "posted_at": "2026-08-08T16:50:45-04:00",
-      "scraped_at": "2026-08-17T16:46:56.513Z",
+      "scraped_at": "2026-08-17T16:48:03.030Z",
       "status": "open"
     },
     {
@@ -573,7 +573,7 @@
       "apply_url": "https://jobs.lever.co/entrata/244e6927-2772-4fa6-8a1f-e053d0ea9810",
       "source": "lever",
       "posted_at": "2026-08-06T15:53:56.357Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -595,7 +595,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5063479007",
       "source": "greenhouse",
       "posted_at": "2026-08-05T16:50:49-04:00",
-      "scraped_at": "2026-08-17T16:46:59.263Z",
+      "scraped_at": "2026-08-17T16:48:06.783Z",
       "status": "open"
     },
     {
@@ -617,7 +617,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5088318007",
       "source": "greenhouse",
       "posted_at": "2026-08-05T16:49:00-04:00",
-      "scraped_at": "2026-08-17T16:46:59.263Z",
+      "scraped_at": "2026-08-17T16:48:06.782Z",
       "status": "open"
     },
     {
@@ -639,7 +639,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4673704006",
       "source": "greenhouse",
       "posted_at": "2026-08-04T17:23:20-04:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -661,7 +661,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8558888002",
       "source": "greenhouse",
       "posted_at": "2026-08-04T13:12:21-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
@@ -683,7 +683,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4569892006",
       "source": "greenhouse",
       "posted_at": "2026-08-04T11:06:43-04:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -705,7 +705,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8653557002",
       "source": "greenhouse",
       "posted_at": "2026-08-03T15:13:32-04:00",
-      "scraped_at": "2026-08-17T16:46:56.517Z",
+      "scraped_at": "2026-08-17T16:48:03.034Z",
       "status": "open"
     },
     {
@@ -727,7 +727,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8555388002",
       "source": "greenhouse",
       "posted_at": "2026-07-31T17:24:20-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -749,7 +749,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8554267002",
       "source": "greenhouse",
       "posted_at": "2026-07-31T00:28:40-04:00",
-      "scraped_at": "2026-08-17T16:46:56.514Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -771,7 +771,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5091107007",
       "source": "greenhouse",
       "posted_at": "2026-07-29T21:32:56-04:00",
-      "scraped_at": "2026-08-17T16:46:59.263Z",
+      "scraped_at": "2026-08-17T16:48:06.782Z",
       "status": "open"
     },
     {
@@ -793,7 +793,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4719779005",
       "source": "greenhouse",
       "posted_at": "2026-07-29T19:22:53-04:00",
-      "scraped_at": "2026-08-17T16:46:57.059Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -815,7 +815,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4719723005",
       "source": "greenhouse",
       "posted_at": "2026-07-29T16:57:32-04:00",
-      "scraped_at": "2026-08-17T16:46:57.007Z",
+      "scraped_at": "2026-08-17T16:48:04.228Z",
       "status": "open"
     },
     {
@@ -837,7 +837,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8654361002",
       "source": "greenhouse",
       "posted_at": "2026-07-29T16:03:55-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -859,7 +859,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8079940",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:11-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.938Z",
       "status": "open"
     },
     {
@@ -881,7 +881,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8079969",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:11-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -903,7 +903,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8008777",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:11-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -925,7 +925,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904083",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.938Z",
       "status": "open"
     },
     {
@@ -947,7 +947,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7871429",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -969,7 +969,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904090",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -991,7 +991,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7877826",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -1013,7 +1013,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7843865",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.459Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -1035,7 +1035,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7843746",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.460Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -1057,7 +1057,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7871753",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.460Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -1079,7 +1079,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904086",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.460Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -1101,7 +1101,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7877827",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.460Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -1123,7 +1123,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904058",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-17T16:46:57.460Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -1145,7 +1145,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7445800",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:08-04:00",
-      "scraped_at": "2026-08-17T16:46:57.460Z",
+      "scraped_at": "2026-08-17T16:48:04.939Z",
       "status": "open"
     },
     {
@@ -1167,7 +1167,7 @@
       "apply_url": "https://jobs.lever.co/entrata/b5f583d7-97ad-4526-bf5f-640449cf1c04",
       "source": "lever",
       "posted_at": "2026-07-27T20:11:11.397Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -1189,7 +1189,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8649613002",
       "source": "greenhouse",
       "posted_at": "2026-07-24T16:04:03-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -1211,7 +1211,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/5826347004",
       "source": "greenhouse",
       "posted_at": "2026-07-22T17:48:38-04:00",
-      "scraped_at": "2026-08-17T16:46:57.010Z",
+      "scraped_at": "2026-08-17T16:48:04.230Z",
       "status": "open"
     },
     {
@@ -1233,7 +1233,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8644888002",
       "source": "greenhouse",
       "posted_at": "2026-07-22T10:18:20-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -1255,7 +1255,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8553757002",
       "source": "greenhouse",
       "posted_at": "2026-07-17T00:10:45-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -1277,7 +1277,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8628385002",
       "source": "greenhouse",
       "posted_at": "2026-07-16T13:22:23-04:00",
-      "scraped_at": "2026-08-17T16:46:56.514Z",
+      "scraped_at": "2026-08-17T16:48:03.030Z",
       "status": "open"
     },
     {
@@ -1299,7 +1299,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649741005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:58:39-04:00",
-      "scraped_at": "2026-08-17T16:46:57.060Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -1321,7 +1321,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649747005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:57:36-04:00",
-      "scraped_at": "2026-08-17T16:46:57.060Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -1343,7 +1343,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649714005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:55:13-04:00",
-      "scraped_at": "2026-08-17T16:46:57.060Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -1365,7 +1365,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649735005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:53:17-04:00",
-      "scraped_at": "2026-08-17T16:46:57.060Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -1387,7 +1387,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4648940005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:51:45-04:00",
-      "scraped_at": "2026-08-17T16:46:57.059Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -1409,7 +1409,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649743005",
       "source": "greenhouse",
       "posted_at": "2026-07-15T18:51:20-04:00",
-      "scraped_at": "2026-08-17T16:46:57.059Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -1431,7 +1431,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/5679921004",
       "source": "greenhouse",
       "posted_at": "2026-07-13T18:15:31-04:00",
-      "scraped_at": "2026-08-17T16:46:57.010Z",
+      "scraped_at": "2026-08-17T16:48:04.230Z",
       "status": "open"
     },
     {
@@ -1453,7 +1453,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612815002",
       "source": "greenhouse",
       "posted_at": "2026-07-08T20:32:55-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -1475,7 +1475,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8494488002",
       "source": "greenhouse",
       "posted_at": "2026-07-08T15:03:47-04:00",
-      "scraped_at": "2026-08-17T16:46:56.517Z",
+      "scraped_at": "2026-08-17T16:48:03.034Z",
       "status": "open"
     },
     {
@@ -1497,7 +1497,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8506942002",
       "source": "greenhouse",
       "posted_at": "2026-07-07T20:39:56-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -1519,29 +1519,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8555056002",
       "source": "greenhouse",
       "posted_at": "2026-07-07T01:04:09-04:00",
-      "scraped_at": "2026-08-17T16:46:56.514Z",
-      "status": "open"
-    },
-    {
-      "id": "greenhouse:roofstock:8602141002",
-      "hub": "proptech",
-      "title": "Executive Assistant",
-      "company": "Roofstock",
-      "company_id": "roofstock",
-      "priority": false,
-      "category": "General",
-      "segment": "PropTech",
-      "level": "Field",
-      "location": "New York, New York, United States",
-      "employment_type": "full-time",
-      "comp_min": 90000,
-      "comp_max": 126000,
-      "summary": "What we do and why we do it As the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the bene…",
-      "description": "What we do and why we do it\n\nAs the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the benefit of all. We successfully merge our passion for helping investors build wealth through real estate with cutting edge technology that transforms the way they do it.\n\nHow it’s going (and growing)\n\nWith a talented team of 750+ Roofsters, our collaborative, can-do culture is what fuels our growth. In 2022, we closed on our Series E, raising $240 million, and have offices in the Bay Area and New York City. Our growth includes recent acquisitions of Stessa (financial and asset management software), RentPrep (tenant screening and placement service for landlords), and Mynd (property management platform for both Retail and Institutional investors). In 2025, Roofstock took an ownership stake in Casago (short-term rental management services), expanding our platform to support both long-term and short-term rental investment services.\n\nAbout the Role\n\nAs an Executive Assistant, your core focus will be supporting the CEO, while also offering light, supplemental assistance to other C-suite executives as needed. The key to the success of this position is the ability to handle multiple tasks at once, offer superior organization skills and a high level of attention to detail. In this role, you will be exposed to all aspects of the business, and will learn a lot about our industry and the start up environment. This is a great opportunity for the right candidate to learn and develop with a fast-paced growing start-up!\n\nResponsibilities\n\n- Own and manage the CEO's calendar end-to-end including proactive scheduling, reprioritization, and conflict resolution This person will also offer light, as-needed scheduling support to the broader C-suite\n\n- Effectively schedule business travel including flights, ground transportation, overnight accommodations and meals for the supporting leaders\n\n- Act as the external contact point, providing phone and email support, screening and follow-up on phone calls and voicemails\n\n- Project manage both on and off-site meetings as well as team events - travel planning, site selection/prep, menus, and meeting attendee logistics\n\n- Provide general administrative support to the executive team to include:\n\n- Receiving and interacting with visitors\n\n- Answering and managing incoming calls\n\n- Maintaining paper and online records\n\n- Monitoring and organizing Executive’s inboxes\n\n- Providing other daily support as needed\n\n- Perform accounts payable processing and other basic accounting functions as needed to include:\n\n- Handling expense accounts and reimbursements via Coupa\n\n- Assist with entering and processing approved payments as needed\n\n- Maintaining detailed files/records\n\n- Handle confidential and sensitive information\n\n- Provide backup office management support as needed (weekly lunch orders, supplies, office POC)\n\n- Be available to support the executives outside of normal business hours as needed\n\nQualifications\n\n- 2-4 years of experience supporting executives, direct experience supporting the C-Suite Leaders preferred\n\n- Strong verbal and written communication skills\n\n- Excellent organizational skills and attention to detail\n\n- Demonstrated ability to manage complex tasks and prioritize competing demands; must be a flexible problem solver\n\n- Ability to take a straightforward, proactive approach to supporting the C-Suite Leaders\n\n- Committed to, and enthusiastic about, the mission and vision of the organization\n\n- Adept at multitasking in a fast paced, changing environment\n\n- Able to work independently and take initiative with little direction\n\n- Ability to drive and influence change\n\n- Exhibit a high degree of maturity, honesty, trust, and integrity and cultivates these qualities in others\n\n- Proficiency in G-Suite (Gmail, Docs, Sheets, Slides); Microsoft Office Suite (Outlook, Word, Excel, PowerPoint)\n\nLocation\n\nThis position must be located in New York.\n\nCompensation\n\n$90,000 - $126,000 annually.\n\nCompensation may be adjusted based on location, experience, skills, and interview performance.\n\nPay Transparency\n\nOur compensation reflects several US geographic markets. The base pay for this position represents the expected salary for this position. Ultimately, in determining your pay it will be based on several factors including location, job-related knowledge, skills, experience and other job related factors. Roofstock is a total compensation company; the base salary is only a part of our total compensation package.\n\nCompetitive & Unique Benefits Package\n\n- Generous PTO Policy\n\n- 12 Paid Holidays\n\n- Volunteer Time Off\n\n- Paid Parental Leave\n\n- 401k Program\n\n- Wellness and home office/cell phone subsidies\n\n- Robust health, dental, vision insurance, and more\n\n- Wellness and home office/cell phone subsidies\n\nMust be authorized to work in the U.S. is a precondition of employment and we are unable to sponsor H1-B Visas at this time.\n\nAny offer of employment is conditioned upon the successful completion of a background investigation.\n\nCommitment to Equal Employment Opportunity\n\nRoofstock is an equal opportunity employer. In keeping with the values of Roofstock, we make all employment decisions including hiring, evaluation, termination, promotional and training opportunities, without regard to race, religion, color, sex, age, national origin, ancestry, sexual orientation, physical handicap, mental disability, medical condition, disability, gender or identity or expression, pregnancy or pregnancy-related condition, marital status, height and/or weight.",
-      "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8602141002",
-      "source": "greenhouse",
-      "posted_at": "2026-07-07T00:20:56-04:00",
-      "scraped_at": "2026-08-17T16:46:56.514Z",
+      "scraped_at": "2026-08-17T16:48:03.030Z",
       "status": "open"
     },
     {
@@ -1563,7 +1541,29 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8580894002",
       "source": "greenhouse",
       "posted_at": "2026-07-07T00:20:56-04:00",
-      "scraped_at": "2026-08-17T16:46:56.514Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
+      "status": "open"
+    },
+    {
+      "id": "greenhouse:roofstock:8602141002",
+      "hub": "proptech",
+      "title": "Executive Assistant",
+      "company": "Roofstock",
+      "company_id": "roofstock",
+      "priority": false,
+      "category": "General",
+      "segment": "PropTech",
+      "level": "Field",
+      "location": "New York, New York, United States",
+      "employment_type": "full-time",
+      "comp_min": 90000,
+      "comp_max": 126000,
+      "summary": "What we do and why we do it As the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the bene…",
+      "description": "What we do and why we do it\n\nAs the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the benefit of all. We successfully merge our passion for helping investors build wealth through real estate with cutting edge technology that transforms the way they do it.\n\nHow it’s going (and growing)\n\nWith a talented team of 750+ Roofsters, our collaborative, can-do culture is what fuels our growth. In 2022, we closed on our Series E, raising $240 million, and have offices in the Bay Area and New York City. Our growth includes recent acquisitions of Stessa (financial and asset management software), RentPrep (tenant screening and placement service for landlords), and Mynd (property management platform for both Retail and Institutional investors). In 2025, Roofstock took an ownership stake in Casago (short-term rental management services), expanding our platform to support both long-term and short-term rental investment services.\n\nAbout the Role\n\nAs an Executive Assistant, your core focus will be supporting the CEO, while also offering light, supplemental assistance to other C-suite executives as needed. The key to the success of this position is the ability to handle multiple tasks at once, offer superior organization skills and a high level of attention to detail. In this role, you will be exposed to all aspects of the business, and will learn a lot about our industry and the start up environment. This is a great opportunity for the right candidate to learn and develop with a fast-paced growing start-up!\n\nResponsibilities\n\n- Own and manage the CEO's calendar end-to-end including proactive scheduling, reprioritization, and conflict resolution This person will also offer light, as-needed scheduling support to the broader C-suite\n\n- Effectively schedule business travel including flights, ground transportation, overnight accommodations and meals for the supporting leaders\n\n- Act as the external contact point, providing phone and email support, screening and follow-up on phone calls and voicemails\n\n- Project manage both on and off-site meetings as well as team events - travel planning, site selection/prep, menus, and meeting attendee logistics\n\n- Provide general administrative support to the executive team to include:\n\n- Receiving and interacting with visitors\n\n- Answering and managing incoming calls\n\n- Maintaining paper and online records\n\n- Monitoring and organizing Executive’s inboxes\n\n- Providing other daily support as needed\n\n- Perform accounts payable processing and other basic accounting functions as needed to include:\n\n- Handling expense accounts and reimbursements via Coupa\n\n- Assist with entering and processing approved payments as needed\n\n- Maintaining detailed files/records\n\n- Handle confidential and sensitive information\n\n- Provide backup office management support as needed (weekly lunch orders, supplies, office POC)\n\n- Be available to support the executives outside of normal business hours as needed\n\nQualifications\n\n- 2-4 years of experience supporting executives, direct experience supporting the C-Suite Leaders preferred\n\n- Strong verbal and written communication skills\n\n- Excellent organizational skills and attention to detail\n\n- Demonstrated ability to manage complex tasks and prioritize competing demands; must be a flexible problem solver\n\n- Ability to take a straightforward, proactive approach to supporting the C-Suite Leaders\n\n- Committed to, and enthusiastic about, the mission and vision of the organization\n\n- Adept at multitasking in a fast paced, changing environment\n\n- Able to work independently and take initiative with little direction\n\n- Ability to drive and influence change\n\n- Exhibit a high degree of maturity, honesty, trust, and integrity and cultivates these qualities in others\n\n- Proficiency in G-Suite (Gmail, Docs, Sheets, Slides); Microsoft Office Suite (Outlook, Word, Excel, PowerPoint)\n\nLocation\n\nThis position must be located in New York.\n\nCompensation\n\n$90,000 - $126,000 annually.\n\nCompensation may be adjusted based on location, experience, skills, and interview performance.\n\nPay Transparency\n\nOur compensation reflects several US geographic markets. The base pay for this position represents the expected salary for this position. Ultimately, in determining your pay it will be based on several factors including location, job-related knowledge, skills, experience and other job related factors. Roofstock is a total compensation company; the base salary is only a part of our total compensation package.\n\nCompetitive & Unique Benefits Package\n\n- Generous PTO Policy\n\n- 12 Paid Holidays\n\n- Volunteer Time Off\n\n- Paid Parental Leave\n\n- 401k Program\n\n- Wellness and home office/cell phone subsidies\n\n- Robust health, dental, vision insurance, and more\n\n- Wellness and home office/cell phone subsidies\n\nMust be authorized to work in the U.S. is a precondition of employment and we are unable to sponsor H1-B Visas at this time.\n\nAny offer of employment is conditioned upon the successful completion of a background investigation.\n\nCommitment to Equal Employment Opportunity\n\nRoofstock is an equal opportunity employer. In keeping with the values of Roofstock, we make all employment decisions including hiring, evaluation, termination, promotional and training opportunities, without regard to race, religion, color, sex, age, national origin, ancestry, sexual orientation, physical handicap, mental disability, medical condition, disability, gender or identity or expression, pregnancy or pregnancy-related condition, marital status, height and/or weight.",
+      "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8602141002",
+      "source": "greenhouse",
+      "posted_at": "2026-07-07T00:20:56-04:00",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -1585,7 +1585,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8620251002",
       "source": "greenhouse",
       "posted_at": "2026-07-03T22:45:43-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -1607,7 +1607,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8610390002",
       "source": "greenhouse",
       "posted_at": "2026-06-30T12:08:19-04:00",
-      "scraped_at": "2026-08-17T16:46:56.517Z",
+      "scraped_at": "2026-08-17T16:48:03.034Z",
       "status": "open"
     },
     {
@@ -1629,7 +1629,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612777002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:11:14-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -1651,7 +1651,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612775002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:10:43-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -1673,7 +1673,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612773002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:10:07-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -1695,7 +1695,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8590605002",
       "source": "greenhouse",
       "posted_at": "2026-06-23T18:29:04-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -1717,7 +1717,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8604291002",
       "source": "greenhouse",
       "posted_at": "2026-06-23T12:03:43-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
@@ -1739,7 +1739,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4708324005",
       "source": "greenhouse",
       "posted_at": "2026-06-22T17:24:26-04:00",
-      "scraped_at": "2026-08-17T16:46:57.007Z",
+      "scraped_at": "2026-08-17T16:48:04.227Z",
       "status": "open"
     },
     {
@@ -1761,7 +1761,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8599136002",
       "source": "greenhouse",
       "posted_at": "2026-06-18T12:15:06-04:00",
-      "scraped_at": "2026-08-17T16:46:56.517Z",
+      "scraped_at": "2026-08-17T16:48:03.034Z",
       "status": "open"
     },
     {
@@ -1783,7 +1783,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8585877002",
       "source": "greenhouse",
       "posted_at": "2026-06-18T12:15:05-04:00",
-      "scraped_at": "2026-08-17T16:46:56.517Z",
+      "scraped_at": "2026-08-17T16:48:03.034Z",
       "status": "open"
     },
     {
@@ -1805,7 +1805,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4679227005",
       "source": "greenhouse",
       "posted_at": "2026-06-15T13:48:30-04:00",
-      "scraped_at": "2026-08-17T16:46:57.061Z",
+      "scraped_at": "2026-08-17T16:48:04.263Z",
       "status": "open"
     },
     {
@@ -1827,7 +1827,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8579230002",
       "source": "greenhouse",
       "posted_at": "2026-06-12T14:00:34-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -1849,7 +1849,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4648939005",
       "source": "greenhouse",
       "posted_at": "2026-06-10T16:56:50-04:00",
-      "scraped_at": "2026-08-17T16:46:57.059Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -1871,7 +1871,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4649730005",
       "source": "greenhouse",
       "posted_at": "2026-06-10T16:56:19-04:00",
-      "scraped_at": "2026-08-17T16:46:57.059Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -1893,7 +1893,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8586040002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T12:21:34-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -1915,7 +1915,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8536000002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -1937,7 +1937,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8536016002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -1959,7 +1959,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478278002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -1981,7 +1981,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478075002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -2003,7 +2003,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8477160002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -2025,7 +2025,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478010002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.862Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -2047,7 +2047,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478011002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -2069,7 +2069,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478015002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -2091,7 +2091,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478096002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.287Z",
       "status": "open"
     },
     {
@@ -2113,7 +2113,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7675303002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2135,7 +2135,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7018933002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2157,7 +2157,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7016479002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2179,7 +2179,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8382201002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2201,7 +2201,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7018970002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2223,7 +2223,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019004002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2245,7 +2245,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7703930002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2267,7 +2267,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019066002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2289,7 +2289,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019077002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2311,29 +2311,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7704097002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
-      "status": "open"
-    },
-    {
-      "id": "greenhouse:orchard:8285372002",
-      "hub": "proptech",
-      "title": "Licensed Real Estate Agent - Fully Vetted Leads Provided",
-      "company": "Orchard",
-      "company_id": "orchard",
-      "priority": false,
-      "category": "General",
-      "segment": "PropTech",
-      "level": "Field",
-      "location": "Tampa, Florida, United States",
-      "employment_type": "full-time",
-      "comp_min": 75000,
-      "comp_max": 200000,
-      "summary": "Join Orchard Brokerage and grow your business with the team that’s redefining the real estate experience.",
-      "description": "Join Orchard Brokerage and grow your business with the team that’s redefining the real estate experience. You’ll get high-quality seller appointments, access to unique client products to help you close, and the support you need for you and your clients to thrive.\n\nWhy Join Orchard\n\n- No up front brokerage fees - we don’t earn until you do\n\n- Access to our Orchard Max program, where you can take advantage of scheduled appointments with highly motivated home sellers - no cold calls, and higher splits the more you close\n\n- Multiple revenue streams available, including revenue share incentives and option to become a certified Orchard Mentor\n\n- Competitive splits that increase with performance - earn more as you close more\n\n- Earn equity for your performance with Orchard stock options\n\n- $1,100+ in monthly marketing support - free to all agents\n\n- Access to 500+ private investors through Orchard’s Cash Offer Marketplace\n\n- Unique products that win you business\n\n- Orchard Move First: Buy your next home before you sell, skip the showings, and become a non-contingent buyer\n\n- Orchard Concierge: Make price-boosting repairs and upgrades at no upfront cost\n\n- Orchard Cash Offer + Upside: sell quickly for a cash offer and get the upside when your home sells on the market\n\n- Access to Orchard Mortgage and Orchard Title for a seamless transaction and incentives to help close more deals\n\n- Hands-on coaching and mentorship from master trainers and a local Market Manager\n\n- Proprietary and proven pricing tools\n\n- Transaction coordination services on every deal\n\n- Strong agent community and culture and a consumer brand centered around delivering great customer experience\n\nCompensation Range: This is a commission-only position. The average full-time real estate agent earns $75,000-$200,000 or more per year. There is no cap on earnings.\n\nWe’d Love to Hear From You if You Have\n\n- An active and unrestricted Florida real estate license and are located in the greater Tampa area\n\n- Some residential real estate transaction experience with at least 4+ closed transactions in the last twelve months\n\n- Strong sales skills including the ability to handle objections effectively, build rapport quickly, and align on expectations with customers\n\n- An analytical mindset and ability to hold yourself accountable to hitting metrics in your business\n\n- Passion for delivering an outstanding customer experience and the adaptability to help customers on their schedule\n\n- An ability to use technology effectively in your business and learn new systems quickly\n\n- Strong communication skills to engage with customers and colleagues - both written and oral\n\n- A drive for results balanced with strong collaboration skills and humility\n\nOrchard is proud to be an equal opportunity employer. We provide employment opportunities without regard to age, race, color, ancestry, national origin, religion, disability, sex, gender identity or expression, sexual orientation, veteran status, or any other protected status in accordance with applicable law.",
-      "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8285372002",
-      "source": "greenhouse",
-      "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2355,7 +2333,29 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8284279002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
+      "status": "open"
+    },
+    {
+      "id": "greenhouse:orchard:8285372002",
+      "hub": "proptech",
+      "title": "Licensed Real Estate Agent - Fully Vetted Leads Provided",
+      "company": "Orchard",
+      "company_id": "orchard",
+      "priority": false,
+      "category": "General",
+      "segment": "PropTech",
+      "level": "Field",
+      "location": "Tampa, Florida, United States",
+      "employment_type": "full-time",
+      "comp_min": 75000,
+      "comp_max": 200000,
+      "summary": "Join Orchard Brokerage and grow your business with the team that’s redefining the real estate experience.",
+      "description": "Join Orchard Brokerage and grow your business with the team that’s redefining the real estate experience. You’ll get high-quality seller appointments, access to unique client products to help you close, and the support you need for you and your clients to thrive.\n\nWhy Join Orchard\n\n- No up front brokerage fees - we don’t earn until you do\n\n- Access to our Orchard Max program, where you can take advantage of scheduled appointments with highly motivated home sellers - no cold calls, and higher splits the more you close\n\n- Multiple revenue streams available, including revenue share incentives and option to become a certified Orchard Mentor\n\n- Competitive splits that increase with performance - earn more as you close more\n\n- Earn equity for your performance with Orchard stock options\n\n- $1,100+ in monthly marketing support - free to all agents\n\n- Access to 500+ private investors through Orchard’s Cash Offer Marketplace\n\n- Unique products that win you business\n\n- Orchard Move First: Buy your next home before you sell, skip the showings, and become a non-contingent buyer\n\n- Orchard Concierge: Make price-boosting repairs and upgrades at no upfront cost\n\n- Orchard Cash Offer + Upside: sell quickly for a cash offer and get the upside when your home sells on the market\n\n- Access to Orchard Mortgage and Orchard Title for a seamless transaction and incentives to help close more deals\n\n- Hands-on coaching and mentorship from master trainers and a local Market Manager\n\n- Proprietary and proven pricing tools\n\n- Transaction coordination services on every deal\n\n- Strong agent community and culture and a consumer brand centered around delivering great customer experience\n\nCompensation Range: This is a commission-only position. The average full-time real estate agent earns $75,000-$200,000 or more per year. There is no cap on earnings.\n\nWe’d Love to Hear From You if You Have\n\n- An active and unrestricted Florida real estate license and are located in the greater Tampa area\n\n- Some residential real estate transaction experience with at least 4+ closed transactions in the last twelve months\n\n- Strong sales skills including the ability to handle objections effectively, build rapport quickly, and align on expectations with customers\n\n- An analytical mindset and ability to hold yourself accountable to hitting metrics in your business\n\n- Passion for delivering an outstanding customer experience and the adaptability to help customers on their schedule\n\n- An ability to use technology effectively in your business and learn new systems quickly\n\n- Strong communication skills to engage with customers and colleagues - both written and oral\n\n- A drive for results balanced with strong collaboration skills and humility\n\nOrchard is proud to be an equal opportunity employer. We provide employment opportunities without regard to age, race, color, ancestry, national origin, religion, disability, sex, gender identity or expression, sexual orientation, veteran status, or any other protected status in accordance with applicable law.",
+      "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8285372002",
+      "source": "greenhouse",
+      "posted_at": "2026-06-10T10:11:57-04:00",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2377,7 +2377,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8382200002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.863Z",
+      "scraped_at": "2026-08-17T16:48:06.288Z",
       "status": "open"
     },
     {
@@ -2399,7 +2399,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8494496002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.514Z",
+      "scraped_at": "2026-08-17T16:48:03.030Z",
       "status": "open"
     },
     {
@@ -2421,7 +2421,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8443189002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -2443,7 +2443,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8544188002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -2465,7 +2465,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8550531002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.031Z",
       "status": "open"
     },
     {
@@ -2487,7 +2487,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8506614002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -2509,7 +2509,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8555691002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.515Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -2531,29 +2531,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8503086002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
-      "status": "open"
-    },
-    {
-      "id": "greenhouse:roofstock:8419926002",
-      "hub": "proptech",
-      "title": "Seasonal Piecework Housekeeper - Part Time",
-      "company": "Roofstock",
-      "company_id": "roofstock",
-      "priority": false,
-      "category": "General",
-      "segment": "PropTech",
-      "level": "Manager",
-      "location": "Rockaway Beach, Oregon, United States",
-      "employment_type": "full-time",
-      "comp_min": null,
-      "comp_max": null,
-      "summary": "What we do and why we do it As the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the bene…",
-      "description": "What we do and why we do it\n\nAs the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the benefit of all. We successfully merge our passion for helping investors build wealth through real estate with cutting edge technology that transforms the way they do it.\n\nHow it’s going (and growing)\n\nWith a talented team of 750+ Roofsters, our collaborative, can-do culture is what fuels our growth. In 2022, we closed on our Series E, raising $240 million, and have offices in the Bay Area and New York City. Our growth includes recent acquisitions of Stessa (financial and asset management software), RentPrep (tenant screening and placement service for landlords), and Mynd (property management platform for both Retail and Institutional investors). In 2025, Roofstock took an ownership stake in Casago (short-term rental management services), expanding our platform to support both long-term and short-term rental investment services.\n\nRoofstock’s Values → Short-Term Rental (STR) Org Reflection\n\n- We are entrepreneurs → Launch a startup within a startup\n\n- We are better together → Work across functions & business units to do it fast and well\n\n- We focus on impact → Build a profitable business unit with satisfied owners, teammates, and guests\n\n- We think like investors → Enhance owners’ and Roofstock’s ROI\n\nAbout the Team\n\nRoofstock’s STR team has the opportunity to build and shape an entirely new business unit together. The team is obsessed with people, in particular our owners, our guests, and our teammates. We extend our hospitality to everyone around us, there’s no such thing as “not my job,” and we celebrate our wins together. We plan to expand within our current markets as well as to roll out new markets in the years to come. Much like a startup business, things are fast-paced, intense, and exhilarating. And when the team wins, we all win.\n\nAbout the Role\n\nAs a Housekeeper, you are the frontline of hospitality, directly impacting the guest experience through pristine home presentation. You will be responsible for executing high-quality cleans between stays, resetting homes to brand standards, and supporting laundry, staging, and supply restocks.\n\nThis part-time seasonal role starting in March and ending in September. This is a field-based role and is ideal for someone who takes pride in their work, loves creating a welcoming environment, and is energized by fast-paced, physical work.\n\nResponsibilities\n\n- Perform full-service turnovers of vacation rental homes following standard operating procedures\n\n- Sweep, vacuum, mop, dust, and sanitize all surfaces and rooms, including kitchens and bathrooms\n\n- Move and reset light furniture to access areas for cleaning\n\n- Replace linens and towels and restock all consumables and guest amenities\n\n- Stage and reset decor and hospitality touches according to property standards\n\n- Remove all trash and debris from the home and property\n\n- Identify and report any damages or missing items to your supervisor\n\n- Maintain cleanliness and organization of cleaning supplies and linens in assigned locations\n\n- Occasionally assist with laundry, linen transport, or deep clean days as needed\n\nWork Environment\nThis is a highly physical, field-based role that involves cleaning, lifting, standing, walking, and bending for extended periods. Work will take place inside vacation rental properties as well as outside around driveways, decks, and entryways. The ability to work independently and move quickly between homes is essential.\n\nQualifications\n\n- Previous housekeeping or cleaning experience preferred but not required\n\n- Strong attention to detail and reliability\n\n- Ability to follow detailed checklists and work independently\n\n- Physically able to perform cleaning duties including lifting 25+ lbs, bending, kneeling, and standing for extended periods\n\n- Must have a valid driver’s license and reliable transportation to move between homes\n\n- Comfortable using a smartphone or mobile app to log tasks and report issues\n\n- Must be available to work weekends and holidays, as needed\n\nLocation – Rockaway Beach, OR (On-site)\n\nTravel Required\nFrequent local travel between homes\n\nCompensation\n\n- Piece rate ranging between $35 and $300 per unit\n\n- $22.50-$23.50 per hour paid for non cleaning tasks\n\nPay Transparency\n\nOur compensation reflects several US geographic markets. The base pay for this position represents the expected salary for this position. Ultimately, in determining your pay it will be based on several factors including location, job-related knowledge, skills, experience and other job related factors. Roofstock is a total compensation company; the base salary is only a part of our total compensation package.\n\nAdditional Perks:\n\n- $35/month cell phone subsidy\n\nMust be authorized to work in the U.S. is a precondition of employment and we are unable to sponsor H1-B Visas at this time.\n\nAny offer of employment is conditioned upon the successful completion of a background investigation.\n\nCommitment to Equal Employment Opportunity\n\nRoofstock is an equal opportunity employer. In keeping with the values of Roofstock, we make all employment decisions including hiring, evaluation, termination, promotional and training opportunities, without regard to race, religion, color, sex, age, national origin, ancestry, sexual orientation, physical handicap, mental disability, medical condition, disability, gender or identity or expression, pregnancy or pregnancy-related condition, marital status, height and/or weight.\n\n#LI-NL\n\n#LI-ONSITE",
-      "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419926002",
-      "source": "greenhouse",
-      "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -2575,7 +2553,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419915002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.032Z",
       "status": "open"
     },
     {
@@ -2597,11 +2575,11 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419907002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
-      "id": "greenhouse:roofstock:8419917002",
+      "id": "greenhouse:roofstock:8419926002",
       "hub": "proptech",
       "title": "Seasonal Piecework Housekeeper - Part Time",
       "company": "Roofstock",
@@ -2610,16 +2588,16 @@
       "category": "General",
       "segment": "PropTech",
       "level": "Manager",
-      "location": "Pacific City, Oregon, United States",
+      "location": "Rockaway Beach, Oregon, United States",
       "employment_type": "full-time",
       "comp_min": null,
       "comp_max": null,
       "summary": "What we do and why we do it As the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the bene…",
-      "description": "What we do and why we do it\n\nAs the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the benefit of all. We successfully merge our passion for helping investors build wealth through real estate with cutting edge technology that transforms the way they do it.\n\nHow it’s going (and growing)\n\nWith a talented team of 750+ Roofsters, our collaborative, can-do culture is what fuels our growth. In 2022, we closed on our Series E, raising $240 million, and have offices in the Bay Area and New York City. Our growth includes recent acquisitions of Stessa (financial and asset management software), RentPrep (tenant screening and placement service for landlords), and Mynd (property management platform for both Retail and Institutional investors). In 2025, Roofstock took an ownership stake in Casago (short-term rental management services), expanding our platform to support both long-term and short-term rental investment services.\n\nRoofstock’s Values → Short-Term Rental (STR) Org Reflection\n\n- We are entrepreneurs → Launch a startup within a startup\n\n- We are better together → Work across functions & business units to do it fast and well\n\n- We focus on impact → Build a profitable business unit with satisfied owners, teammates, and guests\n\n- We think like investors → Enhance owners’ and Roofstock’s ROI\n\nAbout the Team\n\nRoofstock’s STR team has the opportunity to build and shape an entirely new business unit together. The team is obsessed with people, in particular our owners, our guests, and our teammates. We extend our hospitality to everyone around us, there’s no such thing as “not my job,” and we celebrate our wins together. We plan to expand within our current markets as well as to roll out new markets in the years to come. Much like a startup business, things are fast-paced, intense, and exhilarating. And when the team wins, we all win.\n\nAbout the Role\n\nAs a Housekeeper, you are the frontline of hospitality, directly impacting the guest experience through pristine home presentation. You will be responsible for executing high-quality cleans between stays, resetting homes to brand standards, and supporting laundry, staging, and supply restocks.\n\nThis part-time seasonal role starting in March and ending in September. This is a field-based role and is ideal for someone who takes pride in their work, loves creating a welcoming environment, and is energized by fast-paced, physical work.\n\nResponsibilities\n\n- Perform full-service turnovers of vacation rental homes following standard operating procedures\n\n- Sweep, vacuum, mop, dust, and sanitize all surfaces and rooms, including kitchens and bathrooms\n\n- Move and reset light furniture to access areas for cleaning\n\n- Replace linens and towels and restock all consumables and guest amenities\n\n- Stage and reset decor and hospitality touches according to property standards\n\n- Remove all trash and debris from the home and property\n\n- Identify and report any damages or missing items to your supervisor\n\n- Maintain cleanliness and organization of cleaning supplies and linens in assigned locations\n\n- Occasionally assist with laundry, linen transport, or deep clean days as needed\n\nWork Environment\nThis is a highly physical, field-based role that involves cleaning, lifting, standing, walking, and bending for extended periods. Work will take place inside vacation rental properties as well as outside around driveways, decks, and entryways. The ability to work independently and move quickly between homes is essential.\n\nQualifications\n\n- Previous housekeeping or cleaning experience preferred but not required\n\n- Strong attention to detail and reliability\n\n- Ability to follow detailed checklists and work independently\n\n- Physically able to perform cleaning duties including lifting 25+ lbs, bending, kneeling, and standing for extended periods\n\n- Must have a valid driver’s license and reliable transportation to move between homes\n\n- Comfortable using a smartphone or mobile app to log tasks and report issues\n\n- Must be available to work weekends and holidays, as needed\n\nLocation – Pacific City, OR (On-site)\n\nTravel Required\nFrequent local travel between homes\n\nCompensation\n\n- Piece rate ranging between $35 and $300 per unit\n\n- $22.50-$23.50 per hour paid for non cleaning tasks\n\nPay Transparency\n\nOur compensation reflects several US geographic markets. The base pay for this position represents the expected salary for this position. Ultimately, in determining your pay it will be based on several factors including location, job-related knowledge, skills, experience and other job related factors. Roofstock is a total compensation company; the base salary is only a part of our total compensation package.\n\nAdditional Perks:\n\n- $35/month cell phone subsidy\n\nMust be authorized to work in the U.S. is a precondition of employment and we are unable to sponsor H1-B Visas at this time.\n\nAny offer of employment is conditioned upon the successful completion of a background investigation.\n\nCommitment to Equal Employment Opportunity\n\nRoofstock is an equal opportunity employer. In keeping with the values of Roofstock, we make all employment decisions including hiring, evaluation, termination, promotional and training opportunities, without regard to race, religion, color, sex, age, national origin, ancestry, sexual orientation, physical handicap, mental disability, medical condition, disability, gender or identity or expression, pregnancy or pregnancy-related condition, marital status, height and/or weight.\n\n#LI-NL\n\n#LI-ONSITE",
-      "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419917002",
+      "description": "What we do and why we do it\n\nAs the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the benefit of all. We successfully merge our passion for helping investors build wealth through real estate with cutting edge technology that transforms the way they do it.\n\nHow it’s going (and growing)\n\nWith a talented team of 750+ Roofsters, our collaborative, can-do culture is what fuels our growth. In 2022, we closed on our Series E, raising $240 million, and have offices in the Bay Area and New York City. Our growth includes recent acquisitions of Stessa (financial and asset management software), RentPrep (tenant screening and placement service for landlords), and Mynd (property management platform for both Retail and Institutional investors). In 2025, Roofstock took an ownership stake in Casago (short-term rental management services), expanding our platform to support both long-term and short-term rental investment services.\n\nRoofstock’s Values → Short-Term Rental (STR) Org Reflection\n\n- We are entrepreneurs → Launch a startup within a startup\n\n- We are better together → Work across functions & business units to do it fast and well\n\n- We focus on impact → Build a profitable business unit with satisfied owners, teammates, and guests\n\n- We think like investors → Enhance owners’ and Roofstock’s ROI\n\nAbout the Team\n\nRoofstock’s STR team has the opportunity to build and shape an entirely new business unit together. The team is obsessed with people, in particular our owners, our guests, and our teammates. We extend our hospitality to everyone around us, there’s no such thing as “not my job,” and we celebrate our wins together. We plan to expand within our current markets as well as to roll out new markets in the years to come. Much like a startup business, things are fast-paced, intense, and exhilarating. And when the team wins, we all win.\n\nAbout the Role\n\nAs a Housekeeper, you are the frontline of hospitality, directly impacting the guest experience through pristine home presentation. You will be responsible for executing high-quality cleans between stays, resetting homes to brand standards, and supporting laundry, staging, and supply restocks.\n\nThis part-time seasonal role starting in March and ending in September. This is a field-based role and is ideal for someone who takes pride in their work, loves creating a welcoming environment, and is energized by fast-paced, physical work.\n\nResponsibilities\n\n- Perform full-service turnovers of vacation rental homes following standard operating procedures\n\n- Sweep, vacuum, mop, dust, and sanitize all surfaces and rooms, including kitchens and bathrooms\n\n- Move and reset light furniture to access areas for cleaning\n\n- Replace linens and towels and restock all consumables and guest amenities\n\n- Stage and reset decor and hospitality touches according to property standards\n\n- Remove all trash and debris from the home and property\n\n- Identify and report any damages or missing items to your supervisor\n\n- Maintain cleanliness and organization of cleaning supplies and linens in assigned locations\n\n- Occasionally assist with laundry, linen transport, or deep clean days as needed\n\nWork Environment\nThis is a highly physical, field-based role that involves cleaning, lifting, standing, walking, and bending for extended periods. Work will take place inside vacation rental properties as well as outside around driveways, decks, and entryways. The ability to work independently and move quickly between homes is essential.\n\nQualifications\n\n- Previous housekeeping or cleaning experience preferred but not required\n\n- Strong attention to detail and reliability\n\n- Ability to follow detailed checklists and work independently\n\n- Physically able to perform cleaning duties including lifting 25+ lbs, bending, kneeling, and standing for extended periods\n\n- Must have a valid driver’s license and reliable transportation to move between homes\n\n- Comfortable using a smartphone or mobile app to log tasks and report issues\n\n- Must be available to work weekends and holidays, as needed\n\nLocation – Rockaway Beach, OR (On-site)\n\nTravel Required\nFrequent local travel between homes\n\nCompensation\n\n- Piece rate ranging between $35 and $300 per unit\n\n- $22.50-$23.50 per hour paid for non cleaning tasks\n\nPay Transparency\n\nOur compensation reflects several US geographic markets. The base pay for this position represents the expected salary for this position. Ultimately, in determining your pay it will be based on several factors including location, job-related knowledge, skills, experience and other job related factors. Roofstock is a total compensation company; the base salary is only a part of our total compensation package.\n\nAdditional Perks:\n\n- $35/month cell phone subsidy\n\nMust be authorized to work in the U.S. is a precondition of employment and we are unable to sponsor H1-B Visas at this time.\n\nAny offer of employment is conditioned upon the successful completion of a background investigation.\n\nCommitment to Equal Employment Opportunity\n\nRoofstock is an equal opportunity employer. In keeping with the values of Roofstock, we make all employment decisions including hiring, evaluation, termination, promotional and training opportunities, without regard to race, religion, color, sex, age, national origin, ancestry, sexual orientation, physical handicap, mental disability, medical condition, disability, gender or identity or expression, pregnancy or pregnancy-related condition, marital status, height and/or weight.\n\n#LI-NL\n\n#LI-ONSITE",
+      "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419926002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
@@ -2641,29 +2619,29 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419919002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
-      "id": "greenhouse:roofstock:8472378002",
+      "id": "greenhouse:roofstock:8419917002",
       "hub": "proptech",
-      "title": "Seasonal Senior Housekeeper - Piece Rate",
+      "title": "Seasonal Piecework Housekeeper - Part Time",
       "company": "Roofstock",
       "company_id": "roofstock",
       "priority": false,
       "category": "General",
       "segment": "PropTech",
       "level": "Manager",
-      "location": "Oceanside, Oregon, United States",
+      "location": "Pacific City, Oregon, United States",
       "employment_type": "full-time",
       "comp_min": null,
       "comp_max": null,
       "summary": "What we do and why we do it As the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the bene…",
-      "description": "What we do and why we do it\n\nAs the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the benefit of all. We successfully merge our passion for helping investors build wealth through real estate with cutting edge technology that transforms the way they do it.\n\nHow it’s going (and growing)\n\nWith a talented team of 750+ Roofsters, our collaborative, can-do culture is what fuels our growth. In 2022, we closed on our Series E, raising $240 million, and have offices in the Bay Area and New York City. Our growth includes recent acquisitions of Stessa (financial and asset management software), RentPrep (tenant screening and placement service for landlords), and Mynd (property management platform for both Retail and Institutional investors). In 2025, Roofstock took an ownership stake in Casago (short-term rental management services), expanding our platform to support both long-term and short-term rental investment services.\n\nRoofstock’s Values → Short-Term Rental (STR) Org Reflection\n\n- We are entrepreneurs → Launch a startup within a startup\n\n- We are better together → Work across functions & business units to do it fast and well\n\n- We focus on impact → Build a profitable business unit with satisfied owners, teammates, and guests\n\n- We think like investors → Enhance owners’ and Roofstock’s ROI\n\nAbout the Team\n\nRoofstock’s STR team has the opportunity to build and shape an entirely new business unit together. The team is obsessed with people, in particular our owners, our guests, and our teammates. We extend our hospitality to everyone around us, there’s no such thing as “not my job,” and we celebrate our wins together. We plan to expand within our current markets as well as to roll out new markets in the years to come. Much like a startup business, things are fast-paced, intense, and exhilarating. And when the team wins, we all win.\n\nAbout the Role\n\nAs a Senior Housekeeper, you are the quality gatekeeper and mentor within our housekeeping operation. In addition to performing high-standard cleans, you’ll inspect the work of others, train new housekeepers, support consistency across properties, and help resolve urgent in-field issues.\n\nThis is a hands-on, field-based role ideal for someone who leads by example, takes pride in cleanliness and presentation, and enjoys coaching others to succeed.\n\nThis part-time seasonal role starting in March and ending in September.\n\nResponsibilities\n\n- Perform full-service turnovers of vacation rental homes per brand standards\n\n- Inspect cleans completed by other housekeepers and ensure adherence to SOPs\n\n- Provide mentorship and on-the-job training to new or developing housekeepers\n\n- Help resolve field issues when urgent issues or concerns arise\n\n- Support spot cleans, touch-ups, or guest service follow-ups as needed\n\n- Ensure homes are functional, clean, and stocked (FCS) prior to guest arrival\n\n- Restock consumables and stage decor, linens, and hospitality touches\n\n- Report damages, maintenance needs, or supply gaps via operational systems\n\n- Provide feedback to management on trends, common issues, or performance gaps\n\n- Provide cross-coverage for your manager when necessary.\n\n- Other duties as assigned\n\nWork Environment\nThis is a highly physical, field-based role that involves cleaning, lifting, standing, walking, and bending for extended periods. Work will take place inside vacation rental properties as well as outside around driveways, decks, and entryways. The ability to work independently and move quickly between homes is essential\n\nQualifications\n\n- 2+ years of experience in housekeeping, vacation rental operations, or hospitality\n\n- Demonstrated quality, consistency, and attention to detail in cleaning execution\n\n- Positive attitude and ability to coach and support team members in the field\n\n- Strong understanding of turnover workflows and SOPs\n\n- Physically able to perform cleaning tasks including lifting 25+ lbs, kneeling, and standing for extended periods\n\n- Reliable transportation and valid driver’s license\n\n- Smartphone access and comfort using mobile apps to manage tasks\n\n- Availability to work weekends, holidays, and occasional evenings as needed\n\nLocation – [Oceanside, OR] (On-site)\n\nTravel Required\nFrequent local travel between homes\n\nCompensation\n\n- Piece rate ranging between $35 and $310 per unit\n\n- $24.50/hr per hour paid for non cleaning tasks\n\nPay Transparency\n\nOur compensation reflects several US geographic markets. The base pay for this position represents the expected salary for this position. Ultimately, in determining your pay it will be based on several factors including location, job-related knowledge, skills, experience and other job related factors. Roofstock is a total compensation company; the base salary is only a part of our total compensation package.\n\nCompetitive & Unique Benefits Package\n\n- Generous PTO Policy\n\n- 12 Paid Holidays\n\n- Volunteer Time Off\n\n- Paid Parental Leave\n\n- 401k Program\n\n- $35/month cell phone subsidy\n\n- Paid sick time\n\n- Holiday stipend\n\n- Robust health, dental, vision insurance, and more\n\nMust be authorized to work in the U.S. is a precondition of employment and we are unable to sponsor H1-B Visas at this time.\n\nAny offer of employment is conditioned upon the successful completion of a background investigation.\n\nCommitment to Equal Employment Opportunity\n\nThe company provides equal opportunity in all of our employment practices to all qualified employees and applicants without regard to race, color, religion, sex, gender, gender expression, gender identity, national origin, ancestry, citizenship, age, physical or mental disability, marital status, sexual orientation, military or veteran status, genetic information or any other category protected by federal, state and local laws. This policy applies to all aspects of the employment relationship, including recruitment, hiring, compensation, promotion, transfer, disciplinary action, layoff, return from layoff, training and social, and recreational programs. All such employment decisions will be made without unlawfully discriminating on any prohibited basis.",
-      "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8472378002",
+      "description": "What we do and why we do it\n\nAs the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the benefit of all. We successfully merge our passion for helping investors build wealth through real estate with cutting edge technology that transforms the way they do it.\n\nHow it’s going (and growing)\n\nWith a talented team of 750+ Roofsters, our collaborative, can-do culture is what fuels our growth. In 2022, we closed on our Series E, raising $240 million, and have offices in the Bay Area and New York City. Our growth includes recent acquisitions of Stessa (financial and asset management software), RentPrep (tenant screening and placement service for landlords), and Mynd (property management platform for both Retail and Institutional investors). In 2025, Roofstock took an ownership stake in Casago (short-term rental management services), expanding our platform to support both long-term and short-term rental investment services.\n\nRoofstock’s Values → Short-Term Rental (STR) Org Reflection\n\n- We are entrepreneurs → Launch a startup within a startup\n\n- We are better together → Work across functions & business units to do it fast and well\n\n- We focus on impact → Build a profitable business unit with satisfied owners, teammates, and guests\n\n- We think like investors → Enhance owners’ and Roofstock’s ROI\n\nAbout the Team\n\nRoofstock’s STR team has the opportunity to build and shape an entirely new business unit together. The team is obsessed with people, in particular our owners, our guests, and our teammates. We extend our hospitality to everyone around us, there’s no such thing as “not my job,” and we celebrate our wins together. We plan to expand within our current markets as well as to roll out new markets in the years to come. Much like a startup business, things are fast-paced, intense, and exhilarating. And when the team wins, we all win.\n\nAbout the Role\n\nAs a Housekeeper, you are the frontline of hospitality, directly impacting the guest experience through pristine home presentation. You will be responsible for executing high-quality cleans between stays, resetting homes to brand standards, and supporting laundry, staging, and supply restocks.\n\nThis part-time seasonal role starting in March and ending in September. This is a field-based role and is ideal for someone who takes pride in their work, loves creating a welcoming environment, and is energized by fast-paced, physical work.\n\nResponsibilities\n\n- Perform full-service turnovers of vacation rental homes following standard operating procedures\n\n- Sweep, vacuum, mop, dust, and sanitize all surfaces and rooms, including kitchens and bathrooms\n\n- Move and reset light furniture to access areas for cleaning\n\n- Replace linens and towels and restock all consumables and guest amenities\n\n- Stage and reset decor and hospitality touches according to property standards\n\n- Remove all trash and debris from the home and property\n\n- Identify and report any damages or missing items to your supervisor\n\n- Maintain cleanliness and organization of cleaning supplies and linens in assigned locations\n\n- Occasionally assist with laundry, linen transport, or deep clean days as needed\n\nWork Environment\nThis is a highly physical, field-based role that involves cleaning, lifting, standing, walking, and bending for extended periods. Work will take place inside vacation rental properties as well as outside around driveways, decks, and entryways. The ability to work independently and move quickly between homes is essential.\n\nQualifications\n\n- Previous housekeeping or cleaning experience preferred but not required\n\n- Strong attention to detail and reliability\n\n- Ability to follow detailed checklists and work independently\n\n- Physically able to perform cleaning duties including lifting 25+ lbs, bending, kneeling, and standing for extended periods\n\n- Must have a valid driver’s license and reliable transportation to move between homes\n\n- Comfortable using a smartphone or mobile app to log tasks and report issues\n\n- Must be available to work weekends and holidays, as needed\n\nLocation – Pacific City, OR (On-site)\n\nTravel Required\nFrequent local travel between homes\n\nCompensation\n\n- Piece rate ranging between $35 and $300 per unit\n\n- $22.50-$23.50 per hour paid for non cleaning tasks\n\nPay Transparency\n\nOur compensation reflects several US geographic markets. The base pay for this position represents the expected salary for this position. Ultimately, in determining your pay it will be based on several factors including location, job-related knowledge, skills, experience and other job related factors. Roofstock is a total compensation company; the base salary is only a part of our total compensation package.\n\nAdditional Perks:\n\n- $35/month cell phone subsidy\n\nMust be authorized to work in the U.S. is a precondition of employment and we are unable to sponsor H1-B Visas at this time.\n\nAny offer of employment is conditioned upon the successful completion of a background investigation.\n\nCommitment to Equal Employment Opportunity\n\nRoofstock is an equal opportunity employer. In keeping with the values of Roofstock, we make all employment decisions including hiring, evaluation, termination, promotional and training opportunities, without regard to race, religion, color, sex, age, national origin, ancestry, sexual orientation, physical handicap, mental disability, medical condition, disability, gender or identity or expression, pregnancy or pregnancy-related condition, marital status, height and/or weight.\n\n#LI-NL\n\n#LI-ONSITE",
+      "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419917002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
@@ -2685,7 +2663,29 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8472393002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
+      "status": "open"
+    },
+    {
+      "id": "greenhouse:roofstock:8472378002",
+      "hub": "proptech",
+      "title": "Seasonal Senior Housekeeper - Piece Rate",
+      "company": "Roofstock",
+      "company_id": "roofstock",
+      "priority": false,
+      "category": "General",
+      "segment": "PropTech",
+      "level": "Manager",
+      "location": "Oceanside, Oregon, United States",
+      "employment_type": "full-time",
+      "comp_min": null,
+      "comp_max": null,
+      "summary": "What we do and why we do it As the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the bene…",
+      "description": "What we do and why we do it\n\nAs the leading end-to-end investment platform for single-family rental homes (SFR), our mission is to reinvent the rental housing ecosystem for the benefit of all. We successfully merge our passion for helping investors build wealth through real estate with cutting edge technology that transforms the way they do it.\n\nHow it’s going (and growing)\n\nWith a talented team of 750+ Roofsters, our collaborative, can-do culture is what fuels our growth. In 2022, we closed on our Series E, raising $240 million, and have offices in the Bay Area and New York City. Our growth includes recent acquisitions of Stessa (financial and asset management software), RentPrep (tenant screening and placement service for landlords), and Mynd (property management platform for both Retail and Institutional investors). In 2025, Roofstock took an ownership stake in Casago (short-term rental management services), expanding our platform to support both long-term and short-term rental investment services.\n\nRoofstock’s Values → Short-Term Rental (STR) Org Reflection\n\n- We are entrepreneurs → Launch a startup within a startup\n\n- We are better together → Work across functions & business units to do it fast and well\n\n- We focus on impact → Build a profitable business unit with satisfied owners, teammates, and guests\n\n- We think like investors → Enhance owners’ and Roofstock’s ROI\n\nAbout the Team\n\nRoofstock’s STR team has the opportunity to build and shape an entirely new business unit together. The team is obsessed with people, in particular our owners, our guests, and our teammates. We extend our hospitality to everyone around us, there’s no such thing as “not my job,” and we celebrate our wins together. We plan to expand within our current markets as well as to roll out new markets in the years to come. Much like a startup business, things are fast-paced, intense, and exhilarating. And when the team wins, we all win.\n\nAbout the Role\n\nAs a Senior Housekeeper, you are the quality gatekeeper and mentor within our housekeeping operation. In addition to performing high-standard cleans, you’ll inspect the work of others, train new housekeepers, support consistency across properties, and help resolve urgent in-field issues.\n\nThis is a hands-on, field-based role ideal for someone who leads by example, takes pride in cleanliness and presentation, and enjoys coaching others to succeed.\n\nThis part-time seasonal role starting in March and ending in September.\n\nResponsibilities\n\n- Perform full-service turnovers of vacation rental homes per brand standards\n\n- Inspect cleans completed by other housekeepers and ensure adherence to SOPs\n\n- Provide mentorship and on-the-job training to new or developing housekeepers\n\n- Help resolve field issues when urgent issues or concerns arise\n\n- Support spot cleans, touch-ups, or guest service follow-ups as needed\n\n- Ensure homes are functional, clean, and stocked (FCS) prior to guest arrival\n\n- Restock consumables and stage decor, linens, and hospitality touches\n\n- Report damages, maintenance needs, or supply gaps via operational systems\n\n- Provide feedback to management on trends, common issues, or performance gaps\n\n- Provide cross-coverage for your manager when necessary.\n\n- Other duties as assigned\n\nWork Environment\nThis is a highly physical, field-based role that involves cleaning, lifting, standing, walking, and bending for extended periods. Work will take place inside vacation rental properties as well as outside around driveways, decks, and entryways. The ability to work independently and move quickly between homes is essential\n\nQualifications\n\n- 2+ years of experience in housekeeping, vacation rental operations, or hospitality\n\n- Demonstrated quality, consistency, and attention to detail in cleaning execution\n\n- Positive attitude and ability to coach and support team members in the field\n\n- Strong understanding of turnover workflows and SOPs\n\n- Physically able to perform cleaning tasks including lifting 25+ lbs, kneeling, and standing for extended periods\n\n- Reliable transportation and valid driver’s license\n\n- Smartphone access and comfort using mobile apps to manage tasks\n\n- Availability to work weekends, holidays, and occasional evenings as needed\n\nLocation – [Oceanside, OR] (On-site)\n\nTravel Required\nFrequent local travel between homes\n\nCompensation\n\n- Piece rate ranging between $35 and $310 per unit\n\n- $24.50/hr per hour paid for non cleaning tasks\n\nPay Transparency\n\nOur compensation reflects several US geographic markets. The base pay for this position represents the expected salary for this position. Ultimately, in determining your pay it will be based on several factors including location, job-related knowledge, skills, experience and other job related factors. Roofstock is a total compensation company; the base salary is only a part of our total compensation package.\n\nCompetitive & Unique Benefits Package\n\n- Generous PTO Policy\n\n- 12 Paid Holidays\n\n- Volunteer Time Off\n\n- Paid Parental Leave\n\n- 401k Program\n\n- $35/month cell phone subsidy\n\n- Paid sick time\n\n- Holiday stipend\n\n- Robust health, dental, vision insurance, and more\n\nMust be authorized to work in the U.S. is a precondition of employment and we are unable to sponsor H1-B Visas at this time.\n\nAny offer of employment is conditioned upon the successful completion of a background investigation.\n\nCommitment to Equal Employment Opportunity\n\nThe company provides equal opportunity in all of our employment practices to all qualified employees and applicants without regard to race, color, religion, sex, gender, gender expression, gender identity, national origin, ancestry, citizenship, age, physical or mental disability, marital status, sexual orientation, military or veteran status, genetic information or any other category protected by federal, state and local laws. This policy applies to all aspects of the employment relationship, including recruitment, hiring, compensation, promotion, transfer, disciplinary action, layoff, return from layoff, training and social, and recreational programs. All such employment decisions will be made without unlawfully discriminating on any prohibited basis.",
+      "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8472378002",
+      "source": "greenhouse",
+      "posted_at": "2026-06-05T16:01:33-04:00",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
@@ -2707,7 +2707,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8462745002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-17T16:46:56.516Z",
+      "scraped_at": "2026-08-17T16:48:03.033Z",
       "status": "open"
     },
     {
@@ -2729,7 +2729,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4701569005",
       "source": "greenhouse",
       "posted_at": "2026-06-04T12:07:38-04:00",
-      "scraped_at": "2026-08-17T16:46:57.007Z",
+      "scraped_at": "2026-08-17T16:48:04.228Z",
       "status": "open"
     },
     {
@@ -2751,7 +2751,7 @@
       "apply_url": "https://job-boards.greenhouse.io/obligo/jobs/4430568004",
       "source": "greenhouse",
       "posted_at": "2026-06-03T11:11:13-04:00",
-      "scraped_at": "2026-08-17T16:46:58.256Z",
+      "scraped_at": "2026-08-17T16:48:05.628Z",
       "status": "open"
     },
     {
@@ -2773,7 +2773,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4686070006",
       "source": "greenhouse",
       "posted_at": "2026-06-02T18:08:33-04:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -2795,7 +2795,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4685760006",
       "source": "greenhouse",
       "posted_at": "2026-06-01T12:40:04-04:00",
-      "scraped_at": "2026-08-17T16:46:58.261Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -2817,7 +2817,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4661652005",
       "source": "greenhouse",
       "posted_at": "2026-05-28T18:27:22-04:00",
-      "scraped_at": "2026-08-17T16:46:57.059Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -2839,7 +2839,7 @@
       "apply_url": "https://job-boards.greenhouse.io/crexi/jobs/4674416005",
       "source": "greenhouse",
       "posted_at": "2026-05-28T18:27:22-04:00",
-      "scraped_at": "2026-08-17T16:46:57.060Z",
+      "scraped_at": "2026-08-17T16:48:04.262Z",
       "status": "open"
     },
     {
@@ -2861,7 +2861,7 @@
       "apply_url": "https://jobs.lever.co/entrata/02480379-5daa-43d7-a6b8-396f2b26df39",
       "source": "lever",
       "posted_at": "2026-05-22T15:25:48.657Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -2883,7 +2883,7 @@
       "apply_url": "https://jobs.lever.co/entrata/6f285ba2-ee23-4bc6-898c-e7f83df34bc4",
       "source": "lever",
       "posted_at": "2026-05-18T22:58:50.738Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -2905,7 +2905,7 @@
       "apply_url": "https://jobs.lever.co/entrata/8f6b75c0-5157-4db4-b600-6fa18303e16d",
       "source": "lever",
       "posted_at": "2026-05-18T20:16:32.103Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -2927,7 +2927,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4441476006",
       "source": "greenhouse",
       "posted_at": "2026-04-21T11:13:30-04:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -2949,7 +2949,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4605270006",
       "source": "greenhouse",
       "posted_at": "2026-04-06T10:56:17-04:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -2971,7 +2971,7 @@
       "apply_url": "https://jobs.lever.co/entrata/dd699465-497c-49a2-8720-000db1d1feb0",
       "source": "lever",
       "posted_at": "2026-04-01T18:55:13.278Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -2993,7 +2993,7 @@
       "apply_url": "https://jobs.lever.co/entrata/11444128-f2b9-4af6-88a4-109859f182b8",
       "source": "lever",
       "posted_at": "2026-03-31T21:35:05.439Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -3015,7 +3015,7 @@
       "apply_url": "https://job-boards.greenhouse.io/obligo/jobs/5836724004",
       "source": "greenhouse",
       "posted_at": "2026-03-26T08:39:57-04:00",
-      "scraped_at": "2026-08-17T16:46:58.256Z",
+      "scraped_at": "2026-08-17T16:48:05.628Z",
       "status": "open"
     },
     {
@@ -3037,7 +3037,7 @@
       "apply_url": "https://job-boards.greenhouse.io/obligo/jobs/5791025004",
       "source": "greenhouse",
       "posted_at": "2026-03-12T13:26:00-04:00",
-      "scraped_at": "2026-08-17T16:46:58.256Z",
+      "scraped_at": "2026-08-17T16:48:05.628Z",
       "status": "open"
     },
     {
@@ -3059,7 +3059,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4655562006",
       "source": "greenhouse",
       "posted_at": "2026-02-18T11:28:16-05:00",
-      "scraped_at": "2026-08-17T16:46:58.261Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -3081,7 +3081,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4653759006",
       "source": "greenhouse",
       "posted_at": "2026-02-11T17:58:48-05:00",
-      "scraped_at": "2026-08-17T16:46:58.261Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -3103,7 +3103,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4648555006",
       "source": "greenhouse",
       "posted_at": "2026-01-27T12:59:25-05:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -3125,7 +3125,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4647432006",
       "source": "greenhouse",
       "posted_at": "2026-01-22T16:43:40-05:00",
-      "scraped_at": "2026-08-17T16:46:58.261Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -3147,7 +3147,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4410174006",
       "source": "greenhouse",
       "posted_at": "2025-10-14T16:06:51-04:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -3169,7 +3169,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4602222006",
       "source": "greenhouse",
       "posted_at": "2025-09-16T19:32:08-04:00",
-      "scraped_at": "2026-08-17T16:46:58.262Z",
+      "scraped_at": "2026-08-17T16:48:05.633Z",
       "status": "open"
     },
     {
@@ -3191,7 +3191,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/4401577007",
       "source": "greenhouse",
       "posted_at": "2025-07-21T10:46:40-04:00",
-      "scraped_at": "2026-08-17T16:46:59.263Z",
+      "scraped_at": "2026-08-17T16:48:06.782Z",
       "status": "open"
     },
     {
@@ -3213,7 +3213,7 @@
       "apply_url": "https://jobs.lever.co/entrata/0b76b68a-a15b-4846-b6c3-9697ccffb52e",
       "source": "lever",
       "posted_at": "2025-05-21T15:37:16.678Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -3235,7 +3235,7 @@
       "apply_url": "https://jobs.lever.co/entrata/ec44b2d5-088f-4f50-9fd1-8f5e7b6796c0",
       "source": "lever",
       "posted_at": "2024-01-10T20:36:36.072Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -3257,7 +3257,7 @@
       "apply_url": "https://jobs.lever.co/entrata/661bbcc5-3514-4ba3-b616-8838da6c53ec",
       "source": "lever",
       "posted_at": "2022-05-12T07:02:07.937Z",
-      "scraped_at": "2026-08-17T16:46:59.571Z",
+      "scraped_at": "2026-08-17T16:48:07.009Z",
       "status": "open"
     },
     {
@@ -3279,7 +3279,7 @@
       "apply_url": "https://point.com/careers/job/sr-payroll-specialist-8643845002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3301,7 +3301,7 @@
       "apply_url": "https://point.com/careers/job/home-equity-closer-ph-8652969002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3323,7 +3323,7 @@
       "apply_url": "https://point.com/careers/job/account-coordinator-8676027002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3345,7 +3345,7 @@
       "apply_url": "https://point.com/careers/job/account-specialist-8691779002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3367,7 +3367,7 @@
       "apply_url": "https://point.com/careers/job/customer-experience-manager-8689234002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3389,7 +3389,7 @@
       "apply_url": "https://point.com/careers/job/operations-associate-8596528002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3411,7 +3411,7 @@
       "apply_url": "https://point.com/careers/job/lead-data-analyst-8627618002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3433,7 +3433,7 @@
       "apply_url": "https://point.com/careers/job/home-equity-funder-8649362002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3455,7 +3455,7 @@
       "apply_url": "https://point.com/careers/job/mortgage-funding-specialist-8649371002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3477,7 +3477,7 @@
       "apply_url": "https://point.com/careers/job/institutional-fundraising-lead-8646222002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3499,7 +3499,7 @@
       "apply_url": "https://point.com/careers/job/senior-hr-generalist-8687847002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3521,7 +3521,7 @@
       "apply_url": "https://point.com/careers/job/senior-analyst-marketing-analytics-8574450002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3543,7 +3543,7 @@
       "apply_url": "https://point.com/careers/job/senior-manager-direct-mail-campaign-and-analytics-lead-8647612002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3565,7 +3565,7 @@
       "apply_url": "https://point.com/careers/job/lead-sdet-8645502002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3587,7 +3587,7 @@
       "apply_url": "https://point.com/careers/job/lead-sdet-8706963002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3609,7 +3609,7 @@
       "apply_url": "https://point.com/careers/job/account-manager-inside-sales-8625323002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3631,7 +3631,7 @@
       "apply_url": "https://point.com/careers/job/inside-sales-8340596002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3653,7 +3653,7 @@
       "apply_url": "https://point.com/careers/job/senior-default-servicing-associate-8649382002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3675,7 +3675,7 @@
       "apply_url": "https://point.com/careers/job/special-servicing-associate-iii-8649383002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3697,7 +3697,7 @@
       "apply_url": "https://point.com/careers/job/senior-software-engineer-8596679002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.038Z",
+      "scraped_at": "2026-08-17T16:48:04.414Z",
       "status": "open"
     },
     {
@@ -3719,7 +3719,7 @@
       "apply_url": "https://www.realpage.com/careers/benefits-wellness/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.857Z",
+      "scraped_at": "2026-08-17T16:48:05.145Z",
       "status": "open"
     },
     {
@@ -3741,7 +3741,7 @@
       "apply_url": "https://www.realpage.com/careers/locations/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.857Z",
+      "scraped_at": "2026-08-17T16:48:05.145Z",
       "status": "open"
     },
     {
@@ -3763,7 +3763,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/1ae929ab-3fb2-4917-83cf-9febfc1121e4",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3785,7 +3785,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/5a93fabd-52d3-4ffa-a5ee-33c90d40a3a9",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3807,7 +3807,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/e7a4e3b3-47f3-4ced-9e2d-69a60bade8bf",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3829,7 +3829,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/cd17914a-0f4c-4b68-83a2-8720e49da3db",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3851,7 +3851,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/f4d91ff1-8356-4bc9-ad51-b286993ee250",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3873,7 +3873,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/bc3a5556-20d2-421b-bd59-1cc24a25a13c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3895,7 +3895,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/00263a48-3158-443d-bbdc-7bf1249a57a7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3917,7 +3917,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/b990d5d5-0e72-49c7-983e-40b0b31e9e78",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3939,7 +3939,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/008edbb8-c859-46b7-894c-a37bbd109050",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3961,7 +3961,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/ac25579d-6556-449b-b674-08159e5b5d13",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -3983,7 +3983,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/3969c70f-90f1-4424-88fc-507b3a17ce2e",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:57.687Z",
+      "scraped_at": "2026-08-17T16:48:05.215Z",
       "status": "open"
     },
     {
@@ -4005,7 +4005,7 @@
       "apply_url": "https://www.compass.com/careers/departments/business-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4027,7 +4027,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-growth",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4049,7 +4049,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4071,7 +4071,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-success-team",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4093,7 +4093,7 @@
       "apply_url": "https://www.compass.com/careers/departments/data-and-analytics",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4115,7 +4115,7 @@
       "apply_url": "https://www.compass.com/careers/departments/engineering",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4137,7 +4137,7 @@
       "apply_url": "https://www.compass.com/careers/departments/executive",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4159,7 +4159,7 @@
       "apply_url": "https://www.compass.com/careers/departments/expansion",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4181,7 +4181,7 @@
       "apply_url": "https://www.compass.com/careers/departments/facilities-and-office-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4203,7 +4203,7 @@
       "apply_url": "https://www.compass.com/careers/departments/finance-and-accounting",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4225,7 +4225,7 @@
       "apply_url": "https://www.compass.com/careers/departments/information-technology",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4247,7 +4247,7 @@
       "apply_url": "https://www.compass.com/careers/departments/invoicing-and-incentives",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4269,7 +4269,7 @@
       "apply_url": "https://www.compass.com/careers/departments/learning-and-development",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4291,7 +4291,7 @@
       "apply_url": "https://www.compass.com/careers/departments/luxury-marketing",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4313,7 +4313,7 @@
       "apply_url": "https://www.compass.com/careers/departments/manda-integration",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4335,7 +4335,7 @@
       "apply_url": "https://www.compass.com/careers/departments/marketing-and-creative",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4357,7 +4357,7 @@
       "apply_url": "https://www.compass.com/careers/departments/new-development",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4379,7 +4379,7 @@
       "apply_url": "https://www.compass.com/careers/departments/operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4401,7 +4401,7 @@
       "apply_url": "https://www.compass.com/careers/departments/people-and-culture",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4423,7 +4423,7 @@
       "apply_url": "https://www.compass.com/careers/departments/pr-communications",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4445,7 +4445,7 @@
       "apply_url": "https://www.compass.com/careers/departments/product-and-user-experience",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4467,7 +4467,7 @@
       "apply_url": "https://www.compass.com/careers/departments/security-and-compliance",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4489,7 +4489,7 @@
       "apply_url": "https://www.compass.com/careers/departments/strategic-growth",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4511,7 +4511,7 @@
       "apply_url": "https://www.compass.com/careers/departments/strategic-partnerships",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4533,7 +4533,7 @@
       "apply_url": "https://www.compass.com/careers/departments/transaction-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.455Z",
+      "scraped_at": "2026-08-17T16:48:05.793Z",
       "status": "open"
     },
     {
@@ -4555,7 +4555,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/40594c89-8739-4809-ba63-e20f0ea5e735",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4577,7 +4577,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/0033b91a-171d-4fed-9ca9-67aabb1a5756",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4599,7 +4599,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/4df4efbb-f4b5-49fa-840c-45690056af1b",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4621,7 +4621,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/19d4de81-3c98-481e-9783-c6cf0b77c9cd",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4643,7 +4643,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/cf7b2875-34d8-4261-9709-cf967751a1c7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4665,7 +4665,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/822d0469-28a7-4441-a0b4-539dfbb7046c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4687,7 +4687,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/1f89fd20-cc7e-4c5c-9c84-592406bbd8e0",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4709,7 +4709,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/338d0e73-fc31-452d-b98c-d37c52e67dd7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4731,7 +4731,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/23b8eb78-b0dc-48e0-9933-50ed5587295f",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4753,7 +4753,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/b31f3e88-2b52-468e-b841-cc5775b85271",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4775,7 +4775,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/5a2ac2dc-adc4-4543-a2d5-458f0eabd6ad",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4797,7 +4797,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/cdb6349f-91f9-47f9-984b-fd19a329a563",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4819,7 +4819,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/2bc51270-c3d1-4d04-b3d0-7407407ccc96",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4841,7 +4841,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/337d8f93-b0d3-4765-9a32-bede74a246dc",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4863,7 +4863,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/219799ca-8d34-4198-abe4-23c209d77a73",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4885,7 +4885,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/bff7249a-258e-436b-a9c1-16702c166f38",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4907,7 +4907,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/e5eff67b-b4bb-4508-aa94-9543a3ac68e3",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4929,7 +4929,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/398ba713-ea93-408d-9b67-aeb8fda33695",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4951,7 +4951,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/eff58373-8f43-4d2a-8132-6576ccc366ee",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4973,7 +4973,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/73d46cb1-ba2a-4e95-941e-2218b9aa8237",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -4995,7 +4995,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/4130ca5d-dce7-45e5-b49e-b7409cc6a07d",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -5017,7 +5017,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/a5c93eac-c299-4832-bcfd-90e3daaa4b75",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -5039,7 +5039,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/0dc4f5a7-e5c3-4027-bf78-bca413498c9c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -5061,7 +5061,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/245e388e-13f8-461b-9f46-bacd201c3be3",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -5083,7 +5083,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/ea1e09d4-f490-4b59-ab29-b86334046bf8",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -5105,7 +5105,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/819b73d8-7750-47df-a3c8-929101e90606",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:58.326Z",
+      "scraped_at": "2026-08-17T16:48:05.860Z",
       "status": "open"
     },
     {
@@ -5127,7 +5127,7 @@
       "apply_url": "https://smartrent.com/careers/apply/operations/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:59.398Z",
+      "scraped_at": "2026-08-17T16:48:07.106Z",
       "status": "open"
     },
     {
@@ -5149,7 +5149,7 @@
       "apply_url": "https://smartrent.com/careers/apply/technology-and-development/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:59.398Z",
+      "scraped_at": "2026-08-17T16:48:07.106Z",
       "status": "open"
     },
     {
@@ -5171,7 +5171,7 @@
       "apply_url": "https://smartrent.com/careers/apply/sales-and-marketing/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:59.398Z",
+      "scraped_at": "2026-08-17T16:48:07.106Z",
       "status": "open"
     },
     {
@@ -5193,7 +5193,7 @@
       "apply_url": "https://smartrent.com/careers/apply/general-and-administrative/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:59.398Z",
+      "scraped_at": "2026-08-17T16:48:07.106Z",
       "status": "open"
     },
     {
@@ -5215,7 +5215,7 @@
       "apply_url": "https://smartrent.com/careers/apply/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-17T16:46:59.398Z",
+      "scraped_at": "2026-08-17T16:48:07.106Z",
       "status": "open"
     }
   ]
