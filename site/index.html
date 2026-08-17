@@ -748,6 +748,21 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:-.02em;text-wrap
 
 
 /* ---------- header actions ---------- */
+.back-link{
+  display:inline-flex;align-items:center;gap:8px;flex:none;
+  padding:9px 15px;border-radius:100px;
+  border:1px solid var(--line);background:rgba(11,6,24,.7);
+  color:var(--ink-soft);font-family:var(--mono);font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;
+  transition:color .2s,border-color .2s,background .2s,transform .2s;
+}
+.back-link[hidden]{display:none}
+.back-link:hover{
+  color:var(--green);border-color:rgba(0,255,136,.42);
+  background:rgba(0,255,136,.08);transform:translateX(-2px);
+}
+@media(max-width:560px){.bl-text{display:none}.back-link{padding:9px 12px}}
+
 .header-actions{margin-left:auto;display:flex;align-items:center;gap:12px}
 
 /* Both header links share one pill. Only the accent colour differs, so they
@@ -1045,6 +1060,14 @@ body.show-admin #admin-view{display:block}
 <body>
 
 <header class="board-header">
+  <!-- Returns to the site that links here. Hidden when someone lands directly,
+       because a back button that leaves for somewhere they have never been is
+       worse than no back button. -->
+  <a class="back-link" id="back-link" href="https://the-source-flax.vercel.app/" hidden>
+    <span aria-hidden="true">←</span>
+    <span class="bl-text">Back</span>
+  </a>
+
   <div class="brand">
     <span class="brand-mark" aria-hidden="true">
       <svg viewBox="0 0 32 32">
@@ -1059,12 +1082,12 @@ body.show-admin #admin-view{display:block}
   </div>
 
   <div class="header-actions">
-    <a class="promo-badge" href="https://propertyandtechnology.pages.dev/" aria-label="Syndeo">
+    <a class="promo-badge" href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="Syndeo (opens in a new tab)">
       <span class="pb-dot" aria-hidden="true"></span>
       <span class="pb-text">Syndeo</span>
       <span class="pb-go" aria-hidden="true">↗</span>
     </a>
-    <a class="news-btn" href="https://evanprothro-newsletter.beehiiv.com/" aria-label="Newsletter">
+    <a class="news-btn" href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer" aria-label="Newsletter (opens in a new tab)">
       <span class="nb-dot" aria-hidden="true"></span>
       <span class="nb-text">Newsletter</span>
       <span class="nb-go" aria-hidden="true">↗</span>
@@ -1222,19 +1245,19 @@ body.show-admin #admin-view{display:block}
         <div class="foot-h" style="margin-top:22px">Follow</div>
         <div class="social-row">
           <a class="social li" href="https://www.linkedin.com/company/YOUR-HANDLE"
-             data-placeholder aria-label="LinkedIn">
+             target="_blank" rel="noopener noreferrer" data-placeholder aria-label="LinkedIn">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21h-4v-5.6c0-1.34-.03-3.06-1.9-3.06-1.9 0-2.2 1.45-2.2 2.96V21H9z"/>
             </svg>
           </a>
           <a class="social yt" href="https://www.youtube.com/@YOUR-HANDLE"
-             data-placeholder aria-label="YouTube">
+             target="_blank" rel="noopener noreferrer" data-placeholder aria-label="YouTube">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M23 12s0-3.8-.48-5.62a2.9 2.9 0 0 0-2.05-2.06C18.65 3.83 12 3.83 12 3.83s-6.65 0-8.47.49A2.9 2.9 0 0 0 1.48 6.38C1 8.2 1 12 1 12s0 3.8.48 5.62a2.9 2.9 0 0 0 2.05 2.06c1.82.49 8.47.49 8.47.49s6.65 0 8.47-.49a2.9 2.9 0 0 0 2.05-2.06C23 15.8 23 12 23 12zM9.8 15.5v-7l6.07 3.5z"/>
             </svg>
           </a>
           <a class="social ig" href="https://www.instagram.com/YOUR-HANDLE"
-             data-placeholder aria-label="Instagram">
+             target="_blank" rel="noopener noreferrer" data-placeholder aria-label="Instagram">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="none" stroke="currentColor" stroke-width="1.9" d="M7.2 3h9.6A4.2 4.2 0 0 1 21 7.2v9.6a4.2 4.2 0 0 1-4.2 4.2H7.2A4.2 4.2 0 0 1 3 16.8V7.2A4.2 4.2 0 0 1 7.2 3z"/>
               <circle cx="12" cy="12" r="3.8" fill="none" stroke="currentColor" stroke-width="1.9"/>
@@ -1247,7 +1270,7 @@ body.show-admin #admin-view{display:block}
     <div class="foot-bottom">
       <div class="fmeta">
         <a href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer">Property and Technology</a>
-        <a href="https://app.beehiiv.com/" target="_blank" rel="noopener noreferrer">Newsletter</a>
+        <a href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer">Newsletter</a>
         <button class="link-btn" id="toggle-view" type="button">Admin</button>
       </div>
       <div class="fmeta"><span>Founders &amp; Friends · 2026</span></div>
@@ -1823,12 +1846,19 @@ function openDrawer(id){
 
   document.body.append(scrim, drawer);
   document.body.style.overflow = 'hidden';
+  pushDrawerState();
   drawer.querySelector('.drawer-close').addEventListener('click', closeDrawer);
   drawer.querySelector('#apply-btn')?.addEventListener('click', () => openApply(j));
   drawer.querySelector('.drawer-close').focus();
 }
 
 function closeDrawer(keepFocus){
+  // If the panel is being closed by a button rather than the back gesture,
+  // drop the history entry too, or the next back press would do nothing.
+  if (drawerInHistory) {
+    clearDrawerState();
+    try { if (history.state?.drawer) history.back(); } catch (_) {}
+  }
   apply = null;
   openJobId = null;
   scrim?.remove(); drawer?.remove();
@@ -1855,6 +1885,7 @@ const STAGE_LABELS = [
 
 function openApply(job){
   track('start_apply', { role: job.title, company: job.company });
+  logClick(job, job.applyUrl || null, 'apply');
   apply = { job, step: 1, data: apply?.data || {}, review: null };
   renderApply();
 }
@@ -1900,17 +1931,17 @@ function stageOne(){
   $('wiz-body').innerHTML = `
     <p class="wiz-intro">Tell us who you are. Anything marked optional can be left blank — it only sharpens the review in stage three.</p>
     <div class="f-row mi">
-      ${field('first','First name',{ph:'Evan'})}
-      ${field('mi','M.I.',{optional:true,max:1,ph:'A'})}
-      ${field('last','Last name',{ph:'Prothro'})}
+      ${field('first','First name')}
+      ${field('mi','M.I.',{optional:true,max:1})}
+      ${field('last','Last name')}
     </div>
     <div class="f-row">
-      ${field('email','Email address',{type:'email',ph:'you@company.com'})}
-      ${field('phone','Phone number',{type:'tel',ph:'615-555-0134'})}
+      ${field('email','Email address',{type:'email',ph:'name@example.com'})}
+      ${field('phone','Phone number',{type:'tel'})}
     </div>
     <div class="f-row">
-      ${field('company','Current company',{optional:true,ph:'Invitation Homes'})}
-      ${field('position','Current position',{optional:true,ph:'Regional Manager'})}
+      ${field('company','Current company',{optional:true})}
+      ${field('position','Current position',{optional:true})}
     </div>
     ${field('linkedin','LinkedIn profile',{optional:true,ph:'linkedin.com/in/yourname'})}`;
 
@@ -1967,7 +1998,7 @@ function stageTwo(){
     <p class="wiz-intro">Paste your résumé, or write a summary of your background. Specifics beat adjectives — portfolio size, markets, systems you have run, numbers you owned.</p>
     <div class="f" data-for="background">
       <label for="a-background">Résumé / professional background <span class="req">*</span></label>
-      <textarea id="a-background" placeholder="e.g. Seven years in single-family operations. Currently a Regional Manager over 2,400 scattered-site homes across Charlotte and Raleigh, owning make-ready cycle time (cut from 21 to 13 days) and a vendor bench of 40…">${esc(d.background || '')}</textarea>
+      <textarea id="a-background" placeholder="Paste your résumé, or write a few sentences: years of experience, scope you own, and the numbers you are measured on.">${esc(d.background || '')}</textarea>
       <div class="char-count" id="cc"></div>
       <span class="hint">A résumé file upload sits here in the live version — this preview takes text only.</span>
     </div>`;
@@ -2980,95 +3011,46 @@ const TRACK = {
   // Set to true once you have added the provider's own script tag.
   plausible: false,
 
-  // Optional: write one row per outbound click into Supabase, using the
-  // schema in db/click-tracking.sql. Aggregate analytics tells you how many
-  // clicks; this tells you exactly which role, which company, which hub — the
-  // difference between a page-view number and something you can query.
+  // Your own click tracking, served from your own Worker. No third party is
+  // involved and nothing is sent off your domain. On by default: the endpoint
+  // returns 204 and drops the row if the database is not wired up yet, so this
+  // is safe to leave on from day one.
   //
-  // The PUBLISHABLE (anon) key is correct here. The table's RLS policy grants
-  // anon INSERT and nothing else, so a visitor can record a click but can
-  // never read, change, or delete one. Never put the service key here.
-  supabase: {
-    url: '',        // https://YOUR-PROJECT.supabase.co
-    key: '',        // sb_publishable_… (or the legacy anon key)
-    table: 'job_clicks',
-  },
+  // Set to '' to disable entirely.
+  clickEndpoint: '/api/click',
 
   // Prints every event to the console so you can watch it work before wiring
   // a provider. Turn off for production.
   debug: false,
 };
 
-const SUPABASE_CLICKS_READY = Boolean(TRACK.supabase.url && TRACK.supabase.key);
-
 /**
- * Records a click-through to a real posting.
+ * Records a click-through to a real posting, to your own Worker.
  *
  * Deliberately fire-and-forget: `keepalive` lets the request survive the page
- * unloading as the visitor navigates away, and a failure is swallowed. Losing
- * an analytics row is never a reason to interrupt someone applying for a job.
+ * unloading as the visitor navigates away, and any failure is swallowed.
+ * Losing an analytics row is never a reason to interrupt someone applying for
+ * a job.
  */
-function logClick(job, url) {
-  if (!SUPABASE_CLICKS_READY) return;
-  const endpoint = TRACK.supabase.url.replace(/\/+$/, '') + '/rest/v1/' + TRACK.supabase.table;
+function logClick(job, url, kind) {
+  if (!TRACK.clickEndpoint) return;
   try {
-    fetch(endpoint, {
+    fetch(TRACK.clickEndpoint, {
       method: 'POST',
       keepalive: true,
-      headers: {
-        apikey: TRACK.supabase.key,
-        Authorization: 'Bearer ' + TRACK.supabase.key,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         job_id: job?.id ?? null,
         job_title: job?.title ?? null,
         company: job?.company ?? null,
         hub: job?.hub ?? hub,
+        category: job?.category ?? null,
         url: url || null,
         source: job?.source ?? null,
+        kind: kind || 'link',
       }),
     }).catch(() => {});
   } catch (_) { /* never block the click */ }
-}
-
-/**
- * One funnel, five steps. Keeping the names stable matters more than the
- * provider — you can swap analytics tools later without losing the shape of
- * the data.
- *
- *   view_hub      which hub people land on and switch to
- *   open_role     a role drawer was opened (from graph, list or panel)
- *   open_company  a company's postings were listed
- *   start_apply   the Apply Now button was pressed
- *   submit_apply  the application wizard was completed
- *   outbound      someone left for the original posting
- */
-function track(event, props) {
-  const payload = { ...props, hub, view };
-
-  if (TRACK.debug) console.log('[track]', event, payload);
-
-  // Cloudflare Web Analytics collects page and custom events once its script
-  // is present; the guard means no error when the token is blank.
-  if (window.__cfBeacon && typeof window.__cfBeacon.trackEvent === 'function') {
-    try { window.__cfBeacon.trackEvent(event, payload); } catch (_) {}
-  }
-
-  if (TRACK.plausible && typeof window.plausible === 'function') {
-    try { window.plausible(event, { props: payload }); } catch (_) {}
-  }
-}
-
-/** Loads the Cloudflare beacon only if a token has been set. */
-function initTracking() {
-  if (!TRACK.cloudflareToken) return;
-  const s = document.createElement('script');
-  s.defer = true;
-  s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
-  s.setAttribute('data-cf-beacon', JSON.stringify({ token: TRACK.cloudflareToken }));
-  document.head.append(s);
 }
 
 /* Outbound clicks: every link that leaves the site, captured in one place so
@@ -3086,10 +3068,85 @@ document.addEventListener('click', (e) => {
 
   // If the click came from inside an open role, attribute it to that role.
   const job = openJobId ? hubJobs().find(j => j.id === openJobId) : null;
-  logClick(job, href);
+  const kind = a.classList.contains('source-link') ? 'source'
+             : a.classList.contains('cta-mega') ? 'apply'
+             : href.startsWith('mailto:') ? 'email' : 'link';
+  logClick(job, href, kind);
 }, true);
 
+
+/* ==========================================================================
+   GETTING BACK
+   --------------------------------------------------------------------------
+   Three separate things, because "back" means three different things here:
+     1. the header arrow returns to the site that linked here
+     2. outbound links open in a new tab, so this one is never lost
+     3. the browser's back button closes an open panel instead of leaving
+   ========================================================================== */
+
+/* Sites we treat as "home" — if someone arrived from one of these, the arrow
+   sends them back to it. Add any other entry point here. */
+const HOME_SITES = [
+  { match: /the-source-flax\.vercel\.app/i, url: 'https://the-source-flax.vercel.app/', label: 'The Source' },
+  { match: /propertyandtechnology/i,        url: 'https://propertyandtechnology.pages.dev/', label: 'Property and Technology' },
+];
+
+function initBackLink() {
+  const el = $('back-link');
+  if (!el) return;
+
+  const from = document.referrer || '';
+  const known = HOME_SITES.find(s => s.match.test(from));
+
+  if (known) {
+    el.href = known.url;
+    el.querySelector('.bl-text').textContent = known.label;
+    el.hidden = false;
+    return;
+  }
+
+  // Came from somewhere else entirely — offer the browser's own history
+  // instead, which is a real "back" rather than a guess.
+  if (from && !from.includes(location.hostname)) {
+    el.href = from;
+    el.querySelector('.bl-text').textContent = 'Back';
+    el.hidden = false;
+    return;
+  }
+
+  // Landed directly, or from a search engine with no referrer. A back button
+  // pointing somewhere they have never been is worse than none, so leave it
+  // hidden.
+  el.hidden = true;
+}
+
+/* The drawer is a view, so it belongs in history. Without this, pressing back
+   while reading a role leaves the site entirely — which on mobile is the most
+   common way people close things. */
+let drawerInHistory = false;
+
+function pushDrawerState() {
+  if (drawerInHistory) return;
+  try {
+    history.pushState({ drawer: true }, '');
+    drawerInHistory = true;
+  } catch (_) { /* sandboxed frames reject pushState; the drawer still works */ }
+}
+
+function clearDrawerState() {
+  drawerInHistory = false;
+}
+
+window.addEventListener('popstate', () => {
+  // Back was pressed while a panel was open: close it rather than navigating.
+  if (drawer || scrim) {
+    drawerInHistory = false;    // the entry is already gone
+    closeDrawer();
+  }
+});
+
 /* ---------- boot ---------- */
+initBackLink();
 initTracking();
 wireHubCards();
 initData();
