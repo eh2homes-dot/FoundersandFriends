@@ -579,7 +579,8 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:-.02em;text-wrap
     radial-gradient(circle at 84% 50%,rgba(0,255,136,.09),transparent 42%);
 }
 #web{display:block;width:100%;height:560px;touch-action:none}
-@media(max-width:900px){#web{height:640px}}
+/* height is set in JS to fit the rows — see buildGraph */
+
 
 .web-link{fill:none;stroke:url(#thread);stroke-width:1.2;opacity:.5;transition:stroke-width .25s,opacity .25s}
 .web-link.is-lit{stroke:url(#threadLit);stroke-width:2.6;opacity:1;filter:drop-shadow(0 0 6px rgba(0,255,136,.8))}
@@ -2165,7 +2166,16 @@ function companyTone(name){
 // A real scrape can return several hundred roles, and 300 dots on one axis is
 // a smear rather than a graph. Past this the densest companies are kept and
 // the rest are reachable through the list view.
-const MAX_DOTS = 90;
+// Legibility, not capacity, sets these. A role dot is 6px with an 11px halo,
+// so it needs ~30px of vertical room; a company circle plus its two-line label
+// needs ~56px. Past that the dots merge into a solid bar, which is what 90 in a
+// 560px canvas looked like. Everything is always reachable in the list view.
+const MAX_ROLES = 24;
+const MAX_COMPANIES = 12;
+const ROLE_GAP = 30;
+const CO_GAP = 56;
+const PAD_TOP = 74;
+const PAD_BOTTOM = 54;
 
 function buildGraph(){
   const all = visibleJobs();
@@ -2175,56 +2185,58 @@ function buildGraph(){
     if (!byCompany.has(j.company)) byCompany.set(j.company, []);
     byCompany.get(j.company).push(j);
   }
-  const ranked = [...byCompany.entries()].sort((a, b) => b[1].length - a[1].length);
+  // Most-hiring companies first — those are the ones worth the space.
+  const ranked = [...byCompany.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, MAX_COMPANIES);
 
-  // Take one role from each company in turn until the budget runs out, rather
-  // than filling from the top down. A single 60-role company would otherwise
-  // consume the whole canvas and the web would show one employer.
+  // One role from each company in turn, rather than filling from the top down.
+  // A single 47-role company would otherwise take the entire canvas.
   const list = [];
   const pools = ranked.map(([, jobs]) => jobs.slice());
   let round = 0;
-  while (list.length < MAX_DOTS){
+  while (list.length < MAX_ROLES){
     let took = 0;
     for (const pool of pools){
       if (round >= pool.length) continue;
-      if (list.length >= MAX_DOTS) break;
+      if (list.length >= MAX_ROLES) break;
       list.push(pool[round]);
       took++;
     }
-    if (!took) break;          // every pool exhausted
+    if (!took) break;
     round++;
   }
   const hidden = all.length - list.length;
 
   // Company dots show their TRUE total, not the sampled count, so the graph
-  // never understates who is hiring. The footnote explains the difference.
-  const totals = new Map(ranked.map(([name, jobs]) => [name, jobs.length]));
-
-  const box = web.getBoundingClientRect();
-  const w = Math.max(320, box.width), h = Math.max(320, box.height);
-  const narrow = w < 720;
-
-  // Role titles are drawn to the LEFT of their dot, so the threads — which all
-  // travel rightward — never cross the text. The column sits far enough in to
-  // give those titles room.
-  const lx = narrow ? w * 0.36 : w * 0.30;
-  const rx = narrow ? w * 0.80 : w * 0.815;
-  const top = 74, bottom = h - 46;
-  const span = (n, i) => n === 1 ? (top + bottom) / 2 : top + (bottom - top) * (i / (n - 1));
+  // never understates who is hiring.
+  const totals = new Map([...byCompany.entries()].map(([n, j]) => [n, j.length]));
 
   const coNames = ranked.map(([name]) => name).filter(name => list.some(j => j.company === name));
 
-  // Companies first, so roles can be grouped beneath the company they belong
-  // to — that is what stops the threads crossing into a tangle.
+  const box = web.getBoundingClientRect();
+  const w = Math.max(320, box.width);
+
+  // Grow the canvas to fit whichever column needs more room, so rows never
+  // collide. The wrapper scrolls if that exceeds the viewport.
+  const needed = Math.max(list.length * ROLE_GAP, coNames.length * CO_GAP);
+  const h = Math.max(420, PAD_TOP + PAD_BOTTOM + needed);
+  web.style.height = h + 'px';
+
+  const narrow = w < 720;
+  const lx = narrow ? w * 0.36 : w * 0.30;
+  const rx = narrow ? w * 0.80 : w * 0.815;
+  const top = PAD_TOP, bottom = h - PAD_BOTTOM;
+  const span = (n, i) => n === 1 ? (top + bottom) / 2 : top + (bottom - top) * (i / (n - 1));
+
   const cos = coNames.map((name, i) => ({
     key: 'c:' + name, name, side: 'r',
-    count: totals.get(name) || 0,                        // true total
-    drawn: list.filter(j => j.company === name).length,  // dots actually wired
+    count: totals.get(name) || 0,
     x: rx, y: span(coNames.length, i),
   }));
 
-  // Roles are ordered by their company's vertical position, so each cluster of
-  // threads runs roughly parallel instead of criss-crossing the canvas.
+  // Group roles by their company's vertical position so the threads run
+  // roughly parallel instead of criss-crossing.
   const ordered = [];
   for (const c of cos) ordered.push(...list.filter(j => j.company === c.name));
 
@@ -2237,15 +2249,14 @@ function buildGraph(){
     const c = cos.find(x => x.name === r.job.company);
     return {
       key: 'l:' + r.job.id, from: r, to: c, jobs: [r.job],
-      // each thread carries its own drift so the web breathes unevenly
       phase: Math.random() * Math.PI * 2,
       speed: 0.18 + Math.random() * 0.22,
       offset: Math.random(),
-      pull: { x: 0, y: 0 },        // current elastic displacement
+      pull: { x: 0, y: 0 },
     };
   }).filter(L => L.to);
 
-  graph = { roles, cos, links, w, h, hidden };
+  graph = { roles, cos, links, w, h, hidden, totalCompanies: byCompany.size };
   drawGraph();
 }
 
@@ -2268,7 +2279,10 @@ function drawGraph(){
     ? roles.length + ' of ' + (roles.length + hidden) + ' Openings'
     : (roles.length === 1 ? '1 Opening' : roles.length + ' Openings');
   const headR = el('text', { class: 'col-head', x: cos[0].x, y: 40, 'text-anchor': 'middle' });
-  headR.textContent = cos.length === 1 ? '1 Company' : cos.length + ' Companies';
+  const totalCos = graph.totalCompanies || cos.length;
+  headR.textContent = totalCos > cos.length
+    ? cos.length + ' of ' + totalCos + ' Companies'
+    : (cos.length === 1 ? '1 Company' : cos.length + ' Companies');
   web.append(headL, headR);
 
   // Threads run green at the role end into purple at the company end, so the
@@ -2295,9 +2309,11 @@ function drawGraph(){
     gParticles.append(L.dot);
   }
 
-  // Labelling every role dot would be unreadable at this density, so the title
-  // lives in the tooltip and the hover state instead.
-  const dense = roles.length > 26;
+  // Labels are hidden only if rows are genuinely too close to read. Since the
+  // canvas now grows to keep ROLE_GAP between rows, this should never trigger —
+  // it is a guard, not a policy.
+  const rowGap = roles.length > 1 ? Math.abs(roles[1].y - roles[0].y) : 999;
+  const dense = rowGap < 18;
 
   for (const n of roles){
     const g = el('g', { class: 'web-node node-job', 'data-key': n.key, tabindex: '0', role: 'button' });
@@ -2340,12 +2356,6 @@ function drawGraph(){
     g.append(num, lbl, sub);
     n.g = g;
     gNodes.append(g);
-  }
-
-  if (hidden > 0){
-    const note = el('text', { class: 'col-head', x: w / 2, y: h - 14, 'text-anchor': 'middle' });
-    note.textContent = `Showing ${links.length} of ${links.length + hidden} open roles — see all in the list view`;
-    web.append(note);
   }
 
   stepWeb(performance.now());
