@@ -2,10 +2,6 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "foundersandfriends",
   "compatibility_date": "2026-08-01",
-
-  // THE LINE THAT MATTERS. Without "main", wrangler builds a static-assets-only
-  // Worker and ignores worker.js entirely — every /api/* path then falls through
-  // to index.html, which is why /api/stats returned the homepage.
   "main": "worker.js",
 
   "assets": {
@@ -13,7 +9,17 @@
     // and publish your .git directory.
     "directory": "./site",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application"
+
+    // Any path that is not a real file returns index.html, so deep links work.
+    "not_found_handling": "single-page-application",
+
+    // THE LINE THAT WAS MISSING. With static assets, Cloudflare serves assets
+    // BEFORE running the Worker — and with SPA handling above, every unmatched
+    // path resolves to index.html. The Worker was never reached, which is why
+    // /api/stats returned the homepage and every admin sign-in failed.
+    //
+    // This runs worker.js first for /api/*, and serves assets everywhere else.
+    "run_worker_first": ["/api/*"]
   },
 
   // Click tracking and applications. Both tables live in this one database.
@@ -25,8 +31,7 @@
     }
   ],
 
-  // Logs from console.error in worker.js — how you see why an email failed or a
-  // database write was rejected.
+  // Logs from console.error in worker.js.
   "observability": {
     "enabled": true
   }
