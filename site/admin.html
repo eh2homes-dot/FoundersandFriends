@@ -249,7 +249,8 @@ let ALL = [], COUNTS = {}, filterHub = 'all', filterStatus = 'all', openRef = nu
    by the browser with no visible error, which is impossible to diagnose from
    the outside. sessionStorage keeps a refresh from logging you out, and is
    cleared when the tab closes. */
-let ADMIN_KEY = sessionStorage.getItem('ff_admin_key') || '';
+let ADMIN_KEY = '';
+try { ADMIN_KEY = sessionStorage.getItem('ff_admin_key') || ''; } catch (_) { /* storage blocked */ }
 const authHeaders = () => (ADMIN_KEY ? { 'X-Admin-Key': ADMIN_KEY } : {});
 
 const ICONS = {
@@ -275,41 +276,61 @@ const ago = (iso) => {
 
 /* ---------- sign in ---------- */
 async function signIn() {
-  const key = $('key').value.trim();
-  if (!key) { $('gate-err').textContent = 'Enter your key.'; return; }
-
-  $('gate-err').textContent = 'Checking…';
-  ADMIN_KEY = key;
-
-  // One request. If the key is right this returns the applications directly —
-  // there is no separate login step to go wrong.
-  let res;
+  // The whole body is wrapped: any throw at all — a parse failure, blocked
+  // sessionStorage, a render bug — becomes a visible message instead of
+  // leaving the button stuck on "Checking…" with nothing to see.
   try {
-    res = await fetch('/api/applications', { headers: authHeaders() });
+    const key = $('key').value.trim();
+    if (!key) { $('gate-err').textContent = 'Enter your key.'; return; }
+
+    $('gate-err').textContent = 'Checking…';
+    ADMIN_KEY = key;
+
+    // One request. If the key is right this returns the applications directly,
+    // so there is no separate login step to go wrong.
+    const res = await fetch('/api/applications', { headers: { 'X-Admin-Key': key } });
+
+    if (res.status === 401) {
+      ADMIN_KEY = '';
+      $('gate-err').textContent = 'That key was not accepted.';
+      return;
+    }
+
+    // Read as text first. If the API route is missing, Cloudflare's fallback
+    // answers with index.html and a 200 — calling res.json() on that throws.
+    const raw = await res.text();
+    let body = null;
+    try { body = JSON.parse(raw); } catch (_) { /* not JSON */ }
+
+    if (body === null) {
+      ADMIN_KEY = '';
+      $('gate-err').textContent = raw.trim().startsWith('<')
+        ? 'The API returned a page instead of data — worker.js may not be deployed.'
+        : 'The server sent something unexpected (' + res.status + ').';
+      return;
+    }
+
+    if (!res.ok) {
+      $('gate-err').textContent = body.error || ('Server returned ' + res.status);
+      return;
+    }
+
+    // Storage is a nicety, not a requirement — some browsers block it.
+    try { sessionStorage.setItem('ff_admin_key', key); } catch (_) {}
+
+    ALL = body.applications || [];
+    COUNTS = body.counts || {};
+    $('gate-err').textContent = '';
+    $('gate').hidden = true;
+    $('app').hidden = false;
+    render();
+
   } catch (err) {
-    $('gate-err').textContent = 'Could not reach the server: ' + err.message;
-    return;
+    console.error('[admin] sign-in failed:', err);
+    $('gate-err').textContent = 'Sign-in error: ' + (err && err.message ? err.message : String(err));
   }
-
-  if (res.status === 401) { ADMIN_KEY = ''; $('gate-err').textContent = 'That key was not accepted.'; return; }
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    $('gate-err').textContent = body.error || ('Server returned ' + res.status);
-    return;
-  }
-  sessionStorage.setItem('ff_admin_key', key);
-
-  // The key was right. If the very next request still fails, say why rather
-  // than dropping silently back to this screen — a gate that reappears with no
-  // message is indistinguishable from a button that does nothing.
-  const body = await res.json();
-  ALL = body.applications || [];
-  COUNTS = body.counts || {};
-  $('gate-err').textContent = '';
-  $('gate').hidden = true;
-  $('app').hidden = false;
-  render();
 }
+
 $('signin').addEventListener('click', signIn);
 $('key').addEventListener('keydown', (e) => { if (e.key === 'Enter') signIn(); });
 
@@ -352,6 +373,14 @@ function visible() {
 }
 
 function render() {
+  try { renderInner(); }
+  catch (err) {
+    console.error('[admin] render failed:', err);
+    $('table-wrap').innerHTML = '<div class="empty">Could not draw the table: ' + esc(err.message) + '</div>';
+  }
+}
+
+function renderInner() {
   const n = (s) => ALL.filter((a) => a.status === s).length;
   $('title').textContent = filterHub === 'proptech' ? 'PropTech Pipeline'
                         : filterHub === 'opco' ? 'OpCo Pipeline' : 'Pipeline';
