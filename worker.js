@@ -81,11 +81,13 @@ async function stats(request, env, asCsv) {
   const [byCompany, byRole, byDay, totals] = await Promise.all([
     env.DB.prepare(
       `SELECT company, hub, COUNT(*) AS clicks
-         FROM job_clicks WHERE clicked_at > datetime('now', ?1)
+         FROM job_clicks
+        WHERE clicked_at > datetime('now', ?1) AND company IS NOT NULL
         GROUP BY company, hub ORDER BY clicks DESC LIMIT 100`).bind(since).all(),
     env.DB.prepare(
       `SELECT job_title, company, category, COUNT(*) AS clicks
-         FROM job_clicks WHERE clicked_at > datetime('now', ?1)
+         FROM job_clicks
+        WHERE clicked_at > datetime('now', ?1) AND job_title IS NOT NULL
         GROUP BY job_title, company, category ORDER BY clicks DESC LIMIT 100`).bind(since).all(),
     env.DB.prepare(
       `SELECT date(clicked_at) AS day, COUNT(*) AS clicks
@@ -110,9 +112,14 @@ async function stats(request, env, asCsv) {
     });
   }
 
+  const byKind = await env.DB.prepare(
+    `SELECT kind, COUNT(*) AS n FROM job_clicks
+      WHERE clicked_at > datetime('now', ?1) GROUP BY kind ORDER BY n DESC`).bind(since).all();
+
   return new Response(JSON.stringify({
     window_days: days,
     totals,
+    by_event: Object.fromEntries((byKind.results || []).map((r) => [r.kind || 'unknown', r.n])),
     by_company: byCompany.results || [],
     by_role: byRole.results || [],
     by_day: byDay.results || [],
