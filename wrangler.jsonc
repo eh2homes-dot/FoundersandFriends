@@ -1,44 +1,22 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-
-  // Must match your Worker's name in the Cloudflare dashboard. Workers Builds
-  // overrides this automatically when deploying from GitHub, so a mismatch will
-  // not create a duplicate — but keeping it accurate avoids confusion.
   "name": "foundersandfriends",
   "compatibility_date": "2026-08-01",
 
-  // ---------------------------------------------------------------------------
-  // The Worker serves the site AND handles the API. Requests to /api/* are
-  // answered by worker.js; everything else falls through to the files in ./site.
-  // ---------------------------------------------------------------------------
+  // THE LINE THAT MATTERS. Without "main", wrangler builds a static-assets-only
+  // Worker and ignores worker.js entirely — every /api/* path then falls through
+  // to index.html, which is why /api/stats returned the homepage.
   "main": "worker.js",
 
   "assets": {
-    // Serve ONLY the site folder. This is the important line: pointing at "."
-    // would sweep in node_modules — which wrangler installs during the build —
-    // and the deploy dies on Cloudflare's 25 MiB per-asset limit. It would also
-    // publish your .git directory to the internet.
+    // Serve ONLY the site folder. Pointing at "." would sweep in node_modules
+    // and publish your .git directory.
     "directory": "./site",
     "binding": "ASSETS",
-
-    // index.html answers any path that is not a file, so deep links work.
     "not_found_handling": "single-page-application"
   },
 
-  // ---------------------------------------------------------------------------
-  // DATABASE — one database holds both click tracking and applications.
-  //
-  //   1. dash.cloudflare.com/?to=/:account/workers/d1  →  Create
-  //   2. Name it "founders-clicks", copy the Database ID
-  //   3. Paste that ID below, replacing the placeholder
-  //   4. In the database's Console tab, run both files from db/:
-  //        click-tracking-d1.sql
-  //        applications-d1.sql
-  //
-  // Leave the placeholder and the site still works: the board serves normally,
-  // tracking is dropped, and the application form reports honestly that it could
-  // not save rather than pretending to succeed.
-  // ---------------------------------------------------------------------------
+  // Click tracking and applications. Both tables live in this one database.
   "d1_databases": [
     {
       "binding": "DB",
@@ -48,36 +26,8 @@
   ],
 
   // Logs from console.error in worker.js — how you see why an email failed or a
-  // database write was rejected. Free, and worth having on.
+  // database write was rejected.
   "observability": {
     "enabled": true
   }
-
-  // ---------------------------------------------------------------------------
-  // SECRETS — none of these belong in this file. It is committed to a public
-  // repository. Set them in the dashboard instead:
-  //
-  //   Workers & Pages -> your Worker -> Settings -> Variables and Secrets -> Add
-  //   (tick Encrypt on every one)
-  //
-  //   STATS_KEY          Required for the admin side. Your password for
-  //                      /admin.html and /api/stats. Any long random string.
-  //
-  //   ANTHROPIC_API_KEY  Optional. Turns on AI review of applications. Without
-  //                      it the page falls back to its own keyword match, so
-  //                      candidates always get feedback.
-  //
-  //   RESEND_API_KEY     Optional. Emails each application to the employer.
-  //                      From resend.com - free tier covers 3,000 a month.
-  //                      Without it applications are still stored, and the
-  //                      failure is recorded on the row.
-  //
-  //   EMPLOYER_EMAIL     Where applications are sent. Start with your own
-  //                      address and forward manually.
-  //
-  //   FROM_EMAIL         Optional. Needs a domain verified in Resend. Defaults
-  //                      to Resend's shared sending address.
-  //
-  //   ADMIN_EMAIL        Optional fallback for EMPLOYER_EMAIL.
-  // ---------------------------------------------------------------------------
 }
