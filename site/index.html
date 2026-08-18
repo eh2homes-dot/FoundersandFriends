@@ -1006,6 +1006,9 @@ a.foot-line:hover{color:var(--green)}
 .foot-bottom{margin-top:42px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
 .fmeta{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);display:flex;gap:20px;flex-wrap:wrap}
 .fmeta a:hover{color:var(--green)}
+.admin-link{color:var(--ink-dim);display:inline-flex;align-items:center;gap:6px}
+.admin-link::before{content:"";width:6px;height:6px;border-radius:50%;border:1.5px solid currentColor}
+.admin-link:hover{color:var(--purple-text)}
 
 /* ---------- ADMIN PREVIEW ---------- */
 .admin-main{padding:30px 5vw 80px;max-width:1280px;margin:0 auto}
@@ -1299,6 +1302,9 @@ a.foot-line:hover{color:var(--green)}
       <div class="fmeta">
         <a href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer">Property and Technology</a>
         <a href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer">Newsletter</a>
+        <!-- The Command Center. Key-protected and noindex, so linking it costs
+             nothing beyond telling people it exists. -->
+        <a class="admin-link" href="/admin.html" rel="nofollow">Admin</a>
       </div>
       <div class="fmeta"><span>Founders &amp; Friends · 2026</span></div>
     </div>
