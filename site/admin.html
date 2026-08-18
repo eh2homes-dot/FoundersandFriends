@@ -274,27 +274,48 @@ async function signIn() {
     body: JSON.stringify({ key }),
   });
   if (!res.ok) { $('gate-err').textContent = 'That key was not accepted.'; return; }
-  $('gate').hidden = true; $('app').hidden = false;
-  load();
+
+  // The key was right. If the very next request still fails, say why rather
+  // than dropping silently back to this screen — a gate that reappears with no
+  // message is indistinguishable from a button that does nothing.
+  const problem = await load();
+  if (problem) { $('gate-err').textContent = problem; return; }
+  $('gate').hidden = true;
+  $('app').hidden = false;
 }
 $('signin').addEventListener('click', signIn);
 $('key').addEventListener('keydown', (e) => { if (e.key === 'Enter') signIn(); });
 
 /* ---------- data ---------- */
+/** Returns null on success, or a sentence explaining what went wrong. */
 async function load() {
-  const res = await fetch('/api/applications', { credentials: 'same-origin' });
-  if (res.status === 401) { $('app').hidden = true; $('gate').hidden = false; return; }
-  if (!res.ok) {
-    $('table-wrap').innerHTML = '<div class="empty">Could not load applications. ' +
-      esc((await res.json().catch(() => ({}))).error || '') + '</div>';
-    return;
+  let res;
+  try {
+    res = await fetch('/api/applications', { credentials: 'same-origin' });
+  } catch (err) {
+    return 'Could not reach the server. Check your connection and try again.';
   }
-  const data = await res.json();
-  ALL = data.applications || [];
-  COUNTS = data.counts || {};
+
+  if (res.status === 401) {
+    // The cookie did not come back. Almost always a browser blocking cookies,
+    // or the site being served over http where a Secure cookie is dropped.
+    $('app').hidden = true; $('gate').hidden = false;
+    return 'Signed in, but the session cookie was not accepted. Check that you are on https and that cookies are enabled.';
+  }
+
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = body.error || ('Server returned ' + res.status);
+    $('table-wrap').innerHTML = '<div class="empty">' + esc(msg) + '</div>';
+    return msg;
+  }
+
+  ALL = body.applications || [];
+  COUNTS = body.counts || {};
   render();
+  return null;
 }
-$('refresh').addEventListener('click', load);
+$('refresh').addEventListener('click', () => load());
 
 /* ---------- render ---------- */
 function visible() {
