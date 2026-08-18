@@ -368,11 +368,26 @@ function escapeHtml(s) {
 
 /** Cookie beats query string for anything showing personal data: a ?key= in the
  *  URL leaks into browser history, bookmarks and referer headers. */
+/**
+ * Three ways to present the admin key, in order of preference:
+ *
+ *   1. X-Admin-Key header  — what admin.html sends. Never appears in browser
+ *                            history, bookmarks or referer headers.
+ *   2. ff_admin cookie     — kept for anything already signed in.
+ *   3. ?key= query string  — convenient for CSV export and quick checks.
+ *
+ * The header is first because cookies can be silently blocked by the browser,
+ * which is impossible to diagnose from the server side.
+ */
 function adminAuthed(request, env) {
   if (!env.STATS_KEY) return false;
+
+  if (request.headers.get('x-admin-key') === env.STATS_KEY) return true;
+
   const cookie = request.headers.get('cookie') || '';
   const m = cookie.match(/(?:^|;\s*)ff_admin=([^;]+)/);
   if (m && m[1] === env.STATS_KEY) return true;
+
   return new URL(request.url).searchParams.get('key') === env.STATS_KEY;
 }
 
