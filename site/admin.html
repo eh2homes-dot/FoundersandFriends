@@ -194,6 +194,15 @@ tr.row:hover{background:rgba(127,77,224,.09)}
 .dr-fact dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:5px}
 .dr-fact dd{font-size:14px;font-weight:500}
 .dr-foot{padding:20px 30px;border-top:1px solid var(--line);display:flex;gap:9px;flex-wrap:wrap}
+.dr-send{padding:18px 30px 24px;border-top:1px solid var(--line);background:rgba(127,77,224,.06)}
+.send-note{font-size:12.5px;line-height:1.6;color:var(--ink-dim);margin-bottom:14px}
+.send-note b{color:var(--ink-soft)}
+.send-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px}
+.btn.send{border-color:var(--purple);color:var(--ink)}
+.btn.send.danger{border-color:rgba(255,107,107,.5);color:var(--red)}
+.btn.send.danger:hover{border-color:var(--red);background:rgba(255,107,107,.1)}
+.send-warn{color:var(--amber);display:block;margin-top:6px;font-size:12px}
+.send-status{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-dim)}
 .dr-foot .btn.act{border-color:var(--purple);color:var(--ink)}
 textarea{
   width:100%;min-height:90px;padding:13px 15px;border-radius:11px;resize:vertical;
@@ -507,6 +516,20 @@ function openDrawer(ref) {
       ${['reviewing', 'interview', 'offer', 'hired', 'passed']
         .map((s) => `<button class="btn${a.status === s ? ' act' : ''}" type="button" data-status="${s}">${s}</button>`).join('')}
       <button class="btn act" type="button" id="save-notes">Save notes</button>
+    </div>
+    <div class="dr-send">
+      <p class="send-note">
+        Nothing reaches the employer until you send it. A <b>teaser</b> shows the role, score,
+        strengths and gaps with no contact details — enough to create interest, not enough to
+        go around you. Send <b>full details</b> only once terms are agreed.
+      </p>
+      <div class="send-row">
+        <button class="btn send" type="button" data-send="teaser">Send teaser</button>
+        <button class="btn send danger" type="button" data-send="full">Send full details</button>
+      </div>
+      <div class="send-status" id="send-status">${a.sent_to_employer_at
+        ? 'Sent ' + esc(ago(a.sent_to_employer_at))
+        : a.send_error ? 'Last attempt failed: ' + esc(a.send_error) : 'Not sent'}</div>
     </div>`;
 
   d.querySelector('.dr-close').addEventListener('click', closeDrawer);
@@ -514,6 +537,9 @@ function openDrawer(ref) {
     b.addEventListener('click', () => update(ref, { status: b.dataset.status })));
   d.querySelector('#save-notes').addEventListener('click', () =>
     update(ref, { notes: d.querySelector('#notes').value }));
+
+  d.querySelectorAll('[data-send]').forEach((b) =>
+    b.addEventListener('click', () => introduce(ref, b.dataset.send, d)));
 
   document.body.append(scrim, d);
   document.addEventListener('keydown', escClose);
@@ -524,6 +550,57 @@ function closeDrawer() {
   document.querySelector('.scrim')?.remove();
   document.querySelector('.drawer')?.remove();
   document.removeEventListener('keydown', escClose);
+}
+
+/** Forward a candidate. Full details ask first — it is not undoable. */
+async function introduce(ref, mode, drawer, override) {
+  const status = drawer.querySelector('#send-status');
+
+  if (mode === 'full' && !confirm(
+    'Send this candidate\u2019s full contact details and background to the employer?\n\n' +
+    'Once they have these they can hire directly. Only do this when a fee agreement is in place.')) return;
+
+  status.textContent = 'Sending…';
+  try {
+    const res = await fetch('/api/forward', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ ref, mode, override: override || undefined }),
+    });
+    const body = await res.json().catch(() => ({}));
+
+    // 409 means the gate stopped it: no fee agreement on file for this company.
+    // That is the system working, not a fault — explain it, and offer the
+    // override deliberately rather than leaving a dead end.
+    if (res.status === 409 && body.needs_agreement) {
+      status.innerHTML = esc(body.error) +
+        '<br /><span class="send-warn">Nothing was sent. Add the agreement to the fee_agreements table, ' +
+        'or override if you have terms recorded elsewhere.</span>';
+      const again = document.createElement('button');
+      again.type = 'button';
+      again.className = 'btn danger';
+      again.style.marginTop = '10px';
+      again.textContent = 'Send anyway, no agreement';
+      again.addEventListener('click', () => {
+        if (confirm('Send with no fee agreement on file?\n\nYou will have no contractual claim if they hire this candidate.'))
+          introduce(ref, mode, drawer, true);
+      });
+      status.append(again);
+      return;
+    }
+
+    if (!res.ok) { status.textContent = 'Failed: ' + (body.error || res.status); return; }
+
+    status.textContent = (mode === 'full' ? 'Full details sent just now' : 'Teaser sent just now') +
+      (body.to ? ' to ' + body.to : '') +
+      (body.fee_percent ? ' \u00b7 ' + body.fee_percent + '% fee on file' : ' \u00b7 no agreement on file');
+
+    const a = ALL.find((x) => x.ref === ref);
+    if (a) a.sent_to_employer_at = new Date().toISOString();
+    render();
+  } catch (err) {
+    status.textContent = 'Failed: ' + err.message;
+  }
 }
 
 async function update(ref, patch) {
