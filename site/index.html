@@ -1008,9 +1008,6 @@ a.foot-line:hover{color:var(--green)}
 .fmeta a:hover{color:var(--green)}
 
 /* ---------- ADMIN PREVIEW ---------- */
-#admin-view{display:none}
-body.show-admin #board-view{display:none}
-body.show-admin #admin-view{display:block}
 .admin-main{padding:30px 5vw 80px;max-width:1280px;margin:0 auto}
 .admin-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:8px}
 .admin-head h1{font-size:clamp(1.5rem,2.6vw,2rem);margin-top:8px}
@@ -1302,47 +1299,11 @@ body.show-admin #admin-view{display:block}
       <div class="fmeta">
         <a href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer">Property and Technology</a>
         <a href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer">Newsletter</a>
-        <button class="link-btn" id="toggle-view" type="button">Admin</button>
       </div>
       <div class="fmeta"><span>Founders &amp; Friends · 2026</span></div>
     </div>
   </footer>
 </div>
-
-<!-- ==================== ADMIN ==================== -->
-<div id="admin-view">
-  <main class="admin-main">
-    <div class="admin-head">
-      <div>
-        <div class="eyebrow green">Talent Network</div>
-        <h1>Job listings</h1>
-      </div>
-      <span class="status-dot">Connected</span>
-    </div>
-    <hr class="laser-rule" />
-
-    <dl class="stat-grid" id="stats"></dl>
-
-    <div class="admin-tools">
-      <button class="btn tiny ghost-green" type="button">all</button>
-      <button class="btn tiny" type="button">open</button>
-      <button class="btn tiny" type="button">draft</button>
-      <button class="btn tiny" type="button">closed</button>
-      <span class="spacer"></span>
-      <button class="btn primary" type="button">Add a job</button>
-    </div>
-
-    <div class="job-table-wrap">
-      <table class="job-table">
-        <thead>
-          <tr><th>Role</th><th>Company</th><th>Category</th><th>Segment</th><th>Status</th><th></th></tr>
-        </thead>
-        <tbody id="admin-rows"></tbody>
-      </table>
-    </div>
-  </main>
-</div>
-
 
 <script>
 /* ==========================================================================
@@ -2862,40 +2823,10 @@ $('pills').addEventListener('click', (e) => {
 });
 
 /* ---------- admin preview ---------- */
-function renderAdmin(){
-  // whatever is currently loaded, across both hubs
-  const ALL = [...HUBS.opco.jobs, ...HUBS.proptech.jobs];
-  const open = ALL.length, companies = new Set(ALL.map(j => j.company)).size;
-  $('stats').innerHTML = `
-    <div class="stat-cell is-open"><dt>Live</dt><dd>${open}</dd></div>
-    <div class="stat-cell"><dt>Draft</dt><dd>2</dd></div>
-    <div class="stat-cell"><dt>Closed</dt><dd>0</dd></div>
-    <div class="stat-cell"><dt>Single-Family</dt><dd>${ALL.filter(j=>j.segment==='Single-Family').length}</dd></div>
-    <div class="stat-cell"><dt>Multifamily</dt><dd>${ALL.filter(j=>j.segment==='Multifamily').length}</dd></div>
-    <div class="stat-cell"><dt>Companies</dt><dd>${companies}</dd></div>`;
-
-  $('admin-rows').innerHTML = ALL.map((j,i) => `
-    <tr>
-      <td><div class="cell-title">${esc(j.title)}</div><div class="cell-company">${j.hub==='proptech'?'PropTech Hub':'OpCo Hub'}</div></td>
-      <td>${esc(j.company)}</td>
-      <td>${esc(j.category)}</td>
-      <td>${esc(j.segment)}</td>
-      <td><span class="pill ${i>7?'draft':'open'}">${i>7?'draft':'open'}</span></td>
-      <td class="cell-actions">
-        <button class="btn tiny" type="button">Close</button>
-        <button class="btn tiny" type="button">Edit</button>
-        <button class="btn tiny danger" type="button">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-$('toggle-view').addEventListener('click', () => {
-  const admin = document.body.classList.toggle('show-admin');
-  $('toggle-view').innerHTML = admin ? '← Board' : 'Admin <span aria-hidden="true">→</span>';
-  window.scrollTo(0,0);
-  if (admin){ if (webRAF) cancelAnimationFrame(webRAF); webRAF = null; }
-  else setView(view);
-});
+/* The old in-page admin was a mockup: hardcoded counts, and Close/Edit/Delete
+   buttons wired to nothing. It was also reachable by anyone. The real console
+   is /admin.html, which requires the admin key and shows applications. */
+function renderAdmin(){ /* no-op: see /admin.html */ }
 
 
 /* ==========================================================================
