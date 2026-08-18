@@ -27,6 +27,13 @@
   --mono:'IBM Plex Mono',ui-monospace,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+
+/* The hidden attribute works through display:none in the browser's default
+   stylesheet, and ANY author display rule outranks it — .gate below sets
+   display:grid, so `gate.hidden = true` had no visual effect at all. The gate
+   stayed on screen through every successful sign-in, which looked exactly like
+   a button that did nothing. */
+[hidden]{display:none !important}
 body{
   background:
     radial-gradient(1100px 620px at 82% -8%, rgba(127,77,224,.20), transparent 62%),
