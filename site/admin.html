@@ -244,6 +244,14 @@ textarea:focus{outline:none;border-color:var(--purple)}
 const $ = (id) => document.getElementById(id);
 let ALL = [], COUNTS = {}, filterHub = 'all', filterStatus = 'all', openRef = null;
 
+/* The admin key, held in memory for this tab only. Sent as a header on every
+   request rather than relying on a cookie: a cookie can be blocked or dropped
+   by the browser with no visible error, which is impossible to diagnose from
+   the outside. sessionStorage keeps a refresh from logging you out, and is
+   cleared when the tab closes. */
+let ADMIN_KEY = sessionStorage.getItem('ff_admin_key') || '';
+const authHeaders = () => (ADMIN_KEY ? { 'X-Admin-Key': ADMIN_KEY } : {});
+
 const ICONS = {
   total: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>',
   new: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
@@ -268,20 +276,39 @@ const ago = (iso) => {
 /* ---------- sign in ---------- */
 async function signIn() {
   const key = $('key').value.trim();
-  if (!key) return;
-  const res = await fetch('/api/admin/login', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key }),
-  });
-  if (!res.ok) { $('gate-err').textContent = 'That key was not accepted.'; return; }
+  if (!key) { $('gate-err').textContent = 'Enter your key.'; return; }
+
+  $('gate-err').textContent = 'Checking…';
+  ADMIN_KEY = key;
+
+  // One request. If the key is right this returns the applications directly —
+  // there is no separate login step to go wrong.
+  let res;
+  try {
+    res = await fetch('/api/applications', { headers: authHeaders() });
+  } catch (err) {
+    $('gate-err').textContent = 'Could not reach the server: ' + err.message;
+    return;
+  }
+
+  if (res.status === 401) { ADMIN_KEY = ''; $('gate-err').textContent = 'That key was not accepted.'; return; }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    $('gate-err').textContent = body.error || ('Server returned ' + res.status);
+    return;
+  }
+  sessionStorage.setItem('ff_admin_key', key);
 
   // The key was right. If the very next request still fails, say why rather
   // than dropping silently back to this screen — a gate that reappears with no
   // message is indistinguishable from a button that does nothing.
-  const problem = await load();
-  if (problem) { $('gate-err').textContent = problem; return; }
+  const body = await res.json();
+  ALL = body.applications || [];
+  COUNTS = body.counts || {};
+  $('gate-err').textContent = '';
   $('gate').hidden = true;
   $('app').hidden = false;
+  render();
 }
 $('signin').addEventListener('click', signIn);
 $('key').addEventListener('keydown', (e) => { if (e.key === 'Enter') signIn(); });
@@ -291,7 +318,7 @@ $('key').addEventListener('keydown', (e) => { if (e.key === 'Enter') signIn(); }
 async function load() {
   let res;
   try {
-    res = await fetch('/api/applications', { credentials: 'same-origin' });
+    res = await fetch('/api/applications', { headers: authHeaders() });
   } catch (err) {
     return 'Could not reach the server. Check your connection and try again.';
   }
@@ -300,7 +327,7 @@ async function load() {
     // The cookie did not come back. Almost always a browser blocking cookies,
     // or the site being served over http where a Secure cookie is dropped.
     $('app').hidden = true; $('gate').hidden = false;
-    return 'Signed in, but the session cookie was not accepted. Check that you are on https and that cookies are enabled.';
+    return 'Your session expired. Sign in again.';
   }
 
   const body = await res.json().catch(() => ({}));
@@ -465,8 +492,8 @@ function closeDrawer() {
 
 async function update(ref, patch) {
   const res = await fetch('/api/applications', {
-    method: 'POST', credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ ref, ...patch }),
   });
   if (!res.ok) return;
@@ -476,10 +503,12 @@ async function update(ref, patch) {
   if (patch.status) closeDrawer(); else openDrawer(ref);
 }
 
-/* If the cookie is still valid from earlier, skip the gate. */
-fetch('/api/applications', { credentials: 'same-origin' })
-  .then((r) => { if (r.ok) { $('gate').hidden = true; $('app').hidden = false; load(); } })
-  .catch(() => {});
+/* Already signed in this tab? Skip the gate. */
+if (ADMIN_KEY) {
+  fetch('/api/applications', { headers: authHeaders() })
+    .then((r) => { if (r.ok) { $('gate').hidden = true; $('app').hidden = false; load(); } })
+    .catch(() => {});
+}
 </script>
 </body>
 </html>
