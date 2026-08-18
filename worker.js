@@ -139,7 +139,10 @@ async function stats(request, env, asCsv) {
    ========================================================================== */
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-sonnet-4-6';
+
+// Current self-serve model string. If Anthropic publishes a newer Sonnet, this
+// is the one line to change — the prompt and the parser are unaffected.
+const MODEL = 'claude-sonnet-5';
 
 function buildPrompt({ hub, jobTitle, company, resume, linkedin }) {
   const role = hub === 'proptech'
@@ -296,31 +299,36 @@ async function receiveApplication(request, env) {
     return new Response(JSON.stringify({ error: 'Could not save your application. Please try again.' }), { status: 500, headers: JSON_HEADERS });
   }
 
-  // Notify the employer. Deliberately after the insert and never fatal — a mail
-  // outage must not cost you a candidate.
-  const sendResult = await notifyEmployer(env, row);
-  try {
-    await env.DB.prepare(
-      `UPDATE applications SET sent_to_employer_at = ?2, send_error = ?3, updated_at = datetime('now') WHERE ref = ?1`
-    ).bind(ref, sendResult.ok ? new Date().toISOString() : null, sendResult.ok ? null : clean(sendResult.error, 300)).run();
-  } catch (_) { /* the application is already stored; this is bookkeeping */ }
-
-  return new Response(JSON.stringify({ ok: true, ref, notified: sendResult.ok }), { headers: JSON_HEADERS });
+  // NOTHING is sent to the employer here. A candidate's name, email, phone and
+  // background are the only thing this business has to sell — mailing them to
+  // the employer automatically hands over the asset and removes any reason to
+  // pay a placement fee. Forwarding is a deliberate act, taken in the Command
+  // Center once terms are clear. See /api/introduce.
+  return new Response(JSON.stringify({ ok: true, ref }), { headers: JSON_HEADERS });
 }
 
 /**
- * Sends the application on. Uses Resend when RESEND_API_KEY is set.
+ * Forwards a candidate to an employer. Called only from /api/introduce, never
+ * automatically.
  *
- * EMPLOYER_EMAIL routes everything to one address — start there. Once you have
- * per-company contacts, replace the lookup below.
+ * Two modes:
+ *   teaser (default) — role, score, strengths and gaps, no contact details.
+ *                      Enough for the employer to want the person, not enough
+ *                      to go around you.
+ *   full             — everything, including contact details. Use once a fee
+ *                      agreement is in place.
  */
-async function notifyEmployer(env, row) {
+async function notifyEmployer(env, row, opts = {}) {
+  const mode = opts.mode === 'full' ? 'full' : 'teaser';
+  const agreement = opts.agreement || null;
+  const to = opts.to || env.EMPLOYER_EMAIL || env.ADMIN_EMAIL;
   if (!env.RESEND_API_KEY) return { ok: false, error: 'No RESEND_API_KEY configured' };
+  if (!to) return { ok: false, error: 'No recipient — set EMPLOYER_EMAIL or pass one' };
 
-  const to = env.EMPLOYER_EMAIL || env.ADMIN_EMAIL;
-  if (!to) return { ok: false, error: 'No EMPLOYER_EMAIL configured' };
-
-  const name = [row.first_name, row.middle_initial, row.last_name].filter(Boolean).join(' ');
+  const full = mode === 'full';
+  const name = full
+    ? [row.first_name, row.middle_initial, row.last_name].filter(Boolean).join(' ')
+    : (row.first_name || '') + ' ' + ((row.last_name || '')[0] ? (row.last_name || '')[0] + '.' : '');
   const strengths = JSON.parse(row.strengths || '[]');
   const gaps = JSON.parse(row.gaps || '[]');
   const li = (s) => s.map((x) => `<li>${escapeHtml(x)}</li>`).join('');
@@ -333,11 +341,26 @@ async function notifyEmployer(env, row) {
       ${row.score != null ? `<p style="margin:0 0 18px"><b>Match score ${row.score}/100</b> <span style="color:#888">(${row.reviewed_by === 'ai' ? 'AI review' : 'keyword match'})</span></p>` : ''}
       ${strengths.length ? `<p style="margin:0 0 4px"><b>Strengths</b></p><ul style="margin:0 0 14px">${li(strengths)}</ul>` : ''}
       ${gaps.length ? `<p style="margin:0 0 4px"><b>Gaps</b></p><ul style="margin:0 0 14px">${li(gaps)}</ul>` : ''}
-      <p style="margin:0 0 4px"><b>Contact</b></p>
-      <p style="margin:0 0 14px">${escapeHtml(row.email)}${row.phone ? ' · ' + escapeHtml(row.phone) : ''}${row.linkedin ? ' · <a href="' + escapeHtml(row.linkedin) + '">LinkedIn</a>' : ''}</p>
-      ${row.current_position || row.current_company ? `<p style="margin:0 0 14px;color:#444">Currently ${escapeHtml(row.current_position || '')}${row.current_company ? ' at ' + escapeHtml(row.current_company) : ''}</p>` : ''}
-      <p style="margin:0 0 4px"><b>Background</b></p>
-      <div style="white-space:pre-wrap;color:#333;border-left:3px solid #ddd;padding-left:12px">${escapeHtml(row.background || '')}</div>
+      ${full ? `
+        <p style="margin:0 0 4px"><b>Contact</b></p>
+        <p style="margin:0 0 14px">${escapeHtml(row.email)}${row.phone ? ' · ' + escapeHtml(row.phone) : ''}${row.linkedin ? ' · <a href="' + escapeHtml(row.linkedin) + '">LinkedIn</a>' : ''}</p>
+        ${row.current_position || row.current_company ? `<p style="margin:0 0 14px;color:#444">Currently ${escapeHtml(row.current_position || '')}${row.current_company ? ' at ' + escapeHtml(row.current_company) : ''}</p>` : ''}
+        <p style="margin:0 0 4px"><b>Background</b></p>
+        <div style="white-space:pre-wrap;color:#333;border-left:3px solid #ddd;padding-left:12px">${escapeHtml(row.background || '')}</div>`
+      : `
+        ${row.current_position ? `<p style="margin:0 0 14px;color:#444">Currently a ${escapeHtml(row.current_position)}${row.current_company ? ' in the sector' : ''}.</p>` : ''}
+        <p style="margin:0 0 6px"><b>Summary</b></p>
+        <div style="white-space:pre-wrap;color:#333;border-left:3px solid #ddd;padding-left:12px">${escapeHtml(String(row.background || '').slice(0, 400))}${String(row.background || '').length > 400 ? '…' : ''}</div>
+        <p style="margin:18px 0 0;padding:14px;background:#f4f2fb;border-radius:8px">
+          Reply to this email to request an introduction. Contact details follow once terms are agreed.
+        </p>`}
+      <hr style="border:0;border-top:1px solid #e5e5e5;margin:26px 0 14px" />
+      <p style="font-size:12px;color:#777;line-height:1.6;margin:0">
+        ${agreement
+          ? `Introduced under our agreement${agreement.agreement_ref ? ' ' + escapeHtml(agreement.agreement_ref) : ''}${agreement.signed_on ? ' dated ' + escapeHtml(agreement.signed_on) : ''}. A placement fee of ${agreement.fee_percent}% of ${escapeHtml(agreement.fee_basis || 'first-year base salary')} applies if you engage this candidate, or any candidate introduced by us, within ${agreement.claim_window_months || 12} months of this introduction.`
+          : `Introduced by Founders &amp; Friends. A placement fee applies if you engage this candidate within 12 months of this introduction. Reply to agree terms before proceeding.`}
+        <br />Introduction reference ${escapeHtml(row.ref)} · ${new Date().toISOString().slice(0, 10)}
+      </p>
     </div>`;
 
   try {
@@ -347,8 +370,12 @@ async function notifyEmployer(env, row) {
       body: JSON.stringify({
         from: env.FROM_EMAIL || 'Founders & Friends <onboarding@resend.dev>',
         to: [to],
-        reply_to: row.email,          // replying reaches the candidate directly
-        subject: `${name} → ${row.job_title || 'a role'} at ${row.company || ''} (${row.ref})`,
+        // In teaser mode a reply must reach YOU, not the candidate — that is
+        // the whole point. Only a full send hands the conversation over.
+        reply_to: full ? row.email : (env.ADMIN_EMAIL || undefined),
+        subject: full
+          ? `${name} → ${row.job_title || 'a role'} at ${row.company || ''} (${row.ref})`
+          : `Candidate for ${row.job_title || 'your role'}${row.score != null ? ` · ${row.score}/100 match` : ''} (${row.ref})`,
         html,
       }),
     });
@@ -362,6 +389,84 @@ async function notifyEmployer(env, row) {
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/**
+ * Forward a candidate to an employer. Admin-only and explicit: the Command
+ * Center calls this when you decide to make the introduction.
+ */
+async function introduce(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const row = await env.DB.prepare('SELECT * FROM applications WHERE ref = ?1').bind(clean(body.ref, 20)).first();
+  if (!row) return new Response(JSON.stringify({ error: 'No such application.' }), { status: 404, headers: JSON_HEADERS });
+
+  // ---- the gate ----------------------------------------------------------
+  // No agreement, no introduction. This is deliberately enforced here rather
+  // than left to memory: the moment a candidate's details reach a company you
+  // have no terms with, you have given away the only thing you can charge for.
+  //
+  // Redaction is not protection — a match score and a career summary describe a
+  // small enough population to identify. The agreement is what protects you.
+  let agreement = null;
+  try {
+    agreement = await env.DB.prepare(
+      'SELECT * FROM fee_agreements WHERE company = ?1 AND active = 1').bind(row.company).first();
+  } catch (_) {
+    // Table not created yet. Treated as "no agreement" — fail closed, never open.
+  }
+
+  if (!agreement && !body.override) {
+    return new Response(JSON.stringify({
+      error: `No fee agreement on file for ${row.company}.`,
+      needs_agreement: true,
+      company: row.company,
+    }), { status: 409, headers: JSON_HEADERS });
+  }
+
+  const to = clean(body.to, 200) || agreement?.contact_email || env.EMPLOYER_EMAIL || env.ADMIN_EMAIL;
+  const result = await notifyEmployer(env, row, { mode: body.mode, to, agreement });
+
+  await env.DB.prepare(
+    `UPDATE applications
+        SET sent_to_employer_at = ?2, send_error = ?3, updated_at = datetime('now')
+      WHERE ref = ?1`
+  ).bind(row.ref, result.ok ? new Date().toISOString() : null, result.ok ? null : clean(result.error, 300)).run();
+
+  // Record the introduction itself. This is the evidence: who was named, to
+  // whom, on what date, under which agreement. Written only on success, so the
+  // log never claims an introduction that did not happen.
+  if (result.ok) {
+    const months = agreement?.claim_window_months ?? 12;
+    try {
+      await env.DB.prepare(
+        `INSERT INTO introductions
+           (application_ref, candidate_name, candidate_email, company, job_title,
+            sent_to, mode, fee_percent, claim_expires, agreement_ref)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8, date('now', ?9), ?10)`
+      ).bind(
+        row.ref,
+        [row.first_name, row.last_name].filter(Boolean).join(' '),
+        row.email, row.company, row.job_title, to,
+        body.mode === 'full' ? 'full' : 'teaser',
+        agreement?.fee_percent ?? null,
+        `+${months} months`,
+        agreement?.agreement_ref ?? null
+      ).run();
+    } catch (err) {
+      console.error('introduction log failed:', err.message);
+    }
+  }
+
+  return new Response(JSON.stringify(result.ok
+    ? { ok: true, mode: body.mode === 'full' ? 'full' : 'teaser', to, fee_percent: agreement?.fee_percent ?? null }
+    : { error: result.error }),
+    { status: result.ok ? 200 : 502, headers: JSON_HEADERS });
 }
 
 /* ---------- admin ---------- */
@@ -476,6 +581,8 @@ export default {
     if (pathname === '/api/admin/login'   && request.method === 'POST') return adminLogin(request, env);
     if (pathname === '/api/applications'  && request.method === 'GET')  return listApplications(request, env);
     if (pathname === '/api/applications'  && request.method === 'POST') return updateApplication(request, env);
+    if (pathname === '/api/forward'       && request.method === 'POST') return introduce(request, env);
+    if (pathname === '/api/introduce'     && request.method === 'POST') return introduce(request, env);
 
     // Everything else is the site itself.
     return env.ASSETS.fetch(request);
