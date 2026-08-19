@@ -524,7 +524,8 @@ async function listApplications(request, env) {
                     first_name, middle_initial, last_name, email, phone,
                     current_company, current_position, linkedin, background,
                     score, strengths, gaps, reviewed_by, status, notes,
-                    sent_to_employer_at, send_error, created_at
+                    sent_to_employer_at, send_error, declined_at, decline_reason,
+                    created_at
                FROM applications`;
   const where = [], binds = [];
   if (hub && hub !== 'all') { binds.push(hub); where.push('hub = ?' + binds.length); }
@@ -568,6 +569,92 @@ async function updateApplication(request, env) {
   return new Response(JSON.stringify({ ok: true }), { headers: JSON_HEADERS });
 }
 
+
+/**
+ * Declines an application, and tells the candidate.
+ *
+ * Silence is the norm in recruiting and it is the thing candidates resent most.
+ * A short, honest note costs nothing and is the difference between someone who
+ * never applies again and someone who stays in the network — which for a talent
+ * business is the actual asset.
+ *
+ * The email is optional: with no RESEND_API_KEY the status still changes and
+ * you can write to them yourself.
+ */
+async function decline(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const row = await env.DB.prepare('SELECT * FROM applications WHERE ref = ?1').bind(clean(body.ref, 20)).first();
+  if (!row) return new Response(JSON.stringify({ error: 'No such application.' }), { status: 404, headers: JSON_HEADERS });
+
+  const reason = clean(body.reason, 2000);
+  const notify = body.notify !== false;   // tell them unless explicitly told not to
+
+  // Status first. The record is correct even if the email fails.
+  try {
+    await env.DB.prepare(
+      `UPDATE applications
+          SET status = 'passed', declined_at = datetime('now'),
+              decline_reason = ?2, updated_at = datetime('now')
+        WHERE ref = ?1`).bind(row.ref, reason).run();
+  } catch (_) {
+    // Columns not added yet — fall back to the status alone rather than failing.
+    await env.DB.prepare(
+      `UPDATE applications SET status = 'passed', updated_at = datetime('now') WHERE ref = ?1`
+    ).bind(row.ref).run();
+  }
+
+  if (!notify) return new Response(JSON.stringify({ ok: true, notified: false }), { headers: JSON_HEADERS });
+
+  const sent = await sendDecline(env, row, reason);
+  return new Response(JSON.stringify({ ok: true, notified: sent.ok, error: sent.ok ? undefined : sent.error }),
+    { headers: JSON_HEADERS });
+}
+
+async function sendDecline(env, row, reason) {
+  if (!env.RESEND_API_KEY) return { ok: false, error: 'No RESEND_API_KEY configured — status changed, no email sent.' };
+
+  const first = escapeHtml(row.first_name || 'there');
+  const html = `
+    <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;line-height:1.6">
+      <p>Hi ${first},</p>
+      <p>Thanks for applying for <b>${escapeHtml(row.job_title || 'the role')}</b>${row.company ? ' at ' + escapeHtml(row.company) : ''} through Founders &amp; Friends.</p>
+      <p>We are not taking your application forward for this one.</p>
+      ${reason ? `<p>${escapeHtml(reason)}</p>` : ''}
+      <p>That is a decision about one role, not about your experience. We work across
+         single-family rental operators and the companies serving them, and roles come up
+         constantly — if something fits better we will come back to you directly.</p>
+      <p>You are welcome to apply for anything else on the board at any time.</p>
+      <p style="margin-top:22px">— Founders &amp; Friends</p>
+      <p style="font-size:12px;color:#888;margin-top:20px">
+        Reference ${escapeHtml(row.ref)}. Reply to this email if you would like to be removed from our records.
+      </p>
+    </div>`;
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: env.FROM_EMAIL || 'Founders & Friends <onboarding@resend.dev>',
+        to: [row.email],
+        reply_to: env.ADMIN_EMAIL || env.EMPLOYER_EMAIL || undefined,
+        subject: `Your application for ${row.job_title || 'a role'}${row.company ? ' at ' + row.company : ''}`,
+        html,
+      }),
+    });
+    if (!res.ok) return { ok: false, error: 'Resend ' + res.status + ' ' + (await res.text().catch(() => '')).slice(0, 200) };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
@@ -582,6 +669,7 @@ export default {
     if (pathname === '/api/applications'  && request.method === 'GET')  return listApplications(request, env);
     if (pathname === '/api/applications'  && request.method === 'POST') return updateApplication(request, env);
     if (pathname === '/api/forward'       && request.method === 'POST') return introduce(request, env);
+    if (pathname === '/api/decline'       && request.method === 'POST') return decline(request, env);
     if (pathname === '/api/introduce'     && request.method === 'POST') return introduce(request, env);
 
     // Everything else is the site itself.
