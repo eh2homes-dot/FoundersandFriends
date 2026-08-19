@@ -553,6 +553,8 @@ async function updateApplication(request, env) {
   let body;
   try { body = await request.json(); } catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
 
+  // 'passed' is the stored value; the interface calls it Declined, which is
+  // what actually happened. Kept as-is so rows written earlier stay valid.
   const ALLOWED = ['new', 'reviewing', 'interview', 'offer', 'hired', 'passed'];
   if (body.status && !ALLOWED.includes(body.status)) {
     return new Response(JSON.stringify({ error: 'Unknown status.' }), { status: 400, headers: JSON_HEADERS });
