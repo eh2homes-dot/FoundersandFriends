@@ -239,6 +239,7 @@ textarea:focus{outline:none;border-color:var(--purple)}
     </div>
     <div style="display:flex;gap:9px">
       <button class="btn" type="button" id="refresh">Refresh</button>
+      <button class="btn" type="button" id="signout">Sign out</button>
       <a class="btn" href="/">← Board</a>
     </div>
   </div>
@@ -265,8 +266,34 @@ let ALL = [], COUNTS = {}, filterHub = 'all', filterStatus = 'all', openRef = nu
    by the browser with no visible error, which is impossible to diagnose from
    the outside. sessionStorage keeps a refresh from logging you out, and is
    cleared when the tab closes. */
+/* The key is remembered for this tab, but not indefinitely: this page shows
+   names, emails and career histories, and an unattended laptop should not leave
+   them open. After IDLE_MINUTES without a request the key is dropped and the
+   gate returns. */
+const IDLE_MINUTES = 60;
+
 let ADMIN_KEY = '';
-try { ADMIN_KEY = sessionStorage.getItem('ff_admin_key') || ''; } catch (_) { /* storage blocked */ }
+try {
+  const saved = sessionStorage.getItem('ff_admin_key');
+  const at = Number(sessionStorage.getItem('ff_admin_at') || 0);
+  if (saved && at && (Date.now() - at) < IDLE_MINUTES * 60000) ADMIN_KEY = saved;
+  else sessionStorage.removeItem('ff_admin_key');
+} catch (_) { /* storage blocked */ }
+
+/** Called on every authenticated request, so the hour counts from last use. */
+function touchSession() {
+  try { sessionStorage.setItem('ff_admin_at', String(Date.now())); } catch (_) {}
+}
+
+/** Drops the key and returns to the gate. */
+function signOut(message) {
+  ADMIN_KEY = '';
+  try { sessionStorage.removeItem('ff_admin_key'); sessionStorage.removeItem('ff_admin_at'); } catch (_) {}
+  $('app').hidden = true;
+  $('gate').hidden = false;
+  $('key').value = '';
+  if (message) $('gate-err').textContent = message;
+}
 const authHeaders = () => (ADMIN_KEY ? { 'X-Admin-Key': ADMIN_KEY } : {});
 
 const ICONS = {
@@ -306,7 +333,9 @@ async function signIn() {
     // so there is no separate login step to go wrong.
     const res = await fetch('/api/applications', { headers: { 'X-Admin-Key': key } });
 
-    if (res.status === 401) {
+    touchSession();
+
+  if (res.status === 401) {
       ADMIN_KEY = '';
       $('gate-err').textContent = 'That key was not accepted.';
       return;
@@ -333,6 +362,7 @@ async function signIn() {
 
     // Storage is a nicety, not a requirement — some browsers block it.
     try { sessionStorage.setItem('ff_admin_key', key); } catch (_) {}
+    touchSession();
 
     ALL = body.applications || [];
     COUNTS = body.counts || {};
@@ -367,7 +397,19 @@ async function load() {
     return 'Your session expired. Sign in again.';
   }
 
-  const body = await res.json().catch(() => ({}));
+  // Same defensive parse as signIn: if the API route is missing, the SPA
+  // fallback answers with index.html and a 200, and res.json() would throw.
+  const raw = await res.text();
+  let body = null;
+  try { body = JSON.parse(raw); } catch (_) { /* not JSON */ }
+  if (body === null) {
+    const msg = raw.trim().startsWith('<')
+      ? 'The API returned a page instead of data — worker.js may not be deployed.'
+      : 'The server sent something unexpected.';
+    $('table-wrap').innerHTML = '<div class="empty">' + esc(msg) + '</div>';
+    return msg;
+  }
+
   if (!res.ok) {
     const msg = body.error || ('Server returned ' + res.status);
     $('table-wrap').innerHTML = '<div class="empty">' + esc(msg) + '</div>';
@@ -380,6 +422,17 @@ async function load() {
   return null;
 }
 $('refresh').addEventListener('click', () => load());
+$('signout').addEventListener('click', () => signOut('Signed out.'));
+
+/* Expire the session while the tab sits open, not only on reload. */
+setInterval(() => {
+  if (!ADMIN_KEY || $('app').hidden) return;
+  let at = 0;
+  try { at = Number(sessionStorage.getItem('ff_admin_at') || 0); } catch (_) {}
+  if (at && (Date.now() - at) > IDLE_MINUTES * 60000) {
+    signOut('Session expired after ' + IDLE_MINUTES + ' minutes. Sign in again.');
+  }
+}, 60000);
 
 /* ---------- render ---------- */
 function visible() {
