@@ -307,6 +307,13 @@ function signOut(message) {
 }
 const authHeaders = () => (ADMIN_KEY ? { 'X-Admin-Key': ADMIN_KEY } : {});
 
+/* What each stored status is called on screen. 'passed' is the value in the
+   database; "Declined" is what it means. */
+const STATUS_LABEL = {
+  new: 'New', reviewing: 'Reviewing', interview: 'Interview',
+  offer: 'Offer', hired: 'Hired', passed: 'Declined',
+};
+
 const ICONS = {
   total: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>',
   new: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
@@ -481,7 +488,7 @@ function renderInner() {
     ['hub', 'all', 'All hubs'], ['hub', 'opco', 'OpCo'], ['hub', 'proptech', 'PropTech'],
     ['status', 'all', 'Any status'], ['status', 'new', 'New'], ['status', 'reviewing', 'Reviewing'],
     ['status', 'interview', 'Interview'], ['status', 'offer', 'Offer'],
-    ['status', 'hired', 'Hired'], ['status', 'passed', 'Passed'],
+    ['status', 'hired', 'Hired'], ['status', 'passed', 'Declined'],
   ].map(([kind, val, label]) => {
     const on = (kind === 'hub' ? filterHub : filterStatus) === val;
     return `<button class="chip${on ? ' on' : ''}" data-kind="${kind}" data-val="${val}">${label}</button>`;
@@ -514,7 +521,7 @@ function renderInner() {
             <span>${esc(a.company || '')}${a.location ? ' · ' + esc(a.location) : ''}</span>
           </td>
           <td class="hide">${a.score != null ? `<span class="score ${band}">${a.score}</span>` : '—'}</td>
-          <td><span class="pill ${esc(a.status)}">${esc(a.status)}</span></td>
+          <td><span class="pill ${esc(a.status)}">${esc(STATUS_LABEL[a.status] || a.status)}</span></td>
           <td class="hide sent ${a.sent_to_employer_at ? 'ok' : 'no'}"
               title="${a.sent_to_employer_at ? 'Sent to employer' : esc(a.send_error || 'Not sent')}">
             ${a.sent_to_employer_at ? '✓' : '—'}
@@ -578,7 +585,7 @@ function openDrawer(ref) {
     </div>
     <div class="dr-foot">
       ${['reviewing', 'interview', 'offer', 'hired', 'passed']
-        .map((s) => `<button class="btn${a.status === s ? ' act' : ''}" type="button" data-status="${s}">${s}</button>`).join('')}
+        .map((s) => `<button class="btn${a.status === s ? ' act' : ''}" type="button" data-status="${s}">${STATUS_LABEL[s] || s}</button>`).join('')}
       <button class="btn act" type="button" id="save-notes">Save notes</button>
     </div>
     <div class="dr-send">
