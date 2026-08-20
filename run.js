@@ -705,6 +705,50 @@ const feed = {
 await writeFile(OUT, JSON.stringify(feed, null, 2) + '\n');
 console.log(`\nwrote ${OUT} — ${all.length} roles`);
 
+/* --------------------------------------------------------------------------
+   Send the snapshot to the history table.
+   --------------------------------------------------------------------------
+   The feed is overwritten every day; this is what keeps the record of what was
+   open when, and therefore what got filled and how fast. It cannot be
+   reconstructed after the fact.
+
+   Skipped silently if HISTORY_URL and HISTORY_KEY are not set, so the scraper
+   still works without it. A failure here is reported but never fails the run —
+   the feed matters more than the archive.
+   -------------------------------------------------------------------------- */
+const HISTORY_URL = process.env.HISTORY_URL;
+const HISTORY_KEY = process.env.HISTORY_KEY;
+
+if (HISTORY_URL && HISTORY_KEY) {
+  try {
+    const res = await fetch(HISTORY_URL.replace(/\/$/, '') + '/api/history/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Key': HISTORY_KEY },
+      body: JSON.stringify({
+        sources_ok: okResults.length,
+        sources_failed: results.length - okResults.length,
+        jobs: all.map((j) => ({
+          id: j.id, hub: j.hub, company: j.company, company_id: j.company_id,
+          title: j.title, category: j.category, level: j.level, location: j.location,
+          comp_min: j.comp_min, comp_max: j.comp_max,
+          apply_url: j.apply_url, source: j.source, posted_at: j.posted_at,
+        })),
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error(`history  NOT recorded — ${body.error || res.status}`);
+    } else {
+      console.log(`history  ${body.recorded} roles recorded · ${body.new_roles} new · ${body.closed} closed` +
+        (body.closing_skipped ? '  (closing skipped: run looked unreliable)' : ''));
+    }
+  } catch (err) {
+    console.error('history  NOT recorded —', err.message);
+  }
+} else {
+  console.log('history  skipped (HISTORY_URL / HISTORY_KEY not set)');
+}
+
 if (totalFailure) {
   console.error('\nEvery source failed. The feed kept its previous roles, but this needs looking at.');
   process.exit(1);
