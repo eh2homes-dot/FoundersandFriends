@@ -376,10 +376,23 @@ async function dom(company) {
   const html = await res.text();
 
   const seen = new Map();
-  const re = /<a[^>]+href="([^"]*\/(?:job|jobs|careers|opening|position)s?\/[^"#?]+)"[^>]*>([\s\S]{0,300}?)<\/a>/gi;
+
+  // Two ways a link can be a job:
+  //
+  //   1. the path names one — /job/, /jobs/, /careers/, /job-details/, /p/ …
+  //   2. the host is a known ATS, whatever the path looks like
+  //
+  // The second matters because careers pages increasingly link straight out to
+  // a hosted board: Esusu's Webflow page links to jobs.deel.com/<uuid>/
+  // job-details/<uuid>/overview, which no path pattern would guess.
+  const ATS_HOSTS = /(?:jobs\.deel\.com|boards\.greenhouse\.io|jobs\.lever\.co|jobs\.ashbyhq\.com|apply\.workable\.com|\.breezy\.hr|myworkdayjobs\.com|jobs\.smartrecruiters\.com|recruiting\.paylocity\.com|jobs\.jobvite\.com|icims\.com)/i;
+  const re = /<a[^>]+href="([^"#]+)"[^>]*>([\s\S]{0,300}?)<\/a>/gi;
   let m;
   while ((m = re.exec(html))) {
     const href = m[1];
+    const looksLikeJobPath = /\/(?:job|jobs|careers|opening|position)s?[\/-]|\/job-details\//i.test(href);
+    if (!looksLikeJobPath && !ATS_HOSTS.test(href)) continue;
+
     const title = toText(m[2]).split('\n')[0].trim();
     if (!title || title.length < 3 || title.length > 140) continue;
     if (isNotAJob(title)) continue;
@@ -565,7 +578,60 @@ async function ashby(company) {
   });
 }
 
-const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, ashby, reffie, dom };
+
+/**
+ * Workable's public board API. The slug is the path on apply.workable.com —
+ * often not the company name: Belong's is "belong-6", because earlier accounts
+ * took the plain name first.
+ *
+ * The endpoint is a POST that returns pages of 100. It also returns roles in
+ * every country, so the US filter downstream does real work here.
+ */
+async function workable(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for workable');
+
+  const out = [];
+  let token = null;
+
+  for (let page = 0; page < 12; page++) {
+    const res = await fetch(
+      `https://apply.workable.com/api/v1/widget/accounts/${encodeURIComponent(slug)}?details=true` +
+      (token ? `&token=${encodeURIComponent(token)}` : ''),
+      { headers: { 'User-Agent': UA, Accept: 'application/json' } });
+
+    if (!res.ok) throw new Error('workable HTTP ' + res.status);
+    const body = await res.json();
+    const jobs = body?.jobs;
+    if (!Array.isArray(jobs)) throw new Error('workable returned no jobs array');
+
+    for (const j of jobs) {
+      const description = toText(j.description || '');
+      const city = j.city || j.location?.city || '';
+      const region = j.state || j.region || j.location?.region || '';
+      const country = j.country || j.location?.country || '';
+      out.push({
+        sourceId: String(j.shortcode || j.id),
+        title: j.title,
+        // Country is kept in the string so the US filter can see it —
+        // Belong posts heavily in Buenos Aires.
+        location: [city, region, country].filter(Boolean).join(', ') || 'Remote',
+        url: j.url || j.application_url || `https://apply.workable.com/${slug}/j/${j.shortcode}/`,
+        description,
+        postedAt: j.published_on || j.created_at || null,
+        ...parseComp(description),
+      });
+    }
+
+    token = body?.nextPage || null;
+    if (!token || jobs.length === 0) break;
+    await sleep(200);
+  }
+
+  return out;
+}
+
+const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, ashby, workable, reffie, dom };
 
 /* ==========================================================================
    RUN
