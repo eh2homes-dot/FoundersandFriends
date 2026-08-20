@@ -20,6 +20,25 @@
  *     method: "greenhouse",   atsSlug: "their-board-token"
  */
 
+/* ---------------------------------------------------------------------------
+   ATS methods available, and how to spot each one. When a company fails, open
+   its careers page, click through to the listings, and match the URL:
+   
+     boards.greenhouse.io/SLUG          → greenhouse
+     jobs.lever.co/SLUG                 → lever
+     TENANT.wdN.myworkdayjobs.com/SITE  → workday   (needs atsSlug AND atsSite)
+     SLUG.breezy.hr                     → breezy
+     jobs.ashbyhq.com/SLUG              → ashby
+     apply.workable.com/SLUG            → workable
+     anything else, server-rendered     → dom
+     JavaScript-rendered, no links      → cannot be scraped this way
+   
+   Slugs are frequently NOT the company name — Belong is "belong-6" on Workable
+   because the plain name was taken, and Second Nature is "second-nature" on
+   Ashby while "secondnaturecomputing" is a different company. Always confirm
+   against the live board before adding.
+   --------------------------------------------------------------------------- */
+
 export const COMPANIES = [
   // ---------------------------------------------------------------------------
   // Verified proptech vendors. Every token below was confirmed against the live
@@ -42,9 +61,11 @@ export const COMPANIES = [
   },
   {
     id: "esusu", name: "Esusu", hub: "proptech",
-    careersUrl: "https://boards.greenhouse.io/esusu", website: "https://esusurent.com",
+    careersUrl: "https://esusurent.com/careers", website: "https://esusurent.com",
     state: "New York", segment: "Rent Reporting / Credit Building",
-    verified: true, method: "greenhouse", atsSlug: "esusu", active: true,
+    verified: true, method: "dom", atsSlug: null, active: true,
+    // Moved off Greenhouse (that board now 404s). Their Webflow careers page
+    // lists roles and links out to jobs.deel.com, which the dom adapter reads.
   },
   {
     id: "property-meld", name: "Property Meld", hub: "proptech",
@@ -1443,11 +1464,8 @@ export const COMPANIES = [
     state: "California",
     segment: "SFR Property Management",
     verified: false,
-    method: "lever",
-    // Belong's public Lever pages 404, so every job link is rewritten to their
-    // working careers site. linkOverride does that.
-    linkOverride: "https://belonghome.com/careers",
-    atsSlug: "belong",   // jobs.lever.co/belong
+    method: "workable",
+    atsSlug: "belong-6",   // Workable, and NOT "belong" — that slug is taken   // jobs.lever.co/belong
     priority: true,   // always shown on the graph, never crowded out
     active: true,
   },
