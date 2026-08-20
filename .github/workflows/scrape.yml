@@ -65,10 +65,16 @@ jobs:
       # untouched — but one invocation is simpler and half the requests.
       - name: Scrape both hubs
         if: inputs.hub == '' || inputs.hub == 'both'
+        env:
+          HISTORY_URL: ${{ secrets.HISTORY_URL }}
+          HISTORY_KEY: ${{ secrets.HISTORY_KEY }}
         run: node run.js --out=site/jobs.json
 
       - name: Scrape one hub
         if: inputs.hub == 'opco' || inputs.hub == 'proptech'
+        env:
+          HISTORY_URL: ${{ secrets.HISTORY_URL }}
+          HISTORY_KEY: ${{ secrets.HISTORY_KEY }}
         run: node run.js --hub=${{ inputs.hub }} --out=site/jobs.json
 
       # Guard against publishing a broken or empty feed. A scrape that fails
