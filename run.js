@@ -529,7 +529,43 @@ async function reffie(company) {
   return jobs;
 }
 
-const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, reffie, dom };
+
+/**
+ * Ashby publishes a public JSON board — no key, no scraping. Common among
+ * newer venture-backed companies, so this is likely to resolve several of the
+ * vendors currently failing as "JS-rendered".
+ */
+async function ashby(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for ashby');
+
+  const res = await get(`https://api.ashbyhq.com/posting-api/job-board/${slug}?includeCompensation=true`);
+  if (!res.ok) throw new Error('ashby HTTP ' + res.status);
+  const body = await res.json();
+  const list = body?.jobs;
+  if (!Array.isArray(list)) throw new Error('ashby returned no jobs array');
+
+  return list.filter((j) => j.isListed !== false).map((j) => {
+    const description = toText(j.descriptionHtml || j.descriptionPlain || '');
+    // Ashby gives structured compensation when the employer fills it in —
+    // better than parsing it back out of the description.
+    let min = null, max = null;
+    const salary = (j.compensation?.compensationTierSummary || '') + ' ' + description;
+    ({ min, max } = parseComp(salary));
+
+    return {
+      sourceId: String(j.id),
+      title: j.title,
+      location: j.location || j.address?.postalAddress?.addressLocality || 'Remote',
+      url: j.jobUrl || j.applyUrl,
+      description,
+      postedAt: j.publishedAt || null,
+      min, max,
+    };
+  });
+}
+
+const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, ashby, reffie, dom };
 
 /* ==========================================================================
    RUN
