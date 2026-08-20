@@ -657,6 +657,166 @@ async function sendDecline(env, row, reason) {
   }
 }
 
+
+/* ==========================================================================
+   JOB HISTORY
+   --------------------------------------------------------------------------
+   The feed is a snapshot. This turns it into a record.
+   ========================================================================== */
+
+/** Chunk size for batched writes. D1 caps queries per Worker invocation (50 on
+ *  the free plan), so statements go in batches rather than one call each. */
+const BATCH = 50;
+
+async function syncHistory(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+
+  // The scraper authenticates with the same admin key.
+  if (!env.STATS_KEY || request.headers.get('x-admin-key') !== env.STATS_KEY) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const jobs = Array.isArray(body.jobs) ? body.jobs : [];
+  if (!jobs.length) {
+    return new Response(JSON.stringify({ error: 'No jobs in payload — refusing to record an empty run.' }), { status: 400, headers: JSON_HEADERS });
+  }
+
+  // Millisecond precision matters: closing works by comparing last_seen against
+  // this run's timestamp, and two runs sharing a second would close nothing.
+  // Daily scrapes would hide that; a manual re-run would not.
+  const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
+
+  // ---- how many were open before this run, for the sanity check below ----
+  const before = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM job_history WHERE closed_at IS NULL').first();
+  const openBefore = before?.n ?? 0;
+
+  // ---- upsert every role in the batch ----
+  // ON CONFLICT keeps first_seen fixed and moves last_seen forward. A role that
+  // closed and later reappears is reopened rather than duplicated: closed_at is
+  // cleared, because a reposted role is the same role coming back.
+  const stmt = env.DB.prepare(
+    `INSERT INTO job_history
+       (job_id, hub, company, company_id, title, category, level, location,
+        comp_min, comp_max, apply_url, source, posted_at, first_seen, last_seen)
+     VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?14)
+     ON CONFLICT(job_id) DO UPDATE SET
+       last_seen  = ?14,
+       seen_count = seen_count + 1,
+       closed_at  = NULL,
+       days_open  = NULL,
+       comp_min   = COALESCE(?9, comp_min),
+       comp_max   = COALESCE(?10, comp_max),
+       location   = COALESCE(?8, location)`);
+
+  let written = 0;
+  for (let i = 0; i < jobs.length; i += BATCH) {
+    const slice = jobs.slice(i, i + BATCH).map((j) => stmt.bind(
+      clean(j.id, 200), clean(j.hub, 20), clean(j.company, 120), clean(j.company_id, 120),
+      clean(j.title, 300), clean(j.category, 60), clean(j.level, 40), clean(j.location, 160),
+      Number.isFinite(+j.comp_min) ? +j.comp_min : null,
+      Number.isFinite(+j.comp_max) ? +j.comp_max : null,
+      clean(j.apply_url, 500), clean(j.source, 40), clean(j.posted_at, 40), now));
+    try {
+      await env.DB.batch(slice);
+      written += slice.length;
+    } catch (err) {
+      console.error('history batch failed at', i, err.message);
+    }
+  }
+
+  // ---- close anything this run did not see ----
+  //
+  // Deliberately guarded. A scrape that fails badly returns few roles, and
+  // closing everything it missed would record a mass hiring freeze that never
+  // happened — poisoning exactly the numbers this table exists to produce.
+  // Nothing is closed if the run looks unreliable; the roles simply stay open
+  // until a healthy run confirms otherwise.
+  let closed = 0;
+  const healthy = openBefore === 0 || written >= openBefore * 0.6;
+
+  if (healthy) {
+    const res = await env.DB.prepare(
+      `UPDATE job_history
+          SET closed_at = ?1,
+              days_open = CAST(julianday(?1) - julianday(first_seen) AS INTEGER)
+        WHERE closed_at IS NULL AND last_seen < ?1`).bind(now).run();
+    closed = res.meta?.changes ?? 0;
+  } else {
+    console.warn(`history: only ${written} roles vs ${openBefore} open — not closing anything`);
+  }
+
+  const newRoles = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM job_history WHERE first_seen = ?1').bind(now).first();
+
+  await env.DB.prepare(
+    `INSERT INTO scrape_runs (ran_at, total_roles, sources_ok, sources_failed, new_roles, closed_roles, ok)
+     VALUES (?1,?2,?3,?4,?5,?6,?7)`
+  ).bind(now, written, +body.sources_ok || 0, +body.sources_failed || 0,
+         newRoles?.n ?? 0, closed, healthy ? 1 : 0).run();
+
+  return new Response(JSON.stringify({
+    ok: true, recorded: written, new_roles: newRoles?.n ?? 0,
+    closed, closing_skipped: !healthy,
+  }), { headers: JSON_HEADERS });
+}
+
+/** Read side: what changed, and who is hiring. Admin key required. */
+async function historyReport(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  const url = new URL(request.url);
+  const days = Math.min(365, Math.max(1, Number(url.searchParams.get('days')) || 30));
+  const since = `-${days} days`;
+
+  const [filled, opened, hiring, velocity, runs] = await Promise.all([
+    // Senior roles that closed — someone was hired.
+    env.DB.prepare(
+      `SELECT company, hub, title, level, first_seen, closed_at, days_open
+         FROM job_history
+        WHERE closed_at > datetime('now', ?1)
+          AND (level IN ('Executive','Leadership') OR title LIKE '%Director%'
+               OR title LIKE '%VP%' OR title LIKE '%Head of%' OR title LIKE '%Chief%')
+        ORDER BY closed_at DESC LIMIT 100`).bind(since).all(),
+
+    // Senior roles that appeared — someone left, or a team is growing.
+    env.DB.prepare(
+      `SELECT company, hub, title, level, location, first_seen
+         FROM job_history
+        WHERE first_seen > datetime('now', ?1)
+          AND (level IN ('Executive','Leadership') OR title LIKE '%Director%'
+               OR title LIKE '%VP%' OR title LIKE '%Head of%' OR title LIKE '%Chief%')
+        ORDER BY first_seen DESC LIMIT 100`).bind(since).all(),
+
+    env.DB.prepare(
+      `SELECT company, hub, COUNT(*) AS open_now
+         FROM job_history WHERE closed_at IS NULL
+        GROUP BY company, hub ORDER BY open_now DESC LIMIT 50`).all(),
+
+    env.DB.prepare(
+      `SELECT substr(first_seen,1,7) AS month, hub, COUNT(*) AS opened
+         FROM job_history GROUP BY month, hub ORDER BY month DESC LIMIT 24`).all(),
+
+    env.DB.prepare(
+      `SELECT date(ran_at) AS day, total_roles, sources_failed, new_roles, closed_roles, ok
+         FROM scrape_runs ORDER BY ran_at DESC LIMIT 30`).all(),
+  ]);
+
+  return new Response(JSON.stringify({
+    window_days: days,
+    senior_roles_filled: filled.results || [],
+    senior_roles_opened: opened.results || [],
+    hiring_now: hiring.results || [],
+    monthly_velocity: velocity.results || [],
+    recent_runs: runs.results || [],
+  }, null, 2), { headers: JSON_HEADERS });
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
@@ -672,6 +832,8 @@ export default {
     if (pathname === '/api/applications'  && request.method === 'POST') return updateApplication(request, env);
     if (pathname === '/api/forward'       && request.method === 'POST') return introduce(request, env);
     if (pathname === '/api/decline'       && request.method === 'POST') return decline(request, env);
+    if (pathname === '/api/history/sync'  && request.method === 'POST') return syncHistory(request, env);
+    if (pathname === '/api/history'       && request.method === 'GET')  return historyReport(request, env);
     if (pathname === '/api/introduce'     && request.method === 'POST') return introduce(request, env);
 
     // Everything else is the site itself.
