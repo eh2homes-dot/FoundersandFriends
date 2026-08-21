@@ -775,11 +775,12 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:-.02em;text-wrap
 }
 @media(max-width:560px){.bl-text{display:none}.back-link{padding:9px 12px}}
 
-.header-actions{margin-left:auto;display:flex;align-items:center;gap:12px}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 
 /* Both header links share one pill. Only the accent colour differs, so they
    read as a matched pair rather than two unrelated buttons. */
 .promo-badge,
+.pt-btn,
 .news-btn{
   display:inline-flex;align-items:center;gap:10px;
   padding:10px 18px;border-radius:100px;
@@ -790,9 +791,13 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:-.02em;text-wrap
   transition:border-color .2s,background .2s,transform .2s,box-shadow .2s;
 }
 .promo-badge{--accent:var(--cyan)}
+.pt-btn{--accent:var(--purple-text)}
 .news-btn{--accent:var(--green)}
+/* "and" reads better lowercase italic than shouted by the uppercase rule. */
+.pt-btn .pb-text i{font-style:italic;text-transform:lowercase;opacity:.75}
 
 .promo-badge:hover,
+.pt-btn:hover,
 .news-btn:hover{
   border-color:var(--accent);
   background:color-mix(in srgb, var(--accent) 14%, transparent);
@@ -1132,9 +1137,14 @@ a.foot-line:hover{color:var(--green)}
   </div>
 
   <div class="header-actions">
-    <a class="promo-badge" href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="Syndeo (opens in a new tab)">
+    <a class="promo-badge" href="https://syndeollc.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="Syndeo (opens in a new tab)">
       <span class="pb-dot" aria-hidden="true"></span>
       <span class="pb-text">Syndeo</span>
+      <span class="pb-go" aria-hidden="true">↗</span>
+    </a>
+    <a class="pt-btn" href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="Property and Technology (opens in a new tab)">
+      <span class="pb-dot" aria-hidden="true"></span>
+      <span class="pb-text">Property <i>and</i> Technology</span>
       <span class="pb-go" aria-hidden="true">↗</span>
     </a>
     <a class="news-btn" href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer" aria-label="Newsletter (opens in a new tab)">
@@ -1336,8 +1346,6 @@ a.foot-line:hover{color:var(--green)}
     </div>
     <div class="foot-bottom">
       <div class="fmeta">
-        <a href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer">Property and Technology</a>
-        <a href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer">Newsletter</a>
         <!-- The Command Center. Key-protected and noindex, so linking it costs
              nothing beyond telling people it exists. -->
         <a class="admin-link" href="/admin.html" rel="nofollow">Admin</a>
@@ -3183,6 +3191,7 @@ document.addEventListener('click', (e) => {
 const HOME_SITES = [
   { match: /the-source-flax\.vercel\.app/i, url: 'https://the-source-flax.vercel.app/', label: 'The Source' },
   { match: /propertyandtechnology/i,        url: 'https://propertyandtechnology.pages.dev/', label: 'Property and Technology' },
+  { match: /syndeollc/i,                    url: 'https://syndeollc.pages.dev/', label: 'Syndeo' },
 ];
 
 function initBackLink() {
