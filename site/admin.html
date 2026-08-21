@@ -165,6 +165,41 @@ tr.row:hover{background:rgba(127,77,224,.09)}
 .sent.ok{color:var(--green)} .sent.no{color:var(--red)}
 .empty{padding:74px 20px;text-align:center;color:var(--ink-dim);font-size:14.5px}
 
+/* ---------- signals ---------- */
+.sig-controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:20px}
+.sig-label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim)}
+.sig-card{
+  border-radius:18px;padding:26px 30px;margin-bottom:18px;
+  background:linear-gradient(160deg,rgba(20,12,43,.7),rgba(11,6,24,.9));
+  border:1px solid var(--line);
+}
+.sig-card h3{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-dim);font-weight:400;margin-bottom:6px;
+}
+.sig-card .sig-sub{font-size:13.5px;color:var(--ink-dim);line-height:1.6;margin-bottom:18px}
+.sig-row{
+  display:flex;align-items:baseline;gap:12px;padding:12px 0;
+  border-bottom:1px solid var(--line);flex-wrap:wrap;
+}
+.sig-row:last-child{border-bottom:0}
+.sig-role{font-size:15px;font-weight:600;color:var(--ink)}
+.sig-co{font-size:14px;color:var(--ink-soft)}
+.sig-meta{font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-left:auto;white-space:nowrap}
+.sig-tag{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;border-radius:100px;border:1px solid currentColor;
+}
+.sig-tag.first{color:var(--green)}
+.sig-tag.pay{color:var(--cyan)}
+.sig-big{font-family:var(--head);font-size:34px;font-weight:700;color:var(--purple-text);line-height:1}
+.sig-warn{
+  padding:14px 18px;border-radius:12px;margin-bottom:18px;
+  background:rgba(240,180,41,.08);border:1px solid rgba(240,180,41,.3);
+  font-size:13.5px;line-height:1.6;color:var(--amber);
+}
+.sig-empty{padding:40px 0;text-align:center;color:var(--ink-dim);font-size:14px}
+
 /* ---------- detail drawer ---------- */
 .scrim{position:fixed;inset:0;background:rgba(4,2,10,.72);backdrop-filter:blur(4px);z-index:60}
 .drawer{
@@ -249,6 +284,9 @@ textarea:focus{outline:none;border-color:var(--purple)}
       <h1 class="title" id="title">Pipeline</h1>
     </div>
     <div style="display:flex;gap:9px">
+      <button class="btn" type="button" data-view="pipeline">Pipeline</button>
+      <button class="btn" type="button" data-view="signals">Signals</button>
+      <button class="btn" type="button" data-view="coverage">Coverage</button>
       <button class="btn" type="button" id="refresh">Refresh</button>
       <button class="btn" type="button" id="signout">Sign out</button>
       <a class="btn" href="/">← Board</a>
@@ -259,7 +297,28 @@ textarea:focus{outline:none;border-color:var(--purple)}
 
   <div class="filters" id="filters"></div>
 
-  <div class="panel">
+  <!-- Signals: what changed on the board. Hidden until asked for. -->
+  <div id="signals-view" hidden>
+    <div class="sig-controls">
+      <span class="sig-label">Window</span>
+      <button class="chip" type="button" data-sigdays="7">7 days</button>
+      <button class="chip on" type="button" data-sigdays="14">14 days</button>
+      <button class="chip" type="button" data-sigdays="30">30 days</button>
+      <span class="sig-label" style="margin-left:16px">Hub</span>
+      <button class="chip on" type="button" data-sighub="all">All</button>
+      <button class="chip" type="button" data-sighub="opco">OpCo</button>
+      <button class="chip" type="button" data-sighub="proptech">PropTech</button>
+      <button class="btn act" type="button" id="sig-copy" style="margin-left:auto">Copy as text</button>
+    </div>
+    <div id="signals-body"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- Coverage: the state of the scraper. Operational detail, admin only. -->
+  <div id="coverage-view" hidden>
+    <div id="coverage-body"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="panel" id="pipeline-view">
     <div class="panel-head">
       <h2>All Applicants</h2>
       <span class="count" id="count"></span>
@@ -441,6 +500,280 @@ async function load() {
 }
 $('refresh').addEventListener('click', () => load());
 $('signout').addEventListener('click', () => signOut('Signed out.'));
+
+/* ---------- signals ---------- */
+
+let sigDays = 14, sigHub = 'all', sigData = null;
+
+let currentView = 'pipeline';
+
+function setView(next) {
+  currentView = next;
+  const isPipe = next === 'pipeline';
+  $('pipeline-view').hidden = !isPipe;
+  $('stats').hidden = !isPipe;
+  $('filters').hidden = !isPipe;
+  $('signals-view').hidden = next !== 'signals';
+  $('coverage-view').hidden = next !== 'coverage';
+  $('title').textContent = next === 'signals' ? 'Signals' : next === 'coverage' ? 'Coverage' : 'Pipeline';
+  document.querySelectorAll('[data-view]').forEach((b) => b.classList.toggle('act', b.dataset.view === next));
+  if (next === 'signals' && !sigData) loadSignals();
+  if (next === 'coverage' && !covData) loadCoverage();
+}
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-view]');
+  if (b) setView(b.dataset.view);
+});
+
+/* ---------- coverage ---------- */
+
+let covData = null;
+
+async function loadCoverage() {
+  $('coverage-body').innerHTML = '<div class="sig-empty">Loading…</div>';
+  try {
+    const res = await fetch('/api/coverage', { headers: authHeaders() });
+    const raw = await res.text();
+    let body = null;
+    try { body = JSON.parse(raw); } catch (_) {}
+    if (!body) {
+      $('coverage-body').innerHTML = '<div class="sig-empty">' +
+        (raw.trim().startsWith('<') ? 'The API returned a page — worker.js may not be deployed.'
+                                    : 'The server sent something unexpected.') + '</div>';
+      return;
+    }
+    if (!res.ok) { $('coverage-body').innerHTML = '<div class="sig-empty">' + esc(body.error || res.status) + '</div>'; return; }
+    covData = body;
+    renderCoverage(body);
+  } catch (err) {
+    $('coverage-body').innerHTML = '<div class="sig-empty">Could not load: ' + esc(err.message) + '</div>';
+  }
+}
+
+function renderCoverage(d) {
+  const out = [];
+  const failed = d.sources_failed ?? 0;
+
+  out.push(`<div class="stats">
+    <div class="stat" data-tone="total"><div class="stat-k">Roles</div><div class="stat-v">${d.total_roles}</div><div class="stat-sub">in the feed</div></div>
+    <div class="stat" data-tone="new"><div class="stat-k">Pulling</div><div class="stat-v">${d.pulling.length}</div><div class="stat-sub">companies contributing</div></div>
+    <div class="stat" data-tone="interview"><div class="stat-k">Failing</div><div class="stat-v">${failed}</div><div class="stat-sub">sources errored</div></div>
+    <div class="stat" data-tone="offer"><div class="stat-k">Quiet</div><div class="stat-v">${d.went_quiet.length}</div><div class="stat-sub">seen before, not now</div></div>
+  </div>`);
+
+  if (d.generated_at) {
+    const age = Math.floor((Date.now() - new Date(d.generated_at).getTime()) / 3600000);
+    out.push(`<div class="${age > 36 ? 'sig-warn' : 'sig-card'}" style="${age > 36 ? '' : 'padding:14px 18px'}">
+      Feed generated ${age < 1 ? 'less than an hour' : age + ' hour' + (age === 1 ? '' : 's')} ago.
+      ${age > 36 ? ' The daily scrape may have stopped — check Actions.' : ''}</div>`);
+  }
+
+  // ---- pulling ----
+  out.push('<div class="sig-card"><h3>Pulling now</h3>');
+  out.push('<p class="sig-sub">Companies contributing roles to the live feed, and which adapter reads them.</p>');
+  d.pulling.forEach((c) => {
+    out.push(`<div class="sig-row">
+      <span class="sig-role">${esc(c.company)}</span>
+      <span class="sig-tag ${c.hub === 'opco' ? 'first' : 'pay'}">${c.hub === 'opco' ? 'operator' : 'tech'}</span>
+      <span class="sig-co">${esc(c.sources.join(', '))}</span>
+      <span class="sig-meta">${c.roles} role${c.roles === 1 ? '' : 's'}</span>
+    </div>`);
+  });
+  out.push('</div>');
+
+  // ---- gone quiet ----
+  if (d.went_quiet.length) {
+    out.push('<div class="sig-card"><h3>Went quiet</h3>');
+    out.push('<p class="sig-sub">These contributed before and are absent now — either they stopped hiring, or their board broke. Worth checking the ones that went quiet recently.</p>');
+    d.went_quiet.forEach((c) => {
+      out.push(`<div class="sig-row">
+        <span class="sig-role">${esc(c.company)}</span>
+        <span class="sig-co">${c.roles_ever} role${c.roles_ever === 1 ? '' : 's'} historically</span>
+        <span class="sig-meta">${c.days_quiet != null ? c.days_quiet + ' day' + (c.days_quiet === 1 ? '' : 's') + ' quiet' : ''}</span>
+      </div>`);
+    });
+    out.push('</div>');
+  }
+
+  // ---- runs ----
+  if (d.recent_runs.length) {
+    out.push('<div class="sig-card"><h3>Recent scrapes</h3>');
+    out.push('<p class="sig-sub">A run flagged unreliable closed nothing, so the numbers stayed honest rather than recording a hiring freeze that never happened.</p>');
+    d.recent_runs.forEach((r) => {
+      out.push(`<div class="sig-row">
+        <span class="sig-role">${esc(r.day)}</span>
+        <span class="sig-co">${r.total_roles} role${r.total_roles === 1 ? '' : 's'}${r.sources_failed ? ` · ${r.sources_failed} source${r.sources_failed === 1 ? '' : 's'} failed` : ''}</span>
+        ${r.ok === 0 ? '<span class="sig-tag" style="color:var(--amber)">unreliable</span>' : ''}
+        <span class="sig-meta">${r.new_roles ?? 0} new · ${r.closed_roles ?? 0} closed</span>
+      </div>`);
+    });
+    out.push('</div>');
+  } else {
+    out.push('<div class="sig-card"><h3>Recent scrapes</h3><div class="sig-empty">No scrape history yet. Run db/history-d1.sql and add the two GitHub secrets.</div></div>');
+  }
+
+  $('coverage-body').innerHTML = out.join('');
+}
+
+document.addEventListener('click', (e) => {
+  const d = e.target.closest('[data-sigdays]');
+  const h = e.target.closest('[data-sighub]');
+  if (!d && !h) return;
+  if (d) sigDays = Number(d.dataset.sigdays);
+  if (h) sigHub = h.dataset.sighub;
+  document.querySelectorAll('[data-sigdays]').forEach((b) =>
+    b.classList.toggle('on', Number(b.dataset.sigdays) === sigDays));
+  document.querySelectorAll('[data-sighub]').forEach((b) =>
+    b.classList.toggle('on', b.dataset.sighub === sigHub));
+  loadSignals();
+});
+
+async function loadSignals() {
+  $('signals-body').innerHTML = '<div class="sig-empty">Loading…</div>';
+  try {
+    const res = await fetch(`/api/signals?days=${sigDays}&hub=${sigHub}`, { headers: authHeaders() });
+    const raw = await res.text();
+    let body = null;
+    try { body = JSON.parse(raw); } catch (_) {}
+    if (!body) {
+      $('signals-body').innerHTML = '<div class="sig-empty">' +
+        (raw.trim().startsWith('<') ? 'The API returned a page instead of data — worker.js may not be deployed.'
+                                    : 'The server sent something unexpected.') + '</div>';
+      return;
+    }
+    if (!res.ok) { $('signals-body').innerHTML = '<div class="sig-empty">' + esc(body.error || res.status) + '</div>'; return; }
+    sigData = body;
+    renderSignals(body);
+  } catch (err) {
+    $('signals-body').innerHTML = '<div class="sig-empty">Could not load: ' + esc(err.message) + '</div>';
+  }
+}
+
+const money = (r) => {
+  if (!r.comp_min) return '';
+  const k = (n) => '$' + Math.round(n / 1000) + 'k';
+  return r.comp_min === r.comp_max ? k(r.comp_min) : k(r.comp_min) + '–' + k(r.comp_max);
+};
+
+function renderSignals(d) {
+  const out = [];
+
+  // Say plainly when the record cannot be trusted, rather than presenting
+  // numbers built on missing days.
+  if (d.trust && !d.trust.reliable) {
+    out.push('<div class="sig-warn">' + (d.trust.no_history || d.trust.runs === 0
+      ? 'No scrape history yet. New roles below are accurate; movement needs a couple of weeks of daily scrapes before it means anything.'
+      : `The scrape record has ${d.trust.missing_days} missing day${d.trust.missing_days === 1 ? '' : 's'}` +
+        (d.trust.unreliable_runs ? ` and ${d.trust.unreliable_runs} run${d.trust.unreliable_runs === 1 ? '' : 's'} flagged unreliable` : '') +
+        '. Treat movement below as indicative rather than exact.') + '</div>');
+  }
+
+  // ---- new roles ----
+  out.push('<div class="sig-card"><h3>New on the board</h3>');
+  if (d.new_roles?.length) {
+    out.push(`<p class="sig-sub">${d.total_new} role${d.total_new === 1 ? '' : 's'} went up in the last ${d.window_days} days. These ${d.new_roles.length} are worth a look — ranked by seniority, pay disclosure, and whether the company is new here. Any one company is capped at two.</p>`);
+    d.new_roles.forEach((r) => {
+      out.push(`<div class="sig-row">
+        <span class="sig-role">${esc(r.title)}</span>
+        <span class="sig-co">${esc(r.company)}</span>
+        ${r.first_time ? '<span class="sig-tag first">first time</span>' : ''}
+        ${r.comp_min ? `<span class="sig-tag pay">${money(r)}</span>` : ''}
+        <span class="sig-meta">${esc(r.location || '')}</span>
+      </div>`);
+    });
+  } else {
+    out.push('<div class="sig-empty">Nothing new in this window.</div>');
+  }
+  out.push('</div>');
+
+  // ---- filled ----
+  if (d.filled?.length) {
+    out.push('<div class="sig-card"><h3>Roles that were filled</h3>');
+    out.push('<p class="sig-sub">These senior roles left the board, which means someone was hired. It does not say who.</p>');
+    d.filled.slice(0, 12).forEach((r) => {
+      out.push(`<div class="sig-row">
+        <span class="sig-role">${esc(r.title)}</span>
+        <span class="sig-co">${esc(r.company)}</span>
+        <span class="sig-meta">${Number.isFinite(r.days_open) ? 'open ' + r.days_open + ' day' + (r.days_open === 1 ? '' : 's') : ''}</span>
+      </div>`);
+    });
+    if (d.median_days_to_fill != null) {
+      out.push(`<div style="margin-top:20px"><span class="sig-big">${d.median_days_to_fill}</span>
+        <span class="sig-sub" style="margin-left:10px">median days to fill a senior role</span></div>`);
+    }
+    out.push('</div>');
+  }
+
+  // ---- opened ----
+  if (d.opened?.length) {
+    out.push('<div class="sig-card"><h3>Senior seats that just opened</h3>');
+    out.push('<p class="sig-sub">Usually means someone left, or the team is growing.</p>');
+    d.opened.slice(0, 12).forEach((r) => {
+      out.push(`<div class="sig-row">
+        <span class="sig-role">${esc(r.title)}</span>
+        <span class="sig-co">${esc(r.company)}</span>
+        <span class="sig-meta">${esc(r.location || '')}</span>
+      </div>`);
+    });
+    out.push('</div>');
+  }
+
+  // ---- clusters: the actual market signal ----
+  if (d.clusters?.length) {
+    out.push('<div class="sig-card"><h3>Where the market is moving</h3>');
+    out.push('<p class="sig-sub">The same role opening at several companies at once says more than any single posting.</p>');
+    d.clusters.forEach((c) => {
+      out.push(`<div class="sig-row">
+        <span class="sig-role">${esc(c.title)}</span>
+        <span class="sig-meta">${esc(c.companies.join(' · '))}</span>
+      </div>`);
+    });
+    out.push('</div>');
+  }
+
+  $('signals-body').innerHTML = out.join('');
+}
+
+/** Plain text, for pasting wherever you want it. */
+$('sig-copy').addEventListener('click', async () => {
+  if (!sigData) return;
+  const d = sigData, L = [];
+  L.push(`SIGNALS — LAST ${d.window_days} DAYS`, '');
+  if (d.new_roles?.length) {
+    L.push('NEW ON THE BOARD');
+    d.new_roles.forEach((r) => L.push(`  ${r.title} — ${r.company}` +
+      (r.location ? ` · ${r.location}` : '') + (r.comp_min ? ` · ${money(r)}` : '') +
+      (r.first_time ? ' (first time)' : '')));
+    L.push('');
+  }
+  if (d.filled?.length) {
+    L.push('FILLED');
+    d.filled.forEach((r) => L.push(`  ${r.title} — ${r.company}` +
+      (Number.isFinite(r.days_open) ? ` (open ${r.days_open} days)` : '')));
+    L.push('');
+  }
+  if (d.opened?.length) {
+    L.push('JUST OPENED');
+    d.opened.forEach((r) => L.push(`  ${r.title} — ${r.company}`));
+    L.push('');
+  }
+  if (d.clusters?.length) {
+    L.push('MARKET MOVEMENT');
+    d.clusters.forEach((c) => L.push(`  ${c.title} — ${c.companies.join(', ')}`));
+  }
+  const text = L.join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    $('sig-copy').textContent = 'Copied';
+    setTimeout(() => { $('sig-copy').textContent = 'Copy as text'; }, 1800);
+  } catch (_) {
+    // Clipboard can be blocked; show the text so it can still be selected.
+    $('signals-body').insertAdjacentHTML('afterbegin',
+      '<div class="sig-card"><h3>Copy this</h3><pre style="white-space:pre-wrap;font-size:12.5px;color:var(--ink-soft)">' +
+      esc(text) + '</pre></div>');
+  }
+});
 
 /* Expire the session while the tab sits open, not only on reload. */
 setInterval(() => {
