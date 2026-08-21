@@ -817,6 +817,250 @@ async function historyReport(request, env) {
   }, null, 2), { headers: JSON_HEADERS });
 }
 
+
+/* ==========================================================================
+   SIGNALS
+   --------------------------------------------------------------------------
+   What changed on the board, written up so it can be read rather than queried.
+   Two halves:
+
+     new roles     what went up recently, filtered hard — "everything new this
+                   week" out of 400 roles is forty maintenance technicians and
+                   nobody finishes reading it
+     movement      senior roles filled and opened, from the history table
+
+   ON WHAT THIS CAN CLAIM
+
+   This is job data, not people data. A senior role closing means SOMEONE was
+   hired — not who, and not where they came from. The wording stays inside what
+   the data supports, because publishing a guess as a fact costs the whole feed
+   its credibility the first time someone checks.
+   ========================================================================== */
+
+const LEVEL_SCORE = { 'C-Suite': 60, VP: 45, Director: 35, Manager: 12, Field: 2 };
+
+// Titles that say something about where the market is going, rather than
+// routine backfill.
+const NOTABLE = /\b(ai|artificial intelligence|machine learning|data|automation|revenue operations|revops|growth|strategy|transformation|innovation)\b/i;
+
+/** Same role at several companies at once is worth more than any one posting. */
+const normTitle = (s) => String(s || '')
+  .replace(/\b(senior|sr\.?|junior|jr\.?|lead|i{1,3}|\d+)\b/gi, '')
+  .replace(/[^a-z ]/gi, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+
+async function signals(request, env) {
+  if (!adminAuthed(request, env)) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+
+  const url = new URL(request.url);
+  const days = Math.min(365, Math.max(1, Number(url.searchParams.get('days')) || 14));
+  const limit = Math.min(30, Math.max(3, Number(url.searchParams.get('limit')) || 10));
+  const hub = url.searchParams.get('hub') || 'all';
+  const since = Date.now() - days * 86400000;
+
+  /* ---------- new roles, from the feed ---------- */
+
+  let newRoles = [], feedCount = 0, feedError = null;
+  try {
+    const feedRes = await env.ASSETS.fetch(new Request(new URL('/jobs.json', request.url)));
+    const feed = await feedRes.json();
+    feedCount = feed.count || 0;
+
+    const pool = (feed.jobs || [])
+      .filter((j) => hub === 'all' || j.hub === hub)
+      .filter((j) => new Date(j.posted_at || j.scraped_at || 0).getTime() >= since);
+
+    // Which companies are genuinely new is only knowable with history; without
+    // it the flag would fire for everyone and mean nothing.
+    let known = new Set();
+    if (env.DB) {
+      try {
+        const rows = await env.DB.prepare(
+          `SELECT DISTINCT company FROM job_history WHERE first_seen < datetime('now', ?1)`
+        ).bind(`-${days} days`).all();
+        known = new Set((rows.results || []).map((r) => r.company));
+      } catch (_) { /* no history yet */ }
+    }
+    const haveBaseline = known.size > 0;
+
+    const scored = pool.map((j) => {
+      let s = LEVEL_SCORE[j.level] ?? 10;
+      if (haveBaseline && !known.has(j.company)) s += 25;
+      if (j.comp_min) s += 15;
+      if (NOTABLE.test(j.title || '')) s += 20;
+      if (j.hub === 'opco') s += 10;
+      return { j, s, firstTime: haveBaseline && !known.has(j.company) };
+    }).sort((a, b) => b.s - a.s);
+
+    // Cap any one company at two, so a single big poster cannot fill the list.
+    const per = new Map();
+    for (const row of scored) {
+      const n = per.get(row.j.company) || 0;
+      if (n >= 2) continue;
+      per.set(row.j.company, n + 1);
+      newRoles.push({
+        title: row.j.title, company: row.j.company, hub: row.j.hub,
+        location: row.j.location, comp_min: row.j.comp_min, comp_max: row.j.comp_max,
+        url: row.j.apply_url, level: row.j.level, first_time: row.firstTime,
+      });
+      if (newRoles.length >= limit) break;
+    }
+    newRoles.totalNew = pool.length;
+  } catch (err) {
+    feedError = err.message;
+  }
+
+  /* ---------- movement, from the history table ---------- */
+
+  let filled = [], opened = [], clusters = [], trust = null;
+
+  if (env.DB) {
+    try {
+      const SENIOR = `(level IN ('C-Suite','VP','Director') OR title LIKE '%Director%'
+                       OR title LIKE '%VP%' OR title LIKE '%Head of%' OR title LIKE '%Chief%')`;
+
+      const [f, o, runs] = await Promise.all([
+        env.DB.prepare(
+          `SELECT company, hub, title, days_open, closed_at FROM job_history
+            WHERE closed_at > datetime('now', ?1) AND ${SENIOR}
+            ORDER BY closed_at DESC LIMIT 20`).bind(`-${days} days`).all(),
+        env.DB.prepare(
+          `SELECT company, hub, title, location, first_seen FROM job_history
+            WHERE first_seen > datetime('now', ?1) AND closed_at IS NULL AND ${SENIOR}
+            ORDER BY first_seen DESC LIMIT 20`).bind(`-${days} days`).all(),
+        env.DB.prepare(
+          `SELECT date(ran_at) AS day, ok FROM scrape_runs
+            WHERE ran_at > datetime('now', ?1) ORDER BY ran_at DESC`).bind(`-${days} days`).all(),
+      ]);
+
+      filled = f.results || [];
+      opened = o.results || [];
+
+      const byTitle = new Map();
+      for (const r of opened) {
+        const k = normTitle(r.title);
+        if (!k) continue;
+        if (!byTitle.has(k)) byTitle.set(k, { title: r.title, companies: new Set() });
+        byTitle.get(k).companies.add(r.company);
+      }
+      clusters = [...byTitle.values()]
+        .filter((c) => c.companies.size >= 2)
+        .map((c) => ({ title: c.title, companies: [...c.companies] }))
+        .sort((a, b) => b.companies.length - a.companies.length)
+        .slice(0, 6);
+
+      // A gap in the record makes "filled" and "opened" unreliable. Say so
+      // rather than presenting numbers built on missing days.
+      const rows = runs.results || [];
+      const daysCovered = new Set(rows.map((r) => r.day)).size;
+      const unreliable = rows.filter((r) => r.ok === 0).length;
+      const missing = Math.max(0, Math.min(days, 30) - daysCovered);
+      trust = { runs: rows.length, missing_days: missing, unreliable_runs: unreliable,
+                reliable: missing <= 2 && unreliable === 0 };
+    } catch (_) {
+      trust = { runs: 0, missing_days: null, unreliable_runs: 0, reliable: false, no_history: true };
+    }
+  }
+
+  const withDays = filled.filter((r) => Number.isFinite(r.days_open));
+  const median = withDays.length
+    ? withDays.map((r) => r.days_open).sort((a, b) => a - b)[Math.floor(withDays.length / 2)]
+    : null;
+
+  return new Response(JSON.stringify({
+    window_days: days, hub,
+    feed_total: feedCount, feed_error: feedError,
+    new_roles: newRoles, total_new: newRoles.totalNew ?? 0,
+    filled, opened, clusters,
+    median_days_to_fill: median,
+    trust,
+  }, null, 2), { headers: JSON_HEADERS });
+}
+
+
+/* ==========================================================================
+   COVERAGE
+   --------------------------------------------------------------------------
+   The state of the pipeline itself: which companies are pulling, which are
+   failing, which have never been configured. Admin only — this is operational
+   detail, not something candidates should see.
+
+   Built by comparing the live feed against the last scrape run. The feed says
+   who is contributing; anything configured but absent is either failing or
+   quiet, and the distinction matters.
+   ========================================================================== */
+
+async function coverage(request, env) {
+  if (!adminAuthed(request, env)) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+
+  let feed = { jobs: [], count: 0, sources_ok: null, sources_failed: null, generated_at: null };
+  try {
+    const res = await env.ASSETS.fetch(new Request(new URL('/jobs.json', request.url)));
+    feed = await res.json();
+  } catch (_) { /* no feed yet */ }
+
+  // Who is actually contributing, and how much.
+  const live = new Map();
+  for (const j of feed.jobs || []) {
+    const k = j.company;
+    if (!live.has(k)) live.set(k, { company: k, hub: j.hub, roles: 0, sources: new Set(), newest: null });
+    const row = live.get(k);
+    row.roles += 1;
+    if (j.source) row.sources.add(j.source);
+    const seen = j.posted_at || j.scraped_at;
+    if (seen && (!row.newest || seen > row.newest)) row.newest = seen;
+  }
+
+  const pulling = [...live.values()]
+    .map((r) => ({ ...r, sources: [...r.sources] }))
+    .sort((a, b) => b.roles - a.roles);
+
+  // History tells us who used to appear and has since gone quiet — a company
+  // that pulled last week and nothing this week is worth looking at, and the
+  // feed alone cannot show that.
+  let wentQuiet = [], everSeen = 0;
+  if (env.DB) {
+    try {
+      const rows = await env.DB.prepare(
+        `SELECT company, hub, MAX(last_seen) AS last_seen, COUNT(*) AS roles_ever
+           FROM job_history GROUP BY company, hub`).all();
+      const all = rows.results || [];
+      everSeen = all.length;
+      const now = Date.now();
+      wentQuiet = all
+        .filter((r) => !live.has(r.company))
+        .map((r) => ({
+          company: r.company, hub: r.hub, roles_ever: r.roles_ever, last_seen: r.last_seen,
+          days_quiet: r.last_seen
+            ? Math.floor((now - new Date(r.last_seen.replace(' ', 'T') + 'Z').getTime()) / 86400000)
+            : null,
+        }))
+        .sort((a, b) => (a.days_quiet ?? 9999) - (b.days_quiet ?? 9999))
+        .slice(0, 40);
+    } catch (_) { /* no history yet */ }
+  }
+
+  const runs = env.DB
+    ? await env.DB.prepare(
+        `SELECT date(ran_at) AS day, total_roles, sources_ok, sources_failed, new_roles, closed_roles, ok
+           FROM scrape_runs ORDER BY ran_at DESC LIMIT 14`).all().catch(() => ({ results: [] }))
+    : { results: [] };
+
+  return new Response(JSON.stringify({
+    generated_at: feed.generated_at || null,
+    total_roles: feed.count || 0,
+    sources_ok: feed.sources_ok ?? null,
+    sources_failed: feed.sources_failed ?? null,
+    pulling,
+    went_quiet: wentQuiet,
+    companies_ever_seen: everSeen,
+    recent_runs: runs.results || [],
+  }, null, 2), { headers: JSON_HEADERS });
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
@@ -834,6 +1078,8 @@ export default {
     if (pathname === '/api/decline'       && request.method === 'POST') return decline(request, env);
     if (pathname === '/api/history/sync'  && request.method === 'POST') return syncHistory(request, env);
     if (pathname === '/api/history'       && request.method === 'GET')  return historyReport(request, env);
+    if (pathname === '/api/signals'       && request.method === 'GET')  return signals(request, env);
+    if (pathname === '/api/coverage'      && request.method === 'GET')  return coverage(request, env);
     if (pathname === '/api/introduce'     && request.method === 'POST') return introduce(request, env);
 
     // Everything else is the site itself.
