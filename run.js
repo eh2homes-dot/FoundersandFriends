@@ -348,7 +348,15 @@ async function workday(company) {
  * untrustworthy. When in doubt, drop it.
  */
 function isNotAJob(title) {
-  const t = title.trim().toLowerCase().replace(/[.!→>»]+$/, '').trim();
+  // Normalise before matching: collapse runs of whitespace, turn hyphens and
+  // underscores between words into spaces, and drop trailing punctuation and
+  // arrows. Scraped titles arrive as "Job-Search", "Job  Search" and
+  // "Job Search →" and all three are the same nav label.
+  const t = String(title)
+    .replace(/[-\u2010-\u2015_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim().toLowerCase()
+    .replace(/[.!?→>»…\-–—]+$/, '').trim();
 
   // Whole-phrase CTAs and nav labels.
   if (/^(apply|apply now|view|view all|view more|view jobs?|see all|see more|see jobs?|learn more|read more|explore|explore all|search|search jobs?|browse|browse jobs?|all jobs?|all openings?|current openings?|join us|join our team|work (with|for) us|careers?|jobs?|opportunities|life at .*|our (culture|team|values|benefits)|benefits|culture|diversity.*|back|next|previous|home|contact( us)?|sign in|log ?in|register|subscribe|newsletter|privacy.*|terms.*|cookie.*)$/i.test(t)) return true;
@@ -380,7 +388,7 @@ function isNotAJob(title) {
   // ---- noun-first index labels ----
   // "Job Search", "Career Opportunities", "Position Openings" — the same nav
   // labels with the words the other way round.
-  if (/^(job|jobs|career|careers|position|positions|role|roles|employment|opening|openings)\s+(search|opportunit\w*|listings?|board|openings?|portal|centre|center|page|home)$/i.test(t)) return true;
+  if (/^(job|jobs|career|careers|position|positions|role|roles|employment|opening|openings)\s+(search\w*|opportunit\w*|listings?|boards?|openings?|portals?|centres?|centers?|pages?|home)$/i.test(t)) return true;
 
   // ---- employment-type placeholders ----
   if (/^(full[- ]?time|part[- ]?time|contract|temporary|intern(ship)?|seasonal|remote|hybrid|on[- ]?site)$/i.test(t)) return true;
@@ -421,12 +429,14 @@ function isThin(job) {
   const desc = String(job.description || '').trim();
   const words = desc ? desc.split(/\s+/).length : 0;
 
-  // No description at all, or a fragment. The bar is deliberately low: real
-  // trade and field postings are often terse — a 35-word maintenance role with
-  // requirements in it is a legitimate listing, and an earlier 40-word
-  // threshold deleted exactly that. Boilerplate is caught by the role-language
-  // check below regardless of length, which does the real work here.
-  if (words < 25) return true;
+  // Length is a blunt instrument and I have now twice set it too high and
+  // deleted real postings — a 35-word maintenance role, then a 21-word
+  // construction one. Field and trade listings are genuinely terse.
+  //
+  // So the bar is only high enough to exclude fragments like "Join our team!".
+  // The role-language test below is what actually separates a posting from
+  // boilerplate, and it does not care how long the text is.
+  if (words < 12) return true;
 
   // A description that is only boilerplate: equal-opportunity text, benefits
   // blurb, or a company "about us" with nothing about the role.
