@@ -916,8 +916,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Flexible Workspace / Meeting Venues",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "convene",
     active: true,
   },
   {
