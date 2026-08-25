@@ -41,6 +41,106 @@
 
 export const COMPANIES = [
   // ---------------------------------------------------------------------------
+  // SCATTERED-SITE OPERATORS
+  // The institutional SFR landlords. AMH was missing entirely despite being one
+  // of the three public SFR REITs alongside Invitation Homes and Tricon.
+  //
+  // method is null on purpose — run scripts/detect-ats.js to resolve each one
+  // against its live careers page. Guessing ATS slugs produces 404s that look
+  // like the company stopped hiring.
+  // ---------------------------------------------------------------------------
+  {
+    id: "amh", name: "AMH", hub: "opco",
+    careersUrl: "https://www.amh.com/careers",
+    website: "https://www.amh.com",
+    state: "Nevada", segment: "SFR REIT",
+    // NYSE: AMH. Over 61,000 homes. Formerly American Homes 4 Rent; also
+    // trades as AMH Living in some states.
+    verified: true, method: null, atsSlug: null, priority: true, active: true,
+  },
+  {
+    id: "firstkey-homes", name: "FirstKey Homes", hub: "opco",
+    careersUrl: "https://www.firstkeyhomes.com/careers",
+    website: "https://www.firstkeyhomes.com",
+    state: "Georgia", segment: "SFR Property Management",
+    // Cerberus-backed, ~34,000 homes.
+    verified: true, method: null, atsSlug: null, priority: true, active: true,
+  },
+  {
+    id: "main-street-renewal", name: "Main Street Renewal", hub: "opco",
+    careersUrl: "https://www.mainstreetrenewal.com/careers",
+    website: "https://www.mainstreetrenewal.com",
+    state: "Texas", segment: "SFR Property Management",
+    // Amherst Group's in-house manager, ~34,000 homes across 32 markets.
+    verified: true, method: null, atsSlug: null, priority: true, active: true,
+  },
+  {
+    id: "amherst", name: "Amherst Group", hub: "opco",
+    careersUrl: "https://www.amherst.com/careers",
+    website: "https://www.amherst.com",
+    state: "Texas", segment: "SFR Investment Manager",
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  {
+    id: "vinebrook-homes", name: "VineBrook Homes", hub: "opco",
+    careersUrl: "https://www.vinebrookhomes.com/careers",
+    website: "https://www.vinebrookhomes.com",
+    state: "Ohio", segment: "SFR REIT",
+    // NexPoint-managed, roughly 25,000 homes.
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  {
+    id: "sfr3", name: "SFR3", hub: "opco",
+    careersUrl: "https://www.sfr3.com/careers",
+    website: "https://www.sfr3.com",
+    state: "New York", segment: "SFR Operator",
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  {
+    id: "bluerock-homes", name: "Bluerock Homes", hub: "opco",
+    careersUrl: "https://bluerockhomes.com/careers",
+    website: "https://bluerockhomes.com",
+    state: "New York", segment: "SFR REIT",
+    // NYSE American: BHM.
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  {
+    id: "home-partners", name: "Home Partners of America", hub: "opco",
+    careersUrl: "https://www.homepartners.com/careers",
+    website: "https://www.homepartners.com",
+    state: "Illinois", segment: "Lease-to-Own SFR",
+    // Blackstone-owned.
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  {
+    id: "pathway-homes", name: "Pathway Homes", hub: "opco",
+    careersUrl: "https://pathwayhomes.com/careers",
+    website: "https://pathwayhomes.com",
+    state: "California", segment: "Lease-to-Own SFR",
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  {
+    id: "evernest", name: "Evernest", hub: "opco",
+    careersUrl: "https://www.evernest.co/careers",
+    website: "https://www.evernest.co",
+    state: "Alabama", segment: "SFR Property Management",
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  {
+    id: "homeriver-group", name: "HomeRiver Group", hub: "opco",
+    careersUrl: "https://www.homeriver.com/careers",
+    website: "https://www.homeriver.com",
+    state: "Idaho", segment: "SFR Property Management",
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  {
+    id: "poplar-homes", name: "Poplar Homes", hub: "opco",
+    careersUrl: "https://www.poplarhomes.com/careers",
+    website: "https://www.poplarhomes.com",
+    state: "California", segment: "SFR Property Management",
+    verified: true, method: null, atsSlug: null, active: true,
+  },
+  // ---------------------------------------------------------------------------
   // Verified proptech vendors. Every token below was confirmed against the live
   // ATS API before being added — a token-name collision puts another company's
   // jobs on your board, which is worse than a missing company. Two known traps:
@@ -188,7 +288,7 @@ export const COMPANIES = [
     state: "California",
     segment: "Construction Tech",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -266,8 +366,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Title Insurance / Mortgage Tech",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "doma",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -292,7 +392,7 @@ export const COMPANIES = [
     state: "California",
     segment: "Home Equity Fintech",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -370,8 +470,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Co-Ownership / Second Homes",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "pacaso",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -448,8 +548,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Agent Matching / Real Estate Marketplace",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "homelight",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -513,7 +613,7 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Property Management Data & Software",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -565,7 +665,7 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Wire Fraud Prevention for RE Closings",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -578,8 +678,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Wire Fraud Prevention / Identity Verification",
     verified: false,
-    method: "lever",   // greenhouse | lever | workday | dom
-    atsSlug: "certifid",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -630,8 +730,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Property Tax Appeal Platform",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "ownwell",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -669,7 +769,7 @@ export const COMPANIES = [
     state: "New York",
     segment: "Real Estate Brokerage Tech",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -851,8 +951,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Security Deposit Alternative",
     verified: true,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "obligo",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -864,7 +964,7 @@ export const COMPANIES = [
     state: "New York",
     segment: "Lease Insurance / Insurtech",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -892,7 +992,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Flexible workspace, not residential. Kept for reference; set active:true to include.
   },
   {
     id: "industrious",
@@ -905,7 +1006,8 @@ export const COMPANIES = [
     verified: true,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Flexible workspace, not residential. Kept for reference; set active:true to include.
   },
   {
     id: "convene",
@@ -916,9 +1018,10 @@ export const COMPANIES = [
     state: "New York",
     segment: "Flexible Workspace / Meeting Venues",
     verified: true,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "convene",
-    active: true,
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
+    active: false,
+    // PARKED — Meeting venues, not residential. Kept for reference; set active:true to include.
   },
   {
     id: "orchard",
@@ -929,8 +1032,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Home Trade-In / Mortgage Fintech",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "orchard",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -968,7 +1071,7 @@ export const COMPANIES = [
     state: "Illinois",
     segment: "Resident Experience Platform",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -981,8 +1084,8 @@ export const COMPANIES = [
     state: "Illinois",
     segment: "Smart Access (myQ/LiftMaster)",
     verified: false,
-    method: "workday",   // greenhouse | lever | workday | dom
-    atsSlug: "chamberlain.wd1.myworkdayjobs.com",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -994,7 +1097,7 @@ export const COMPANIES = [
     state: "Illinois",
     segment: "Landlord Insurance / Insurtech",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -1085,8 +1188,8 @@ export const COMPANIES = [
     state: "Colorado",
     segment: "Landlord/DIY Property Management Software",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "turbotenant",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1137,7 +1240,7 @@ export const COMPANIES = [
     state: "Arizona",
     segment: "Smart Home / Multifamily IoT",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -1189,8 +1292,8 @@ export const COMPANIES = [
     state: "Utah",
     segment: "Property Management Software (AI leasing/payments)",
     verified: true,
-    method: "lever",   // greenhouse | lever | workday | dom
-    atsSlug: "entrata",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1480,7 +1583,8 @@ export const COMPANIES = [
     verified: true,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Healthcare REIT. Kept for reference; set active:true to include.
   },
   {
     id: "uniti-group",
@@ -1493,7 +1597,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Fiber infrastructure REIT. Kept for reference; set active:true to include.
   },
   {
     id: "starwood-property-trust",
@@ -1504,9 +1609,10 @@ export const COMPANIES = [
     state: "Connecticut",
     segment: "Commercial Mortgage REIT",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Commercial mortgage REIT, not an operator. Kept for reference; set active:true to include.
   },
   {
     id: "alexander-and-baldwin",
@@ -1519,7 +1625,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Commercial and land REIT. Kept for reference; set active:true to include.
   },
   {
     id: "kite-realty-group-trust",
@@ -1532,7 +1639,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Shopping centre REIT. Kept for reference; set active:true to include.
   },
   {
     id: "lamar-advertising-company",
@@ -1545,7 +1653,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Outdoor advertising REIT. Kept for reference; set active:true to include.
   },
   {
     id: "eastgroup-properties",
@@ -1558,7 +1667,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Industrial REIT. Kept for reference; set active:true to include.
   },
   {
     id: "epr-properties",
@@ -1571,7 +1681,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Entertainment REIT. Kept for reference; set active:true to include.
   },
   {
     id: "veris-residential",
@@ -1585,6 +1696,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "highwoods-properties",
@@ -1597,7 +1709,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Office REIT. Kept for reference; set active:true to include.
   },
   {
     id: "greystar",
@@ -1613,6 +1726,7 @@ export const COMPANIES = [
     atsSite: "External",   // verified live
     active: true,
     // Largest US rental housing operator — predominantly MULTIFAMILY, not scattered-site. Kept in opco but worth reviewing against the SFR focus.
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "easterly-government-properties",
@@ -1625,7 +1739,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Government office REIT. Kept for reference; set active:true to include.
   },
   {
     id: "cohen-esrey-communities",
@@ -1639,6 +1754,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "case-and-associates",
@@ -1652,6 +1768,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "oakbrook-corporation",
@@ -1665,6 +1782,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "bh-management-services",
@@ -1675,9 +1793,10 @@ export const COMPANIES = [
     state: "Iowa",
     segment: "Multifamily Property Management",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "atria-senior-living",
@@ -1690,7 +1809,8 @@ export const COMPANIES = [
     verified: true,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    active: false,
+    // PARKED — Senior living, not scattered-site. Kept for reference; set active:true to include.
   },
   {
     id: "picerne-real-estate-group",
@@ -1704,6 +1824,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "the-lund-company",
@@ -1717,6 +1838,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "tamarack-property-management",
@@ -1743,6 +1865,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
     id: "redstone",
@@ -1756,6 +1879,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
 ];
 
@@ -1768,5 +1892,18 @@ export const scrapeable = (hub) => COMPANIES.filter(c =>
 
 /** Configured but not yet resolvable — surface these, do not hide them. */
 export const pending = () => COMPANIES.filter(c => c.active && !c.method);
+
+/**
+ * Scattered-site operators only — the board's actual subject.
+ *
+ * Multifamily managers are tagged assetClass:"multifamily" rather than removed:
+ * they are legitimate operators and a candidate may want them, but the two are
+ * different markets and must never be reported as one number.
+ */
+export const scatteredSite = () => COMPANIES.filter(c =>
+  c.active && c.hub === 'opco' && c.assetClass !== 'multifamily');
+
+/** Companies parked as out of scope, with the reason kept in a comment. */
+export const parked = () => COMPANIES.filter(c => c.active === false);
 
 export default COMPANIES;
