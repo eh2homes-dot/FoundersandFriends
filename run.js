@@ -367,6 +367,69 @@ function isNotAJob(title) {
   if (/^[\d\s\-–—/,.]+$/.test(t)) return true;
   if (!/\s/.test(t) && t.length < 8) return true;
 
+  // ---- department and category index pages ----
+  // "Engineering", "Sales", "Marketing" on their own are section headings on a
+  // careers page, not roles. A real posting says what the person would do.
+  if (/^(engineering|sales|marketing|product|design|operations|finance|legal|people|hr|human resources|support|customer success|data|security|it|technology|corporate|field|maintenance|leasing|construction|accounting|administration|general|other|misc\w*)$/i.test(t)) return true;
+
+  // ---- talent pools, not openings ----
+  // These collect résumés against no specific role. Sending a candidate to one
+  // is worse than not listing it — they apply into a void.
+  if (/\b(general application|talent (pool|network|community|pipeline)|future openings?|speculative|open application|don'?t see|didn'?t see|no(ne)? (of these|that fit)|other opportunit\w*|join (our )?talent|keep me in mind|submit your (resume|cv)|general interest)\b/i.test(t)) return true;
+
+  // ---- noun-first index labels ----
+  // "Job Search", "Career Opportunities", "Position Openings" — the same nav
+  // labels with the words the other way round.
+  if (/^(job|jobs|career|careers|position|positions|role|roles|employment|opening|openings)\s+(search|opportunit\w*|listings?|board|openings?|portal|centre|center|page|home)$/i.test(t)) return true;
+
+  // ---- employment-type placeholders ----
+  if (/^(full[- ]?time|part[- ]?time|contract|temporary|intern(ship)?|seasonal|remote|hybrid|on[- ]?site)$/i.test(t)) return true;
+
+  // ---- an entire sentence is a description, not a title ----
+  // Scraped nav blocks sometimes yield a paragraph. Real titles are short and
+  // rarely contain sentence punctuation.
+  if (t.length > 110) return true;
+  if (/[.!?]\s+[a-z]/i.test(t)) return true;
+
+  return false;
+}
+
+/**
+ * Which adapters return a description at all.
+ *
+ * Workday, DOM and Reffie return a title and a link and nothing else — the
+ * body needs a second request per job, which these do not make. Judging their
+ * postings on description length would delete every Workday company from the
+ * board, which is most of the operators: Progress, Tricon, Greystar, Zillow,
+ * MRI. So the substance check only applies where a description was actually
+ * available and the employer chose not to write one.
+ */
+const DESCRIBES = new Set(['greenhouse', 'lever', 'ashby', 'workable', 'breezy', 'jsonld']);
+
+/**
+ * Is there enough here to be worth publishing?
+ *
+ * A listing with a title and nothing else sends the candidate to a page they
+ * have to decode themselves, and makes the board look thin. Worse, the AI
+ * review has nothing to read, so the candidate gets a meaningless score.
+ *
+ * Requiring substance means fewer roles on the board. That is the right trade:
+ * a smaller board where every posting is useful beats a bigger one padded with
+ * stubs.
+ */
+function isThin(job) {
+  const desc = String(job.description || '').trim();
+  const words = desc ? desc.split(/\s+/).length : 0;
+
+  // No description at all, or a fragment. 40 words is roughly two sentences —
+  // below that there is nothing for a candidate or the reviewer to work with.
+  if (words < 40) return true;
+
+  // A description that is only boilerplate: equal-opportunity text, benefits
+  // blurb, or a company "about us" with nothing about the role.
+  const roleWords = /\b(you will|you'll|responsibilit\w+|duties|requirements?|qualifications?|experience|skills?|role|position|reporting|day[- ]to[- ]day|what you|we are looking|ideal candidate|must have)\b/i;
+  if (!roleWords.test(desc)) return true;
+
   return false;
 }
 
@@ -674,10 +737,27 @@ async function scrapeOne(company) {
     const raw2 = company.linkOverride
       ? raw.map((j) => ({ ...j, url: company.linkOverride }))
       : raw;
-    const usable = raw2.filter((j) => j && j.title && j.sourceId);
-    const inUS = usable.filter((j) => isUS(j.location, j.title));
-    const dropped = usable.length - inUS.length;
-    return { company, ok: true, jobs: inUS.map((j) => normalise(j, company)), dropped };
+    // Every adapter passes through the same gate, rather than each one
+    // filtering differently — the DOM adapter checked titles and the API ones
+    // did not, so junk got through depending on the source.
+    const present = raw2.filter((j) => j && j.title && j.sourceId);
+    const named   = present.filter((j) => !isNotAJob(j.title));
+    const inUS    = named.filter((j) => isUS(j.location, j.title));
+    // Only enforce substance where the adapter could supply it.
+    const canJudge = DESCRIBES.has(company.method);
+    const solid   = canJudge ? inUS.filter((j) => !isThin(j)) : inUS;
+
+    return {
+      company, ok: true,
+      jobs: solid.map((j) => normalise(j, company)),
+      dropped: inUS.length - solid.length + (named.length - inUS.length),
+      junk: present.length - named.length,
+      thin: inUS.length - solid.length,
+      outsideUS: named.length - inUS.length,
+      // Flagged so the log can say these went out without detail, rather than
+      // implying they passed a check that never ran.
+      undescribed: canJudge ? 0 : solid.length,
+    };
   } catch (err) {
     return { company, ok: false, reason: err.message, jobs: [] };
   }
@@ -711,9 +791,17 @@ for (let i = 0; i < ready.length; i += CONCURRENCY) {
   const batch = await Promise.all(ready.slice(i, i + CONCURRENCY).map(scrapeOne));
   for (const r of batch) {
     const label = r.company.name.padEnd(30).slice(0, 30);
+    // Name each reason separately. "12 dropped" hides whether a company is
+    // posting junk, hiring abroad, or writing stubs — and those need different
+    // fixes.
+    const why = [];
+    if (r.junk)      why.push(`${r.junk} not a job`);
+    if (r.outsideUS) why.push(`${r.outsideUS} outside the US`);
+    if (r.thin)      why.push(`${r.thin} too thin`);
+
     console.log(r.ok
       ? `  ok    ${label} ${r.jobs.length} role${r.jobs.length === 1 ? '' : 's'}` +
-        (r.dropped ? `  (${r.dropped} outside the US)` : '')
+        (why.length ? `  (${why.join(', ')})` : '')
       : `  FAIL  ${label} ${r.reason}`);
   }
   results.push(...batch);
@@ -749,9 +837,28 @@ const fromFailed = carried.length - outOfScope;
 const all = [...fresh, ...carried];
 
 console.log('\n' + '-'.repeat(60));
-const droppedTotal = okResults.reduce((n, r) => n + (r.dropped || 0), 0);
+const sum = (k) => okResults.reduce((n, r) => n + (r[k] || 0), 0);
 console.log(`scraped   ${fresh.length} roles from ${okResults.length} sources`);
-if (droppedTotal) console.log(`filtered  ${droppedTotal} roles outside the US`);
+if (sum('junk'))      console.log(`filtered  ${sum('junk')} entries that were not job postings`);
+if (sum('outsideUS')) console.log(`filtered  ${sum('outsideUS')} roles outside the US`);
+if (sum('thin'))      console.log(`filtered  ${sum('thin')} roles with too little detail to publish`);
+
+const undescribed = okResults.filter((r) => r.undescribed > 0);
+if (undescribed.length) {
+  console.log('');
+  console.log(`${sum('undescribed')} roles published without a description ` +
+    `(${[...new Set(undescribed.map((r) => r.company.method))].join(', ')} return titles only):`);
+  undescribed.forEach((r) => console.log(`  ${r.company.name.padEnd(30)} ${r.undescribed}`));
+}
+
+// A company that scraped fine but published nothing is easy to miss and worth
+// knowing about — usually a board of stubs, or a talent pool rather than roles.
+const emptied = okResults.filter((r) => r.jobs.length === 0 && (r.junk || r.thin));
+if (emptied.length) {
+  console.log('');
+  console.log(`${emptied.length} compan${emptied.length === 1 ? 'y' : 'ies'} scraped but published nothing:`);
+  emptied.forEach((r) => console.log(`  ${r.company.name.padEnd(30)} ${r.thin ? r.thin + ' too thin' : ''}${r.junk ? (r.thin ? ', ' : '') + r.junk + ' not jobs' : ''}`));
+}
 if (fromFailed) console.log(`carried   ${fromFailed} roles from ${failed.length} failed source(s)`);
 if (outOfScope) console.log(`kept      ${outOfScope} roles from companies not in this run`);
 if (pending.length) console.log(`skipped   ${pending.length} companies with no method — run scripts/detect-ats.js`);
