@@ -421,9 +421,12 @@ function isThin(job) {
   const desc = String(job.description || '').trim();
   const words = desc ? desc.split(/\s+/).length : 0;
 
-  // No description at all, or a fragment. 40 words is roughly two sentences —
-  // below that there is nothing for a candidate or the reviewer to work with.
-  if (words < 40) return true;
+  // No description at all, or a fragment. The bar is deliberately low: real
+  // trade and field postings are often terse — a 35-word maintenance role with
+  // requirements in it is a legitimate listing, and an earlier 40-word
+  // threshold deleted exactly that. Boilerplate is caught by the role-language
+  // check below regardless of length, which does the real work here.
+  if (words < 25) return true;
 
   // A description that is only boilerplate: equal-opportunity text, benefits
   // blurb, or a company "about us" with nothing about the role.
@@ -829,7 +832,23 @@ const fresh = okResults.flatMap((r) => r.jobs);
 // In short: a scrape updates the companies it covered and leaves the rest alone.
 const scrapedIds = new Set(okResults.map((r) => r.company.id));
 const previous = await loadPrevious(OUT);
-const carried = previous.filter((j) => !scrapedIds.has(j.company_id));
+const carriedRaw = previous.filter((j) => !scrapedIds.has(j.company_id));
+
+// Carried-over roles were written by an older, looser version of these filters,
+// so they have to pass the current ones too. Without this, junk scraped once
+// survives every future run: it is never re-scraped, so it is never re-judged.
+//
+// The substance check is applied only where the source could supply a
+// description, matching the live rule — otherwise every carried Workday role
+// would be deleted on the first run after this change.
+const carried = carriedRaw.filter((j) => {
+  if (isNotAJob(j.title)) return false;
+  if (!isUS(j.location, j.title)) return false;
+  if (DESCRIBES.has(j.source) && isThin({ description: j.description })) return false;
+  return true;
+});
+
+const purged = carriedRaw.length - carried.length;
 
 const outOfScope = carried.filter((j) => !failedIds0.has(j.company_id)).length;
 const fromFailed = carried.length - outOfScope;
@@ -842,6 +861,7 @@ console.log(`scraped   ${fresh.length} roles from ${okResults.length} sources`);
 if (sum('junk'))      console.log(`filtered  ${sum('junk')} entries that were not job postings`);
 if (sum('outsideUS')) console.log(`filtered  ${sum('outsideUS')} roles outside the US`);
 if (sum('thin'))      console.log(`filtered  ${sum('thin')} roles with too little detail to publish`);
+if (purged)           console.log(`purged    ${purged} previously-published roles that no longer pass the filters`);
 
 const undescribed = okResults.filter((r) => r.undescribed > 0);
 if (undescribed.length) {
