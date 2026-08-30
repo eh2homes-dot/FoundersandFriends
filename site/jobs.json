@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T12:55:53.156Z",
+  "generated_at": "2026-08-30T12:30:50.774Z",
   "count": 476,
   "sources_ok": 31,
   "sources_failed": 7,
@@ -23,7 +23,7 @@
       "apply_url": "https://careers.invitationhomes.com/superintendent-preferred-in-riverview-or-ruskin-area/job/P1-6616502-0",
       "source": "jsonld",
       "posted_at": "2026-08-28T22:32:05.830859+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.432Z",
       "status": "open"
     },
     {
@@ -45,7 +45,7 @@
       "apply_url": "https://jobs.lever.co/lessen/02b289b0-9af2-4bdf-833c-2538e704ef36",
       "source": "lever",
       "posted_at": "2026-08-28T21:21:39.809Z",
-      "scraped_at": "2026-08-29T12:55:26.691Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -67,7 +67,7 @@
       "apply_url": "https://careers.invitationhomes.com/customer-service-representative-field-services/job/P1-6470692-0",
       "source": "jsonld",
       "posted_at": "2026-08-28T17:32:03.267405+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -89,7 +89,7 @@
       "apply_url": "https://careers.invitationhomes.com/customer-service-representative-field-services/job/P1-6614008-0",
       "source": "jsonld",
       "posted_at": "2026-08-28T17:32:02.941200+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -111,7 +111,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8580894002",
       "source": "greenhouse",
       "posted_at": "2026-08-28T15:32:27-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -133,7 +133,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5223846007",
       "source": "greenhouse",
       "posted_at": "2026-08-28T14:14:27-04:00",
-      "scraped_at": "2026-08-29T12:55:47.852Z",
+      "scraped_at": "2026-08-30T12:30:45.792Z",
       "status": "open"
     },
     {
@@ -155,7 +155,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5210482007",
       "source": "greenhouse",
       "posted_at": "2026-08-27T23:54:31-04:00",
-      "scraped_at": "2026-08-29T12:55:47.851Z",
+      "scraped_at": "2026-08-30T12:30:45.792Z",
       "status": "open"
     },
     {
@@ -177,7 +177,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-1500-sign-on-bonus/job/P1-6284419-0",
       "source": "jsonld",
       "posted_at": "2026-08-27T17:32:01.697024+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -199,7 +199,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8633751002",
       "source": "greenhouse",
       "posted_at": "2026-08-27T12:33:51-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -221,7 +221,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/6144675004",
       "source": "greenhouse",
       "posted_at": "2026-08-27T12:05:58-04:00",
-      "scraped_at": "2026-08-29T12:55:45.323Z",
+      "scraped_at": "2026-08-30T12:30:42.956Z",
       "status": "open"
     },
     {
@@ -243,7 +243,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8737854002",
       "source": "greenhouse",
       "posted_at": "2026-08-27T11:41:18-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -265,7 +265,7 @@
       "apply_url": "https://careers.invitationhomes.com/customer-service-representative-field-services/job/P1-6600133-0",
       "source": "jsonld",
       "posted_at": "2026-08-27T01:31:04.465040+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -287,7 +287,7 @@
       "apply_url": "https://careers.invitationhomes.com/leasing-specialist/job/P1-6600132-0",
       "source": "jsonld",
       "posted_at": "2026-08-27T01:31:04.458948+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -309,7 +309,7 @@
       "apply_url": "https://jobs.lever.co/lessen/5b94b058-51e8-4b5a-b120-0d08c1db3066",
       "source": "lever",
       "posted_at": "2026-08-26T17:27:47.219Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -331,7 +331,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7843865",
       "source": "greenhouse",
       "posted_at": "2026-08-26T15:23:59-04:00",
-      "scraped_at": "2026-08-29T12:55:45.792Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -353,7 +353,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5222721007",
       "source": "greenhouse",
       "posted_at": "2026-08-26T13:34:31-04:00",
-      "scraped_at": "2026-08-29T12:55:47.852Z",
+      "scraped_at": "2026-08-30T12:30:45.792Z",
       "status": "open"
     },
     {
@@ -375,7 +375,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5091055007",
       "source": "greenhouse",
       "posted_at": "2026-08-26T13:20:33-04:00",
-      "scraped_at": "2026-08-29T12:55:47.851Z",
+      "scraped_at": "2026-08-30T12:30:45.792Z",
       "status": "open"
     },
     {
@@ -397,7 +397,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8550531002",
       "source": "greenhouse",
       "posted_at": "2026-08-26T13:03:20-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -419,7 +419,7 @@
       "apply_url": "https://careers.invitationhomes.com/assistant-portfolio-manager/job/P1-6589877-0",
       "source": "jsonld",
       "posted_at": "2026-08-25T22:32:02.236626+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -441,7 +441,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/30798d80-7661-4ad4-8c0a-1245b119b317",
       "source": "ashby",
       "posted_at": "2026-08-25T21:26:25.519+00:00",
-      "scraped_at": "2026-08-29T12:55:48.698Z",
+      "scraped_at": "2026-08-30T12:30:46.985Z",
       "status": "open"
     },
     {
@@ -463,7 +463,7 @@
       "apply_url": "https://careers.invitationhomes.com/accountant-property-accounting/job/P1-6284405-0",
       "source": "jsonld",
       "posted_at": "2026-08-25T17:32:02.566005+00:00",
-      "scraped_at": "2026-08-29T12:55:44.887Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -485,7 +485,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-lawrenceville-area-preferred-1500-sign-on-bonus/job/P1-6284920-0",
       "source": "jsonld",
       "posted_at": "2026-08-25T17:32:02.559370+00:00",
-      "scraped_at": "2026-08-29T12:55:44.889Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -507,7 +507,7 @@
       "apply_url": "https://careers.invitationhomes.com/hoa-customer-service-representative/job/P1-6323439-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T22:32:10.232722+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -529,7 +529,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-future-opportunities/job/P1-6284923-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T22:32:10.095200+00:00",
-      "scraped_at": "2026-08-29T12:55:44.887Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -551,7 +551,7 @@
       "apply_url": "https://jobs.lever.co/lessen/a76b0ce8-4cdd-4c71-98d6-f4f37c8afc63",
       "source": "lever",
       "posted_at": "2026-08-24T22:00:32.039Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -573,7 +573,7 @@
       "apply_url": "https://jobs.lever.co/lessen/cdc96d58-8f5e-4d7c-9c26-303bc020ef16",
       "source": "lever",
       "posted_at": "2026-08-24T21:57:02.576Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -595,7 +595,7 @@
       "apply_url": "https://jobs.lever.co/entrata/e7f89f5f-a441-4358-b7cc-b1543ac12990",
       "source": "lever",
       "posted_at": "2026-08-24T20:14:06.473Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -617,7 +617,7 @@
       "apply_url": "https://careers.invitationhomes.com/superintendent/job/P1-6559169-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.449520+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -639,7 +639,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii/job/P1-6559168-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.440175+00:00",
-      "scraped_at": "2026-08-29T12:55:44.884Z",
+      "scraped_at": "2026-08-30T12:30:42.432Z",
       "status": "open"
     },
     {
@@ -661,7 +661,7 @@
       "apply_url": "https://careers.invitationhomes.com/leasing-specialist/job/P1-6492896-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.432866+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -683,7 +683,7 @@
       "apply_url": "https://careers.invitationhomes.com/renewal-specialist/job/P1-6466026-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.422951+00:00",
-      "scraped_at": "2026-08-29T12:55:44.889Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -705,7 +705,7 @@
       "apply_url": "https://careers.invitationhomes.com/national-program-manager-renewals/job/P1-6448842-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.403797+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -727,7 +727,7 @@
       "apply_url": "https://careers.invitationhomes.com/analyst-sec-reporting/job/P1-6434195-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.392693+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -749,7 +749,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii/job/P1-6393218-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.382150+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -771,7 +771,7 @@
       "apply_url": "https://careers.invitationhomes.com/renewal-specialist/job/P1-6388989-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.369090+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -793,7 +793,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii/job/P1-6387218-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.359833+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -815,7 +815,7 @@
       "apply_url": "https://careers.invitationhomes.com/manager-fund-accounting/job/P1-6377666-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.340679+00:00",
-      "scraped_at": "2026-08-29T12:55:44.887Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -837,7 +837,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-corona-lake-elsinore-or-temecula-area-preferred/job/P1-6361736-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.332471+00:00",
-      "scraped_at": "2026-08-29T12:55:44.887Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -859,7 +859,7 @@
       "apply_url": "https://careers.invitationhomes.com/superintendent/job/P1-6353697-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.319953+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -881,7 +881,7 @@
       "apply_url": "https://careers.invitationhomes.com/assistant-portfolio-manager/job/P1-6331703-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.303640+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -903,7 +903,7 @@
       "apply_url": "https://careers.invitationhomes.com/customer-service-representative-field-services/job/P1-6331702-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.296173+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -925,7 +925,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii/job/P1-6329135-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.287743+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -947,7 +947,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician/job/P1-6323438-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.269552+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -969,7 +969,7 @@
       "apply_url": "https://careers.invitationhomes.com/customer-service-representative-field-services/job/P1-6311803-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.248343+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -991,7 +991,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-preferred-in-king-county-1500-sign-on-bonus/job/P1-6284924-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.222311+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -1013,7 +1013,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-future-opportunities/job/P1-6307966-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.212698+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1035,7 +1035,7 @@
       "apply_url": "https://careers.invitationhomes.com/resident-recovery-specialist/job/P1-6302463-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.204347+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1057,7 +1057,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii/job/P1-6284393-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.196603+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1079,7 +1079,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-1500-sign-on-bonus/job/P1-6284382-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.184122+00:00",
-      "scraped_at": "2026-08-29T12:55:44.887Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -1101,7 +1101,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-1500-sign-on-bonus/job/P1-6284378-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.174747+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1123,7 +1123,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii/job/P1-6284912-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.152929+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -1145,7 +1145,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-preferred-in-land-o-lake-parrish-palmetto/job/P1-6284427-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.143439+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -1167,7 +1167,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-preferred-in-wesley-chapel-lutz-are/job/P1-6284380-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.135399+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -1189,7 +1189,7 @@
       "apply_url": "https://careers.invitationhomes.com/superintendent/job/P1-6284396-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.126095+00:00",
-      "scraped_at": "2026-08-29T12:55:44.887Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -1211,7 +1211,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-future-opportunities/job/P1-6284415-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.113542+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1233,7 +1233,7 @@
       "apply_url": "https://careers.invitationhomes.com/analyst-asset-management/job/P1-6284394-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.096112+00:00",
-      "scraped_at": "2026-08-29T12:55:44.889Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -1255,7 +1255,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii/job/P1-6284379-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.077649+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1277,7 +1277,7 @@
       "apply_url": "https://careers.invitationhomes.com/senior-accountant-fund-accounting/job/P1-6284409-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.066198+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1299,7 +1299,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-future-opportunities/job/P1-6284422-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.047297+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -1321,7 +1321,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-future-opportunities/job/P1-6284438-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.037681+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -1343,7 +1343,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-future-opportunities/job/P1-6284432-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.027925+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -1365,7 +1365,7 @@
       "apply_url": "https://careers.invitationhomes.com/director-operations-las-vegas-denver/job/P1-6284426-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:03.016086+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -1387,7 +1387,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-preferred-in-buda-san-marcos-or-round-rock-area/job/P1-6284401-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:02.996884+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -1409,7 +1409,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-future-opportunities/job/P1-6284437-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:02.987403+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1431,7 +1431,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-1500-sign-on-bonus/job/P1-6284398-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:02.977784+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -1453,7 +1453,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii/job/P1-6284910-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:02.750260+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.436Z",
       "status": "open"
     },
     {
@@ -1475,7 +1475,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-harrisburg-area-preferred/job/P1-6284386-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:02.743688+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -1497,7 +1497,7 @@
       "apply_url": "https://careers.invitationhomes.com/manager-rehab-turn/job/P1-6284388-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:02.735988+00:00",
-      "scraped_at": "2026-08-29T12:55:44.885Z",
+      "scraped_at": "2026-08-30T12:30:42.433Z",
       "status": "open"
     },
     {
@@ -1519,7 +1519,7 @@
       "apply_url": "https://careers.invitationhomes.com/maintenance-technician-ii-preferred-in-tarrant-county-area/job/P1-6284389-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:02.691087+00:00",
-      "scraped_at": "2026-08-29T12:55:44.884Z",
+      "scraped_at": "2026-08-30T12:30:42.432Z",
       "status": "open"
     },
     {
@@ -1541,7 +1541,7 @@
       "apply_url": "https://careers.invitationhomes.com/national-program-manager-rehab-turn-and-maintenance/job/P1-6284384-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:02.680610+00:00",
-      "scraped_at": "2026-08-29T12:55:44.888Z",
+      "scraped_at": "2026-08-30T12:30:42.435Z",
       "status": "open"
     },
     {
@@ -1563,7 +1563,7 @@
       "apply_url": "https://careers.invitationhomes.com/superintendent/job/P1-6348766-0",
       "source": "jsonld",
       "posted_at": "2026-08-24T19:22:01.759402+00:00",
-      "scraped_at": "2026-08-29T12:55:44.886Z",
+      "scraped_at": "2026-08-30T12:30:42.434Z",
       "status": "open"
     },
     {
@@ -1585,7 +1585,7 @@
       "apply_url": "https://jobs.lever.co/lessen/7db2faf5-83aa-4b32-9c26-253de20aec63",
       "source": "lever",
       "posted_at": "2026-08-24T15:08:33.887Z",
-      "scraped_at": "2026-08-29T12:55:26.691Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -1607,7 +1607,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8079969",
       "source": "greenhouse",
       "posted_at": "2026-08-24T11:53:20-04:00",
-      "scraped_at": "2026-08-29T12:55:45.792Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -1629,7 +1629,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8079940",
       "source": "greenhouse",
       "posted_at": "2026-08-24T11:53:17-04:00",
-      "scraped_at": "2026-08-29T12:55:45.792Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -1651,7 +1651,7 @@
       "apply_url": "https://jobs.lever.co/lessen/0ed9436f-88fe-412b-8f62-1283b2ed5140",
       "source": "lever",
       "posted_at": "2026-08-21T17:29:06.595Z",
-      "scraped_at": "2026-08-29T12:55:26.691Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -1695,7 +1695,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8558888002",
       "source": "greenhouse",
       "posted_at": "2026-08-21T15:02:20-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -1717,7 +1717,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8698299002",
       "source": "greenhouse",
       "posted_at": "2026-08-20T14:06:31-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -1739,7 +1739,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4719723005",
       "source": "greenhouse",
       "posted_at": "2026-08-20T12:24:09-04:00",
-      "scraped_at": "2026-08-29T12:55:45.305Z",
+      "scraped_at": "2026-08-30T12:30:42.963Z",
       "status": "open"
     },
     {
@@ -2113,7 +2113,7 @@
       "apply_url": "https://job-boards.greenhouse.io/obligo/jobs/5791025004",
       "source": "greenhouse",
       "posted_at": "2026-08-18T01:00:30-04:00",
-      "scraped_at": "2026-08-29T12:55:46.633Z",
+      "scraped_at": "2026-08-30T12:30:44.377Z",
       "status": "open"
     },
     {
@@ -2135,7 +2135,7 @@
       "apply_url": "https://jobs.lever.co/lessen/9083bf68-5dff-46ae-ba9a-513f19fd6515",
       "source": "lever",
       "posted_at": "2026-08-17T16:15:24.575Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -2157,7 +2157,7 @@
       "apply_url": "https://jobs.lever.co/entrata/52176cdb-5728-45af-871d-4a76b4de59b1",
       "source": "lever",
       "posted_at": "2026-08-17T16:10:13.985Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -2179,7 +2179,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4394616006",
       "source": "greenhouse",
       "posted_at": "2026-08-17T13:04:39-04:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -2201,7 +2201,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8719845002",
       "source": "greenhouse",
       "posted_at": "2026-08-16T16:32:23-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -2223,7 +2223,7 @@
       "apply_url": "https://job-boards.greenhouse.io/lineagehq/jobs/4340553009",
       "source": "greenhouse",
       "posted_at": "2026-08-15T13:36:06-04:00",
-      "scraped_at": "2026-08-29T12:55:27.149Z",
+      "scraped_at": "2026-08-30T12:30:23.765Z",
       "status": "open"
     },
     {
@@ -2267,7 +2267,7 @@
       "apply_url": "https://jobs.lever.co/lessen/b94c31f8-4af8-4491-82ee-a25f613e2890",
       "source": "lever",
       "posted_at": "2026-08-14T18:21:03.331Z",
-      "scraped_at": "2026-08-29T12:55:26.691Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -2289,7 +2289,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/4097174004",
       "source": "greenhouse",
       "posted_at": "2026-08-13T15:02:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.324Z",
+      "scraped_at": "2026-08-30T12:30:42.956Z",
       "status": "open"
     },
     {
@@ -2311,7 +2311,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/ba56521e-737f-41b7-abac-58988769c2ee",
       "source": "ashby",
       "posted_at": "2026-08-12T21:40:00.533+00:00",
-      "scraped_at": "2026-08-29T12:55:48.697Z",
+      "scraped_at": "2026-08-30T12:30:46.985Z",
       "status": "open"
     },
     {
@@ -2333,7 +2333,7 @@
       "apply_url": "https://jobs.lever.co/lessen/faa9b3dc-e582-4b8d-aca7-1cebac638bb9",
       "source": "lever",
       "posted_at": "2026-08-12T19:00:59.765Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -2355,7 +2355,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4701392006",
       "source": "greenhouse",
       "posted_at": "2026-08-12T11:02:11-04:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -2377,7 +2377,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/6140322004",
       "source": "greenhouse",
       "posted_at": "2026-08-10T17:32:53-04:00",
-      "scraped_at": "2026-08-29T12:55:45.324Z",
+      "scraped_at": "2026-08-30T12:30:42.956Z",
       "status": "open"
     },
     {
@@ -2399,7 +2399,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8625411002",
       "source": "greenhouse",
       "posted_at": "2026-08-10T11:02:13-04:00",
-      "scraped_at": "2026-08-29T12:55:47.272Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -2421,7 +2421,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8645681002",
       "source": "greenhouse",
       "posted_at": "2026-08-09T00:01:56-04:00",
-      "scraped_at": "2026-08-29T12:55:45.320Z",
+      "scraped_at": "2026-08-30T12:30:42.906Z",
       "status": "open"
     },
     {
@@ -2443,7 +2443,7 @@
       "apply_url": "https://jobs.lever.co/lessen/1697fd72-a65d-4860-856a-04f97b249d43",
       "source": "lever",
       "posted_at": "2026-08-07T15:38:04.075Z",
-      "scraped_at": "2026-08-29T12:55:26.691Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -2465,7 +2465,7 @@
       "apply_url": "https://jobs.lever.co/lessen/95ef72db-e19a-4837-907f-64ffb3e10a25",
       "source": "lever",
       "posted_at": "2026-08-06T22:21:56.655Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -2487,7 +2487,7 @@
       "apply_url": "https://jobs.lever.co/lessen/8c8686ed-dd48-438b-a5f5-253f579b9b9d",
       "source": "lever",
       "posted_at": "2026-08-06T19:25:56.288Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -2509,7 +2509,7 @@
       "apply_url": "https://jobs.lever.co/entrata/244e6927-2772-4fa6-8a1f-e053d0ea9810",
       "source": "lever",
       "posted_at": "2026-08-06T15:53:56.357Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -2531,7 +2531,7 @@
       "apply_url": "https://jobs.lever.co/lessen/5fb4ee65-6404-45e2-9664-acbe4e904d51",
       "source": "lever",
       "posted_at": "2026-08-05T23:32:36.008Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -2553,7 +2553,7 @@
       "apply_url": "https://jobs.lever.co/lessen/3f81dd73-db0a-4f18-8375-2f141d41fb5d",
       "source": "lever",
       "posted_at": "2026-08-05T23:10:10.727Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -2575,7 +2575,7 @@
       "apply_url": "https://job-boards.greenhouse.io/turbotenant/jobs/5088318007",
       "source": "greenhouse",
       "posted_at": "2026-08-05T16:49:00-04:00",
-      "scraped_at": "2026-08-29T12:55:47.850Z",
+      "scraped_at": "2026-08-30T12:30:45.792Z",
       "status": "open"
     },
     {
@@ -2597,7 +2597,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4673704006",
       "source": "greenhouse",
       "posted_at": "2026-08-04T17:23:20-04:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -2619,7 +2619,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/8f23e4ba-54fc-43ce-8744-8629a09f93ae",
       "source": "ashby",
       "posted_at": "2026-08-03T17:23:11.018+00:00",
-      "scraped_at": "2026-08-29T12:55:48.696Z",
+      "scraped_at": "2026-08-30T12:30:46.710Z",
       "status": "open"
     },
     {
@@ -2641,7 +2641,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/2b92ffd7-dd45-45db-8def-8b13d0281c36",
       "source": "ashby",
       "posted_at": "2026-08-02T20:08:13.992+00:00",
-      "scraped_at": "2026-08-29T12:55:48.697Z",
+      "scraped_at": "2026-08-30T12:30:46.985Z",
       "status": "open"
     },
     {
@@ -2683,7 +2683,7 @@
       "apply_url": "https://jobs.lever.co/lessen/f8e967a1-ba52-4411-a6d5-c10c220d07db",
       "source": "lever",
       "posted_at": "2026-07-28T14:08:30.380Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -2705,7 +2705,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/8008777",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:11-04:00",
-      "scraped_at": "2026-08-29T12:55:45.793Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -2727,7 +2727,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904090",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.792Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -2749,7 +2749,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7871429",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.792Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -2771,7 +2771,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904083",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.792Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -2793,7 +2793,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7877826",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.792Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -2815,7 +2815,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904086",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.793Z",
+      "scraped_at": "2026-08-30T12:30:43.483Z",
       "status": "open"
     },
     {
@@ -2837,7 +2837,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7904058",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.793Z",
+      "scraped_at": "2026-08-30T12:30:43.484Z",
       "status": "open"
     },
     {
@@ -2859,7 +2859,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7877827",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.793Z",
+      "scraped_at": "2026-08-30T12:30:43.484Z",
       "status": "open"
     },
     {
@@ -2881,7 +2881,7 @@
       "apply_url": "https://job-boards.greenhouse.io/homelight/jobs/7871753",
       "source": "greenhouse",
       "posted_at": "2026-07-28T01:03:10-04:00",
-      "scraped_at": "2026-08-29T12:55:45.793Z",
+      "scraped_at": "2026-08-30T12:30:43.484Z",
       "status": "open"
     },
     {
@@ -2903,7 +2903,7 @@
       "apply_url": "https://jobs.lever.co/entrata/b5f583d7-97ad-4526-bf5f-640449cf1c04",
       "source": "lever",
       "posted_at": "2026-07-27T20:11:11.397Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -2925,7 +2925,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/3b0edd68-0360-4923-8c4a-6ce2a451af93",
       "source": "ashby",
       "posted_at": "2026-07-27T18:52:52.798+00:00",
-      "scraped_at": "2026-08-29T12:55:48.697Z",
+      "scraped_at": "2026-08-30T12:30:46.985Z",
       "status": "open"
     },
     {
@@ -2947,7 +2947,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8649613002",
       "source": "greenhouse",
       "posted_at": "2026-07-24T16:04:03-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -2969,7 +2969,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8644888002",
       "source": "greenhouse",
       "posted_at": "2026-07-22T10:18:20-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -2991,7 +2991,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/7bcc5b24-5b17-4297-839f-e849b9a90c97",
       "source": "ashby",
       "posted_at": "2026-07-16T21:20:07.640+00:00",
-      "scraped_at": "2026-08-29T12:55:48.697Z",
+      "scraped_at": "2026-08-30T12:30:46.985Z",
       "status": "open"
     },
     {
@@ -3013,7 +3013,7 @@
       "apply_url": "https://jobs.lever.co/findigs/37c51018-9413-49a5-98e3-b3ba92b6db47",
       "source": "lever",
       "posted_at": "2026-07-13T22:32:18.152Z",
-      "scraped_at": "2026-08-29T12:55:26.375Z",
+      "scraped_at": "2026-08-30T12:30:22.728Z",
       "status": "open"
     },
     {
@@ -3035,7 +3035,7 @@
       "apply_url": "https://job-boards.greenhouse.io/pacaso/jobs/5679921004",
       "source": "greenhouse",
       "posted_at": "2026-07-13T18:15:31-04:00",
-      "scraped_at": "2026-08-29T12:55:45.324Z",
+      "scraped_at": "2026-08-30T12:30:42.956Z",
       "status": "open"
     },
     {
@@ -3057,7 +3057,7 @@
       "apply_url": "https://jobs.lever.co/lessen/bafee131-c6f5-4182-b121-5c00e02145d9",
       "source": "lever",
       "posted_at": "2026-07-13T16:33:36.351Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -3079,7 +3079,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612815002",
       "source": "greenhouse",
       "posted_at": "2026-07-08T20:32:55-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -3101,7 +3101,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8494488002",
       "source": "greenhouse",
       "posted_at": "2026-07-08T15:03:47-04:00",
-      "scraped_at": "2026-08-29T12:55:45.320Z",
+      "scraped_at": "2026-08-30T12:30:42.906Z",
       "status": "open"
     },
     {
@@ -3123,7 +3123,7 @@
       "apply_url": "https://jobs.lever.co/lessen/537aa55a-dcf6-41bc-9634-c123f9981df2",
       "source": "lever",
       "posted_at": "2026-07-06T13:49:48.325Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -3145,7 +3145,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/e50bf1d6-365f-4d22-aa60-a9d7ae1985dc",
       "source": "ashby",
       "posted_at": "2026-07-06T01:21:33.827+00:00",
-      "scraped_at": "2026-08-29T12:55:48.697Z",
+      "scraped_at": "2026-08-30T12:30:46.985Z",
       "status": "open"
     },
     {
@@ -3167,7 +3167,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8620251002",
       "source": "greenhouse",
       "posted_at": "2026-07-03T22:45:43-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -3189,7 +3189,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612777002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:11:14-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -3211,7 +3211,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612775002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:10:43-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -3233,7 +3233,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8612773002",
       "source": "greenhouse",
       "posted_at": "2026-06-29T17:10:07-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -3255,7 +3255,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8590605002",
       "source": "greenhouse",
       "posted_at": "2026-06-23T18:29:04-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -3277,7 +3277,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/cfa86cf6-0181-4108-b835-9f27bdc55c83",
       "source": "ashby",
       "posted_at": "2026-06-23T14:27:12.269+00:00",
-      "scraped_at": "2026-08-29T12:55:48.697Z",
+      "scraped_at": "2026-08-30T12:30:46.984Z",
       "status": "open"
     },
     {
@@ -3299,7 +3299,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8604291002",
       "source": "greenhouse",
       "posted_at": "2026-06-23T12:03:43-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.906Z",
       "status": "open"
     },
     {
@@ -3321,7 +3321,7 @@
       "apply_url": "https://jobs.lever.co/lessen/6e5dd77c-98d6-4ca0-a6be-b0089f7bead1",
       "source": "lever",
       "posted_at": "2026-06-22T23:43:58.305Z",
-      "scraped_at": "2026-08-29T12:55:26.691Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -3343,7 +3343,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4708324005",
       "source": "greenhouse",
       "posted_at": "2026-06-22T17:24:26-04:00",
-      "scraped_at": "2026-08-29T12:55:45.305Z",
+      "scraped_at": "2026-08-30T12:30:42.963Z",
       "status": "open"
     },
     {
@@ -3365,7 +3365,7 @@
       "apply_url": "https://jobs.lever.co/lessen/fe19f06a-758c-450e-b6fb-0a2a298adaef",
       "source": "lever",
       "posted_at": "2026-06-18T21:15:08.332Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -3387,7 +3387,7 @@
       "apply_url": "https://jobs.lever.co/findigs/06d85f44-d124-486c-ac2f-782841cf6c2c",
       "source": "lever",
       "posted_at": "2026-06-18T15:48:24.211Z",
-      "scraped_at": "2026-08-29T12:55:26.375Z",
+      "scraped_at": "2026-08-30T12:30:22.728Z",
       "status": "open"
     },
     {
@@ -3409,7 +3409,7 @@
       "apply_url": "https://jobs.lever.co/findigs/24ac89b0-8090-48a5-8501-666cb566d736",
       "source": "lever",
       "posted_at": "2026-06-18T14:07:00.780Z",
-      "scraped_at": "2026-08-29T12:55:26.375Z",
+      "scraped_at": "2026-08-30T12:30:22.728Z",
       "status": "open"
     },
     {
@@ -3431,7 +3431,7 @@
       "apply_url": "https://jobs.lever.co/findigs/00ccaf9d-9ede-4e79-b621-919825e8748b",
       "source": "lever",
       "posted_at": "2026-06-18T13:52:38.726Z",
-      "scraped_at": "2026-08-29T12:55:26.376Z",
+      "scraped_at": "2026-08-30T12:30:22.729Z",
       "status": "open"
     },
     {
@@ -3453,7 +3453,7 @@
       "apply_url": "https://jobs.ashbyhq.com/second-nature/f2b9fc39-7d04-47b1-9e07-55bf99e66fd6",
       "source": "ashby",
       "posted_at": "2026-06-17T15:28:53.550+00:00",
-      "scraped_at": "2026-08-29T12:55:48.697Z",
+      "scraped_at": "2026-08-30T12:30:46.710Z",
       "status": "open"
     },
     {
@@ -3475,7 +3475,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8579230002",
       "source": "greenhouse",
       "posted_at": "2026-06-12T14:00:34-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -3497,7 +3497,7 @@
       "apply_url": "https://jobs.lever.co/lessen/586de762-952b-42cf-9375-b0c30a709296",
       "source": "lever",
       "posted_at": "2026-06-11T16:22:54.743Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -3519,7 +3519,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8586040002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T12:21:34-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -3541,7 +3541,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8536000002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-29T12:55:47.272Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3563,7 +3563,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8536016002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-29T12:55:47.272Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3585,7 +3585,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478075002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:58-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3607,7 +3607,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478011002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.272Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3629,7 +3629,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478015002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.272Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3651,7 +3651,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478096002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.272Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3673,7 +3673,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8477160002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3695,7 +3695,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8478010002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3717,7 +3717,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7675303002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.105Z",
       "status": "open"
     },
     {
@@ -3739,7 +3739,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7018933002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3761,7 +3761,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7016479002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3783,7 +3783,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8382200002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3805,7 +3805,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7018970002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3827,7 +3827,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019004002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3849,7 +3849,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019066002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3871,7 +3871,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7019077002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3893,7 +3893,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7703930002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3915,7 +3915,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/7704097002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3937,7 +3937,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8284279002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3959,7 +3959,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8285372002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -3981,7 +3981,7 @@
       "apply_url": "https://job-boards.greenhouse.io/orchard/jobs/8382201002",
       "source": "greenhouse",
       "posted_at": "2026-06-10T10:11:57-04:00",
-      "scraped_at": "2026-08-29T12:55:47.273Z",
+      "scraped_at": "2026-08-30T12:30:45.106Z",
       "status": "open"
     },
     {
@@ -4003,7 +4003,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8494496002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.318Z",
+      "scraped_at": "2026-08-30T12:30:42.904Z",
       "status": "open"
     },
     {
@@ -4025,7 +4025,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8503086002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -4047,7 +4047,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419907002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -4069,7 +4069,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419915002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -4091,7 +4091,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419917002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -4113,7 +4113,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419919002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -4135,7 +4135,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8419926002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -4157,7 +4157,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8472378002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -4179,7 +4179,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8472393002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.319Z",
+      "scraped_at": "2026-08-30T12:30:42.905Z",
       "status": "open"
     },
     {
@@ -4201,7 +4201,7 @@
       "apply_url": "https://job-boards.greenhouse.io/roofstock/jobs/8462745002",
       "source": "greenhouse",
       "posted_at": "2026-06-05T16:01:33-04:00",
-      "scraped_at": "2026-08-29T12:55:45.320Z",
+      "scraped_at": "2026-08-30T12:30:42.906Z",
       "status": "open"
     },
     {
@@ -4223,7 +4223,7 @@
       "apply_url": "https://job-boards.greenhouse.io/flockhomes/jobs/4701569005",
       "source": "greenhouse",
       "posted_at": "2026-06-04T12:07:38-04:00",
-      "scraped_at": "2026-08-29T12:55:45.305Z",
+      "scraped_at": "2026-08-30T12:30:42.963Z",
       "status": "open"
     },
     {
@@ -4245,7 +4245,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4686070006",
       "source": "greenhouse",
       "posted_at": "2026-06-02T18:08:33-04:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.385Z",
       "status": "open"
     },
     {
@@ -4267,7 +4267,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4685760006",
       "source": "greenhouse",
       "posted_at": "2026-06-01T12:40:04-04:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -4289,7 +4289,7 @@
       "apply_url": "https://jobs.lever.co/entrata/02480379-5daa-43d7-a6b8-396f2b26df39",
       "source": "lever",
       "posted_at": "2026-05-22T15:25:48.657Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -4311,7 +4311,7 @@
       "apply_url": "https://jobs.lever.co/entrata/8f6b75c0-5157-4db4-b600-6fa18303e16d",
       "source": "lever",
       "posted_at": "2026-05-18T20:16:32.103Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -4333,7 +4333,7 @@
       "apply_url": "https://apply.workable.com/j/8361650C7D",
       "source": "workable",
       "posted_at": "2026-05-18",
-      "scraped_at": "2026-08-29T12:55:48.795Z",
+      "scraped_at": "2026-08-30T12:30:46.990Z",
       "status": "open"
     },
     {
@@ -4355,7 +4355,7 @@
       "apply_url": "https://jobs.lever.co/lessen/cf892a3c-e1e3-4496-9733-a88ac68e66af",
       "source": "lever",
       "posted_at": "2026-05-06T16:31:24.348Z",
-      "scraped_at": "2026-08-29T12:55:26.691Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -4377,7 +4377,7 @@
       "apply_url": "https://jobs.lever.co/lessen/71e5c675-63b8-4679-9ce9-de1d1d69d8ae",
       "source": "lever",
       "posted_at": "2026-04-07T15:46:21.099Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4399,7 +4399,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4605270006",
       "source": "greenhouse",
       "posted_at": "2026-04-06T10:56:17-04:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -4421,7 +4421,7 @@
       "apply_url": "https://jobs.lever.co/entrata/dd699465-497c-49a2-8720-000db1d1feb0",
       "source": "lever",
       "posted_at": "2026-04-01T18:55:13.278Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -4443,7 +4443,7 @@
       "apply_url": "https://jobs.lever.co/entrata/11444128-f2b9-4af6-88a4-109859f182b8",
       "source": "lever",
       "posted_at": "2026-03-31T21:35:05.439Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -4465,7 +4465,7 @@
       "apply_url": "https://jobs.lever.co/lessen/675a401e-3436-419a-a4a4-07e1a91c9fa0",
       "source": "lever",
       "posted_at": "2026-03-24T16:44:47.838Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4487,7 +4487,7 @@
       "apply_url": "https://jobs.lever.co/lessen/10c5d006-9fec-4bda-ad68-5af96e97825a",
       "source": "lever",
       "posted_at": "2026-03-16T22:16:54.097Z",
-      "scraped_at": "2026-08-29T12:55:26.691Z",
+      "scraped_at": "2026-08-30T12:30:22.807Z",
       "status": "open"
     },
     {
@@ -4509,7 +4509,7 @@
       "apply_url": "https://jobs.lever.co/lessen/be6ecbe1-6e2d-4f30-b94f-8c6f52c2894c",
       "source": "lever",
       "posted_at": "2026-02-23T20:39:12.699Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4531,7 +4531,7 @@
       "apply_url": "https://jobs.lever.co/lessen/e12c3838-7d23-4645-998d-8bbd57478e1a",
       "source": "lever",
       "posted_at": "2026-02-23T20:38:44.109Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4553,7 +4553,7 @@
       "apply_url": "https://jobs.lever.co/lessen/7f321873-a798-4bcb-b123-5adfe6c6fe96",
       "source": "lever",
       "posted_at": "2026-02-23T20:38:12.904Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4575,7 +4575,7 @@
       "apply_url": "https://jobs.lever.co/lessen/9c3bd00b-3bf9-4741-909e-bc8020e15cad",
       "source": "lever",
       "posted_at": "2026-02-23T20:37:36.149Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -4597,7 +4597,7 @@
       "apply_url": "https://jobs.lever.co/lessen/ee2d098f-629e-422f-b991-87b99d1421df",
       "source": "lever",
       "posted_at": "2026-02-23T20:37:01.625Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -4619,7 +4619,7 @@
       "apply_url": "https://jobs.lever.co/lessen/6463127d-b7f8-4903-a700-d17ad344a762",
       "source": "lever",
       "posted_at": "2026-02-23T20:36:01.708Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -4641,7 +4641,7 @@
       "apply_url": "https://jobs.lever.co/lessen/3c838014-ddd9-4e89-97a9-defc9c9a0804",
       "source": "lever",
       "posted_at": "2026-02-23T20:27:14.441Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -4663,7 +4663,7 @@
       "apply_url": "https://jobs.lever.co/lessen/5304bd29-6dac-4961-8400-acddd9412552",
       "source": "lever",
       "posted_at": "2026-02-23T20:26:25.908Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4685,7 +4685,7 @@
       "apply_url": "https://jobs.lever.co/lessen/5ce6c70b-f8b8-4599-84e9-66bd0627a67b",
       "source": "lever",
       "posted_at": "2026-02-23T20:24:29.202Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4707,7 +4707,7 @@
       "apply_url": "https://jobs.lever.co/lessen/de11729f-5e3c-413d-bc73-58d44014c4f0",
       "source": "lever",
       "posted_at": "2026-02-23T20:23:52.286Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4729,7 +4729,7 @@
       "apply_url": "https://jobs.lever.co/lessen/4a8d2189-6252-414b-bf27-bb340ef6df0d",
       "source": "lever",
       "posted_at": "2026-02-23T20:22:10.080Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -4751,7 +4751,7 @@
       "apply_url": "https://jobs.lever.co/lessen/70223485-aa9c-4bbd-8edb-2ef19e80ddee",
       "source": "lever",
       "posted_at": "2026-02-23T20:20:10.254Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -4773,7 +4773,7 @@
       "apply_url": "https://jobs.lever.co/lessen/52dd8089-6ec3-4f25-93c3-1090dd499a81",
       "source": "lever",
       "posted_at": "2026-02-23T20:19:14.950Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4795,7 +4795,7 @@
       "apply_url": "https://jobs.lever.co/lessen/8418151f-ebe3-4a15-9da6-c74c148a7a85",
       "source": "lever",
       "posted_at": "2026-02-23T20:18:18.586Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4817,7 +4817,7 @@
       "apply_url": "https://jobs.lever.co/lessen/5e1d921b-771a-4b1a-8df2-3169c2094116",
       "source": "lever",
       "posted_at": "2026-02-23T20:14:19.413Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4839,7 +4839,7 @@
       "apply_url": "https://jobs.lever.co/lessen/2ab61fc8-6ce3-40c9-b6ae-4b8137952857",
       "source": "lever",
       "posted_at": "2026-02-23T20:13:37.276Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4861,7 +4861,7 @@
       "apply_url": "https://jobs.lever.co/lessen/33390123-2aad-442f-b564-7e30debfac44",
       "source": "lever",
       "posted_at": "2026-02-23T20:12:24.342Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4883,7 +4883,7 @@
       "apply_url": "https://jobs.lever.co/lessen/05f445c3-31ca-487d-8329-e05dd475994f",
       "source": "lever",
       "posted_at": "2026-02-23T20:11:13.723Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -4905,7 +4905,7 @@
       "apply_url": "https://jobs.lever.co/lessen/f85c6606-0abb-4308-a2bc-1104d0afebdc",
       "source": "lever",
       "posted_at": "2026-02-23T19:17:10.122Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -4927,7 +4927,7 @@
       "apply_url": "https://jobs.lever.co/lessen/2b0e3593-6310-40b9-8547-d5d94c35f2d1",
       "source": "lever",
       "posted_at": "2026-02-23T19:12:39.954Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -4949,7 +4949,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4655562006",
       "source": "greenhouse",
       "posted_at": "2026-02-18T11:28:16-05:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -4971,7 +4971,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4653759006",
       "source": "greenhouse",
       "posted_at": "2026-02-11T17:58:48-05:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -4993,7 +4993,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4648555006",
       "source": "greenhouse",
       "posted_at": "2026-01-27T12:59:25-05:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -5015,7 +5015,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4647432006",
       "source": "greenhouse",
       "posted_at": "2026-01-22T16:43:40-05:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -5037,7 +5037,7 @@
       "apply_url": "https://jobs.lever.co/findigs/1ea92751-1c85-4eb6-84b4-86c5293fb477",
       "source": "lever",
       "posted_at": "2026-01-14T23:25:16.217Z",
-      "scraped_at": "2026-08-29T12:55:26.375Z",
+      "scraped_at": "2026-08-30T12:30:22.728Z",
       "status": "open"
     },
     {
@@ -5059,7 +5059,7 @@
       "apply_url": "https://jobs.lever.co/lessen/da7970fe-4fd8-4946-87d3-b56fa2429ed6",
       "source": "lever",
       "posted_at": "2026-01-14T16:22:13.709Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.809Z",
       "status": "open"
     },
     {
@@ -5081,7 +5081,7 @@
       "apply_url": "https://jobs.lever.co/lessen/1657e6d2-1360-487e-93cd-4347b50b62b5",
       "source": "lever",
       "posted_at": "2026-01-14T16:21:14.339Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -5103,7 +5103,7 @@
       "apply_url": "https://jobs.lever.co/lessen/4368338d-5568-4420-8bb6-2b5022326cd2",
       "source": "lever",
       "posted_at": "2026-01-14T16:20:02.865Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -5125,7 +5125,7 @@
       "apply_url": "https://jobs.lever.co/lessen/0467484d-54f2-4b02-b02a-3922aa0f0fe3",
       "source": "lever",
       "posted_at": "2025-11-19T15:25:12.162Z",
-      "scraped_at": "2026-08-29T12:55:26.692Z",
+      "scraped_at": "2026-08-30T12:30:22.808Z",
       "status": "open"
     },
     {
@@ -5147,7 +5147,7 @@
       "apply_url": "https://jobs.lever.co/findigs/24aa08c8-d4f4-4707-b39c-0e44652bb8a0",
       "source": "lever",
       "posted_at": "2025-11-06T17:31:05.315Z",
-      "scraped_at": "2026-08-29T12:55:26.375Z",
+      "scraped_at": "2026-08-30T12:30:22.728Z",
       "status": "open"
     },
     {
@@ -5169,7 +5169,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4410174006",
       "source": "greenhouse",
       "posted_at": "2025-10-14T16:06:51-04:00",
-      "scraped_at": "2026-08-29T12:55:46.631Z",
+      "scraped_at": "2026-08-30T12:30:44.384Z",
       "status": "open"
     },
     {
@@ -5191,7 +5191,7 @@
       "apply_url": "https://job-boards.greenhouse.io/ownwell/jobs/4602222006",
       "source": "greenhouse",
       "posted_at": "2025-09-16T19:32:08-04:00",
-      "scraped_at": "2026-08-29T12:55:46.632Z",
+      "scraped_at": "2026-08-30T12:30:44.385Z",
       "status": "open"
     },
     {
@@ -5213,7 +5213,7 @@
       "apply_url": "https://jobs.lever.co/findigs/2e0f9c8f-ab2f-4b92-bdb9-bc594308b88d",
       "source": "lever",
       "posted_at": "2025-08-26T12:40:07.768Z",
-      "scraped_at": "2026-08-29T12:55:26.376Z",
+      "scraped_at": "2026-08-30T12:30:22.728Z",
       "status": "open"
     },
     {
@@ -5235,7 +5235,7 @@
       "apply_url": "https://jobs.lever.co/entrata/d579bade-723d-4429-a1cb-565d15f3dff7",
       "source": "lever",
       "posted_at": "2025-07-24T16:01:13.908Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -5257,7 +5257,7 @@
       "apply_url": "https://jobs.lever.co/entrata/0b76b68a-a15b-4846-b6c3-9697ccffb52e",
       "source": "lever",
       "posted_at": "2025-05-21T15:37:16.678Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -5279,7 +5279,7 @@
       "apply_url": "https://jobs.lever.co/findigs/3b39616d-223f-4326-a500-f804c3e18dcf",
       "source": "lever",
       "posted_at": "2025-05-07T20:54:21.040Z",
-      "scraped_at": "2026-08-29T12:55:26.376Z",
+      "scraped_at": "2026-08-30T12:30:22.729Z",
       "status": "open"
     },
     {
@@ -5301,7 +5301,7 @@
       "apply_url": "https://jobs.lever.co/entrata/52b9ae4f-553a-4f10-92cb-90173595ea82",
       "source": "lever",
       "posted_at": "2024-02-28T17:28:31.152Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -5323,7 +5323,7 @@
       "apply_url": "https://jobs.lever.co/entrata/ec44b2d5-088f-4f50-9fd1-8f5e7b6796c0",
       "source": "lever",
       "posted_at": "2024-01-10T20:36:36.072Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -5345,7 +5345,7 @@
       "apply_url": "https://jobs.lever.co/entrata/8d97730a-3833-449e-8637-a7af26d562fb",
       "source": "lever",
       "posted_at": "2023-10-11T15:44:02.678Z",
-      "scraped_at": "2026-08-29T12:55:47.915Z",
+      "scraped_at": "2026-08-30T12:30:45.809Z",
       "status": "open"
     },
     {
@@ -5367,7 +5367,7 @@
       "apply_url": "https://reffie.me/jobs/growth-lead",
       "source": "reffie",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:28.318Z",
+      "scraped_at": "2026-08-30T12:30:24.842Z",
       "status": "open"
     },
     {
@@ -5389,7 +5389,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Memphis-TN/Construction-Manager--Make-Ready-_JR116262",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.647Z",
       "status": "open"
     },
     {
@@ -5411,7 +5411,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Tucson/Property-Manager_JR116405",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.647Z",
       "status": "open"
     },
     {
@@ -5433,7 +5433,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Indianapolis-IN/Make-Ready-Construction-Superintendent---LC_JR116404",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.647Z",
       "status": "open"
     },
     {
@@ -5455,7 +5455,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Tempe-AZ/Customer-Care-Associate---in-person--October-20th-Start-Date-_JR116539",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5477,7 +5477,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Scottsdale-AZ/Senior-Accountant_JR115941",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5499,7 +5499,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Houston-TX/Resident-Experience-Lead_JR116126",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5521,7 +5521,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Las-Vegas-NV/Service-Technician-III---HVAC_JR116425",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5543,7 +5543,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Las-Vegas-NV/Service-Manager_JR116340",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5565,7 +5565,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Miami-FL/Service-Manager_JR116382",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5587,7 +5587,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Jacksonville-FL/Service-Technician-III---HVAC_JR116373-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5609,7 +5609,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Memphis-TN/Service-Technician-II_JR116214",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5631,7 +5631,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Columbus-OH/Construction-Superintendent---LC_JR115827",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5653,7 +5653,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Tampa-FL/Construction-Superintendent---LC_JR116304",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5675,7 +5675,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Indianapolis-IN/Service-Technician-III---HVAC_JR116419",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5697,7 +5697,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Indianapolis-IN/Service-Technician-III---HVAC_JR116420",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5719,7 +5719,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Tempe-AZ/Director-Inventory-and-Procurement-Systems_JR116368",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5741,7 +5741,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Atlanta-GA/Field-Operations-Specialist_JR115876-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5763,7 +5763,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Tempe-AZ/Home-Finding-Specialist_JR116123",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5785,7 +5785,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Tempe-AZ/Bilingual-Home-Finding-Specialist_JR115386-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5807,7 +5807,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Sarasota-FL/Service-Technician-III---HVAC--EPA-_JR116237",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5829,7 +5829,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Charlotte-NC/Service-Technician-III---HVAC_JR116379",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5851,7 +5851,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Nashville-TN/Service-Technician-III---HVAC_JR115455",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5873,7 +5873,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Scottsdale-AZ/Manager-Mail-Operations_JR115150",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5895,7 +5895,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Tempe-AZ/Call-Center-Associate--100--on-site----Tempe_JR116444",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5917,7 +5917,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Atlanta-GA/Senior-Manager-FP-A_JR116016",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5939,7 +5939,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Miami-FL/Service-Technician-III---HVAC--Dade--Broward-or-Palm-Beach-County--_JR116357",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5961,7 +5961,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Orlando-FL/Service-Technician-III---HVAC_JR116359",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -5983,7 +5983,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Nashville-TN/Service-Technician-III---HVAC_JR116361",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6005,7 +6005,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Las-Vegas-NV/Service-Technician-III---HVAC_JR116225",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6027,7 +6027,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Tempe-AZ/Business-Solutions-Architect_JR116062",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6049,7 +6049,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Sarasota-FL/Service-Technician-III---HVAC_JR116232",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6071,7 +6071,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Sarasota-FL/Service-Technician-III---HVAC_JR116235",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6093,7 +6093,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Houston-TX/Service-Technician-III---HVAC_JR116221",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6115,7 +6115,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Nashville-TN/Service-Technician-III---HVAC_JR115454-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6137,7 +6137,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Dallas-TX/Service-Technician-III---HVAC_JR115175",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6159,7 +6159,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Atlanta-GA/Workforce-Development-Trainer_JR114895",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6181,7 +6181,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Phoenix-AZ/Service-Technician-III---HVAC_JR115191",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6203,7 +6203,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Jacksonville-FL/Field-Operations-Specialist_JR116111",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6225,7 +6225,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Nashville-TN/Field-Operations-Specialist_JR116281",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6247,7 +6247,7 @@
       "apply_url": "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR/job/Dallas-TX/Construction-Manager_JR115332",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.736Z",
+      "scraped_at": "2026-08-30T12:30:27.648Z",
       "status": "open"
     },
     {
@@ -6269,7 +6269,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Nashville-TN/Maintenance-Technician-III_JR103925",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6291,7 +6291,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Nashville-TN/Assistant-Maintenance-Manager---Technician_JR103817",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6313,7 +6313,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Nashville-TN/Superintendent_JR103923",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6335,7 +6335,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Huntersville-NC/Maintenance-Technician-III_JR103920",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6357,7 +6357,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Atlanta-GA/Superintendent_JR103911-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6379,7 +6379,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Kansas-City-MO/Maintenance-Technician-III_JR103909",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6401,7 +6401,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Tustin-CA/Director--Employee-Experience_JR103904",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6423,7 +6423,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Tustin-CA/Manager--Business-Analytics_JR103887-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6445,7 +6445,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Nashville-TN/Superintendent_JR103903",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6467,7 +6467,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Huntersville-NC/Construction-Technician-II_JR103900",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6489,7 +6489,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Sarasota-FL/Construction-Technician-III_JR103899",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6511,7 +6511,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Menifee-Community-CA/Leasing-and-Resident-Relations-Specialist_JR103898",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6533,7 +6533,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Nashville-TN/Maintenance-Technician-III_JR103889-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6555,7 +6555,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Twelve-Bridges-Community-CA/Regional-Manager--Single-Family-Rental-Community_JR103897",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6577,7 +6577,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Tustin-CA/Senior-Operations-Training-Specialist_JR103896",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6599,7 +6599,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/San-Francisco-CA/Analyst--Investments_JR103890",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6621,7 +6621,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Atlanta-GA/Maintenance-Technician-III_JR103859",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6643,7 +6643,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Atlanta-GA/Maintenance-Technician-III_JR103857",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6665,7 +6665,7 @@
       "apply_url": "https://tricon.wd3.myworkdayjobs.com/tricon/job/Atlanta-GA/Maintenance-Technician-IV--HVAC-Installer-_JR103816",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:30.545Z",
+      "scraped_at": "2026-08-30T12:30:28.758Z",
       "status": "open"
     },
     {
@@ -6687,7 +6687,7 @@
       "apply_url": "https://point.com/careers/job/senior-accountant-8643845002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6709,7 +6709,7 @@
       "apply_url": "https://point.com/careers/job/home-equity-closer-ph-8652969002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6731,7 +6731,7 @@
       "apply_url": "https://point.com/careers/job/account-coordinator-8676027002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6753,7 +6753,7 @@
       "apply_url": "https://point.com/careers/job/account-specialist-8691779002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6775,7 +6775,7 @@
       "apply_url": "https://point.com/careers/job/customer-experience-manager-8689234002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6797,7 +6797,7 @@
       "apply_url": "https://point.com/careers/job/operations-analyst-8752411002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6819,7 +6819,7 @@
       "apply_url": "https://point.com/careers/job/lead-data-analyst-8627618002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6841,7 +6841,7 @@
       "apply_url": "https://point.com/careers/job/home-equity-funder-8649362002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6863,7 +6863,7 @@
       "apply_url": "https://point.com/careers/job/mortgage-funding-specialist-8649371002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6885,7 +6885,7 @@
       "apply_url": "https://point.com/careers/job/institutional-fundraising-lead-8646222002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6907,7 +6907,7 @@
       "apply_url": "https://point.com/careers/job/senior-hr-generalist-8687847002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6929,7 +6929,7 @@
       "apply_url": "https://point.com/careers/job/senior-security-operations-analyst-detection-response-8717639002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6951,7 +6951,7 @@
       "apply_url": "https://point.com/careers/job/senior-analyst-marketing-analytics-8761725002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6973,7 +6973,7 @@
       "apply_url": "https://point.com/careers/job/senior-manager-direct-mail-campaign-and-analytics-lead-8647612002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -6995,7 +6995,7 @@
       "apply_url": "https://point.com/careers/job/lead-sdet-8645502002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -7017,7 +7017,7 @@
       "apply_url": "https://point.com/careers/job/lead-sdet-8706963002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -7039,7 +7039,7 @@
       "apply_url": "https://point.com/careers/job/account-manager-8728320002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -7061,7 +7061,7 @@
       "apply_url": "https://point.com/careers/job/account-manager-inside-sales-8625323002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -7083,7 +7083,7 @@
       "apply_url": "https://point.com/careers/job/senior-default-servicing-associate-8649382002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -7105,7 +7105,7 @@
       "apply_url": "https://point.com/careers/job/special-servicing-associate-iii-8649383002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -7127,7 +7127,7 @@
       "apply_url": "https://point.com/careers/job/senior-software-engineer-8596679002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -7149,7 +7149,7 @@
       "apply_url": "https://point.com/careers/job/technical-engineering-lead-8716701002",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:45.391Z",
+      "scraped_at": "2026-08-30T12:30:43.059Z",
       "status": "open"
     },
     {
@@ -7171,7 +7171,7 @@
       "apply_url": "https://careers-realpagepms.icims.com/jobs/search?hashed=-625856947",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.033Z",
+      "scraped_at": "2026-08-30T12:30:43.986Z",
       "status": "open"
     },
     {
@@ -7193,7 +7193,7 @@
       "apply_url": "https://careers-international-realpagepms.icims.com/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.033Z",
+      "scraped_at": "2026-08-30T12:30:43.986Z",
       "status": "open"
     },
     {
@@ -7215,7 +7215,7 @@
       "apply_url": "https://employees-realpagepms.icims.com/jobs/search?hashed=-625856947",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.033Z",
+      "scraped_at": "2026-08-30T12:30:43.986Z",
       "status": "open"
     },
     {
@@ -7237,7 +7237,7 @@
       "apply_url": "https://www.realpage.com/careers/benefits-wellness/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.033Z",
+      "scraped_at": "2026-08-30T12:30:43.986Z",
       "status": "open"
     },
     {
@@ -7259,7 +7259,7 @@
       "apply_url": "https://www.realpage.com/careers/locations/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.033Z",
+      "scraped_at": "2026-08-30T12:30:43.986Z",
       "status": "open"
     },
     {
@@ -7281,7 +7281,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/5a93fabd-52d3-4ffa-a5ee-33c90d40a3a9",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7303,7 +7303,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/e7a4e3b3-47f3-4ced-9e2d-69a60bade8bf",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7325,7 +7325,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/cd17914a-0f4c-4b68-83a2-8720e49da3db",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7347,7 +7347,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/eeee01bf-2037-4484-b614-2904c2ac6e9b",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7369,7 +7369,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/f4d91ff1-8356-4bc9-ad51-b286993ee250",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7391,7 +7391,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/bc3a5556-20d2-421b-bd59-1cc24a25a13c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7413,7 +7413,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/00263a48-3158-443d-bbdc-7bf1249a57a7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7435,7 +7435,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/b990d5d5-0e72-49c7-983e-40b0b31e9e78",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7457,7 +7457,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/008edbb8-c859-46b7-894c-a37bbd109050",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7479,7 +7479,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/ac25579d-6556-449b-b674-08159e5b5d13",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7501,7 +7501,7 @@
       "apply_url": "https://ats.rippling.com/closinglock/jobs/3969c70f-90f1-4424-88fc-507b3a17ce2e",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.229Z",
+      "scraped_at": "2026-08-30T12:30:43.932Z",
       "status": "open"
     },
     {
@@ -7523,7 +7523,7 @@
       "apply_url": "https://www.compass.com/careers/departments/business-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7545,7 +7545,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-growth",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7567,7 +7567,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7589,7 +7589,7 @@
       "apply_url": "https://www.compass.com/careers/departments/customer-success-team",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7611,7 +7611,7 @@
       "apply_url": "https://www.compass.com/careers/departments/data-and-analytics",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7633,7 +7633,7 @@
       "apply_url": "https://www.compass.com/careers/departments/executive",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7655,7 +7655,7 @@
       "apply_url": "https://www.compass.com/careers/departments/expansion",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7677,7 +7677,7 @@
       "apply_url": "https://www.compass.com/careers/departments/facilities-and-office-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7699,7 +7699,7 @@
       "apply_url": "https://www.compass.com/careers/departments/finance-and-accounting",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7721,7 +7721,7 @@
       "apply_url": "https://www.compass.com/careers/departments/information-technology",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7743,7 +7743,7 @@
       "apply_url": "https://www.compass.com/careers/departments/invoicing-and-incentives",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7765,7 +7765,7 @@
       "apply_url": "https://www.compass.com/careers/departments/learning-and-development",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7787,7 +7787,7 @@
       "apply_url": "https://www.compass.com/careers/departments/luxury-marketing",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7809,7 +7809,7 @@
       "apply_url": "https://www.compass.com/careers/departments/manda-integration",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7831,7 +7831,7 @@
       "apply_url": "https://www.compass.com/careers/departments/marketing-and-creative",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7853,7 +7853,7 @@
       "apply_url": "https://www.compass.com/careers/departments/new-development",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7875,7 +7875,7 @@
       "apply_url": "https://www.compass.com/careers/departments/people-and-culture",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7897,7 +7897,7 @@
       "apply_url": "https://www.compass.com/careers/departments/pr-communications",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7919,7 +7919,7 @@
       "apply_url": "https://www.compass.com/careers/departments/product-and-user-experience",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7941,7 +7941,7 @@
       "apply_url": "https://www.compass.com/careers/departments/security-and-compliance",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7963,7 +7963,7 @@
       "apply_url": "https://www.compass.com/careers/departments/strategic-growth",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -7985,7 +7985,7 @@
       "apply_url": "https://www.compass.com/careers/departments/strategic-partnerships",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -8007,7 +8007,7 @@
       "apply_url": "https://www.compass.com/careers/departments/transaction-operations",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:46.853Z",
+      "scraped_at": "2026-08-30T12:30:44.708Z",
       "status": "open"
     },
     {
@@ -8029,7 +8029,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/40594c89-8739-4809-ba63-e20f0ea5e735",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8051,7 +8051,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/0033b91a-171d-4fed-9ca9-67aabb1a5756",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8073,7 +8073,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/4df4efbb-f4b5-49fa-840c-45690056af1b",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8095,7 +8095,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/19d4de81-3c98-481e-9783-c6cf0b77c9cd",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8117,7 +8117,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/cf7b2875-34d8-4261-9709-cf967751a1c7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8139,7 +8139,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/822d0469-28a7-4441-a0b4-539dfbb7046c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8161,7 +8161,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/aeb1fbf7-3348-4f6d-826f-75d6f48cd1fa",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8183,7 +8183,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/1f89fd20-cc7e-4c5c-9c84-592406bbd8e0",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8205,7 +8205,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/338d0e73-fc31-452d-b98c-d37c52e67dd7",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8227,7 +8227,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/23b8eb78-b0dc-48e0-9933-50ed5587295f",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8249,7 +8249,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/b31f3e88-2b52-468e-b841-cc5775b85271",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8271,7 +8271,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/5a2ac2dc-adc4-4543-a2d5-458f0eabd6ad",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8293,7 +8293,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/cdb6349f-91f9-47f9-984b-fd19a329a563",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8315,7 +8315,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/2bc51270-c3d1-4d04-b3d0-7407407ccc96",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8337,7 +8337,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/337d8f93-b0d3-4765-9a32-bede74a246dc",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8359,7 +8359,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/219799ca-8d34-4198-abe4-23c209d77a73",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8381,7 +8381,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/bff7249a-258e-436b-a9c1-16702c166f38",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8403,7 +8403,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/398ba713-ea93-408d-9b67-aeb8fda33695",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8425,7 +8425,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/eff58373-8f43-4d2a-8132-6576ccc366ee",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8447,7 +8447,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/73d46cb1-ba2a-4e95-941e-2218b9aa8237",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8469,7 +8469,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/4130ca5d-dce7-45e5-b49e-b7409cc6a07d",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8491,7 +8491,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/a5c93eac-c299-4832-bcfd-90e3daaa4b75",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8513,7 +8513,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/0dc4f5a7-e5c3-4027-bf78-bca413498c9c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8535,7 +8535,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/245e388e-13f8-461b-9f46-bacd201c3be3",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8557,7 +8557,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/ea1e09d4-f490-4b59-ab29-b86334046bf8",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8579,7 +8579,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/819b73d8-7750-47df-a3c8-929101e90606",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8601,7 +8601,7 @@
       "apply_url": "https://ats.rippling.com/theguarantors-open-positions/jobs/4375afa4-c4f6-4cc7-a5fa-2c4f7b3a316c",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:47.447Z",
+      "scraped_at": "2026-08-30T12:30:45.376Z",
       "status": "open"
     },
     {
@@ -8623,7 +8623,7 @@
       "apply_url": "https://smartrent.com/careers/apply/technology-and-development/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:48.239Z",
+      "scraped_at": "2026-08-30T12:30:46.195Z",
       "status": "open"
     },
     {
@@ -8645,7 +8645,7 @@
       "apply_url": "https://smartrent.com/careers/apply/sales-and-marketing/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:48.239Z",
+      "scraped_at": "2026-08-30T12:30:46.195Z",
       "status": "open"
     },
     {
@@ -8667,7 +8667,7 @@
       "apply_url": "https://smartrent.com/careers/apply/general-and-administrative/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:48.239Z",
+      "scraped_at": "2026-08-30T12:30:46.195Z",
       "status": "open"
     },
     {
@@ -8689,7 +8689,7 @@
       "apply_url": "https://smartrent.com/careers/apply/",
       "source": "dom",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:48.239Z",
+      "scraped_at": "2026-08-30T12:30:46.195Z",
       "status": "open"
     },
     {
@@ -8711,7 +8711,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Senior-Software-Development-Engineer_P751037-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8733,7 +8733,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Agentic-AI--Principal-Machine-Learning-Engineer_P751278-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8755,7 +8755,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Principal-Machine-Learning-Engineer--Agentic-AI_P748682-2",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8777,7 +8777,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Director--Enterprise-Brokerage-Sales_P751231-2",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8799,7 +8799,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Senior-Manager--Corporate-Development_P750773",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8821,7 +8821,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Title-Officer_P751270",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8843,7 +8843,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Data-Scientist--Trust---Safety---Rentals_P750990-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8865,7 +8865,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-WA/Senior-Product-Counsel---Real-Estate-Product_P751233-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8887,7 +8887,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Principal-Strategic-GTM-Program-Manager_P751158-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8909,7 +8909,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Philadelphia-PA-Market-Street/Remote-Mortgage-Loan-Officer--Philadelphia--PA-_P750865-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8931,7 +8931,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Senior-Sales-Strategy-Business-Partner_P750409-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8953,7 +8953,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/LOA-Specialist--Part-Time-_P750853-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8975,7 +8975,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Irvine-CA-Michelson-Dr/Mortgage-Loan-Officer--Irvine--CA-_P749621-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -8997,7 +8997,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Senior-Talent-Intelligence-Analyst_P751200-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9019,7 +9019,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Manager--Enterprise-Customer-Success_P750886-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9041,7 +9041,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Senior-Software-Development-Engineer--ZHL-Operating-System_P751122-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9063,7 +9063,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Sales-Enablement-Manager_P751175-2",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9085,7 +9085,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Regional-Designated-Broker----Mid-Atlantic-Territory-Lead_P751213",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9107,7 +9107,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Regional-Designated-Broker---Southeast-Territory-Lead_P751212",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9129,7 +9129,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Regional-Designated-Broker---Midwest-Territory-Lead_P751211-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9151,7 +9151,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Regional-Designated-Broker---West-Coast-Territory-Lead_P751214",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9173,7 +9173,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Regional-Designated-Broker---South-Central-Territory-Lead_P751215",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9195,7 +9195,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Principal-Product-Manager--Listing-Product_P751217-2",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9217,7 +9217,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Overland-Park-KS-Foster-Street/Loan-Officer-Development-Program--Overland-Park--KS-_P751199-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9239,7 +9239,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Seattle-WA-2nd-Ave/Loan-Officer-Development-Program--Seattle--WA-_P751197-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9261,7 +9261,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Remote-USA/Senior-Data-Scientist_P751133-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9283,7 +9283,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Irvine-CA-Michelson-Dr/Loan-Officer-Development-Program--Irvine--CA-_P751196-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9305,7 +9305,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Atlanta-GA-Howell-Mill-Road/Remote-Mortgage-Loan-Officer--Atlanta--GA-_P750860-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9327,7 +9327,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Charlotte-NC-S-Tryon-Street-Suite-2700/Remote-Mortgage-Loan-Officer--Charlotte--NC-_P750861",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9349,7 +9349,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Seattle-WA-2nd-Ave/Mortgage-Loan-Officer--Seattle--WA-_P749620",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9371,7 +9371,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Plano-TX-Legacy-Dr-ZHL/Mortgage-Loan-Officer--Plano--TX-_P749661-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9393,7 +9393,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Scottsdale-AZ-N-Scottsdale-Rd/Remote-Mortgage-Loan-Officer--Scottsdale--AZ-_P750866-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9415,7 +9415,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Overland-Park-KS-Foster-Street/Mortgage-Loan-Officer--Overland-Park--KS-_P749662-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9437,7 +9437,7 @@
       "apply_url": "https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External/job/Chicago-IL-W-Adams-Street/Remote-Mortgage-Loan-Officer--Chicago--IL-_P750862-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:50.293Z",
+      "scraped_at": "2026-08-30T12:30:48.008Z",
       "status": "open"
     },
     {
@@ -9459,7 +9459,7 @@
       "apply_url": "https://mrisoftware.wd501.myworkdayjobs.com/External_CareerSite/job/Cleveland-Ohio-Office/Sales-Development-Representative_R-108318",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:49.622Z",
+      "scraped_at": "2026-08-30T12:30:47.606Z",
       "status": "open"
     },
     {
@@ -9481,7 +9481,7 @@
       "apply_url": "https://mrisoftware.wd501.myworkdayjobs.com/External_CareerSite/job/Cleveland-Ohio-Office/Workplace-Experience-Specialist_R-109318",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:49.622Z",
+      "scraped_at": "2026-08-30T12:30:47.606Z",
       "status": "open"
     },
     {
@@ -9503,7 +9503,7 @@
       "apply_url": "https://mrisoftware.wd501.myworkdayjobs.com/External_CareerSite/job/Bangalore-India-Office/Director--Product-Development_R-109201",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:49.622Z",
+      "scraped_at": "2026-08-30T12:30:47.606Z",
       "status": "open"
     },
     {
@@ -9525,7 +9525,7 @@
       "apply_url": "https://mrisoftware.wd501.myworkdayjobs.com/External_CareerSite/job/Cleveland-Ohio-Office/Senior-Counsel--Employment---Litigation_R-109214",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:49.622Z",
+      "scraped_at": "2026-08-30T12:30:47.606Z",
       "status": "open"
     },
     {
@@ -9547,7 +9547,7 @@
       "apply_url": "https://mrisoftware.wd501.myworkdayjobs.com/External_CareerSite/job/Cleveland-Ohio-Office/VP--Senior-Associate-General-Counsel---North-America_R-109212",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:49.622Z",
+      "scraped_at": "2026-08-30T12:30:47.606Z",
       "status": "open"
     },
     {
@@ -9569,7 +9569,7 @@
       "apply_url": "https://mrisoftware.wd501.myworkdayjobs.com/External_CareerSite/job/Cleveland-Ohio-Office/Program-Manager-I_R-108962",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:49.622Z",
+      "scraped_at": "2026-08-30T12:30:47.606Z",
       "status": "open"
     },
     {
@@ -9591,7 +9591,7 @@
       "apply_url": "https://mrisoftware.wd501.myworkdayjobs.com/External_CareerSite/job/Cape-Town-South-Africa-Office/Manager--Governance--Risk---Compliance_R-109333-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:49.622Z",
+      "scraped_at": "2026-08-30T12:30:47.606Z",
       "status": "open"
     },
     {
@@ -9613,7 +9613,7 @@
       "apply_url": "https://mrisoftware.wd501.myworkdayjobs.com/External_CareerSite/job/Cleveland-Ohio-Office/Senior-Director--Product-Management_R-108178-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:49.622Z",
+      "scraped_at": "2026-08-30T12:30:47.606Z",
       "status": "open"
     },
     {
@@ -9635,7 +9635,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Pratt-Park-Seattle-WA/Business-Manager---Coppins-Well-and-Pratt-Park_R0199573",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9657,7 +9657,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Verde-Esterra-Park-Redmond-WA/Leasing-Professional---Verde-Esterra-Park_R0199563",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9679,7 +9679,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Montclair-Scottsdale-Scottsdale-AZ/Leasing-Professional---Montclair_R0199499",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9701,7 +9701,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/City-Office-Atlanta-Atlanta-GA/Community-Manager_R0199602",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9723,7 +9723,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Haven-Townhomes-at-P83-Peoria-AZ/Service-Supervisor---Haven-Townhomes-at-P83_R0199603",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9745,7 +9745,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Cadia-Queen-Creek-Queen-Creek-AZ/Community-Manager----Cadia-Queen-Creek_R0199601",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9767,7 +9767,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Volta-on-Pine-Long-Beach-CA/Maintenance-Technician---Volta-on-Pine_R0199600",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9789,7 +9789,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Silhouette-Los-Angeles-CA/Leasing-Professional---Silhouette_R0199599",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9811,7 +9811,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/City-Office-Newport-Newport-Beach-CA/Maintenance-Technician---Glendale_R0199598",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9833,7 +9833,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/City-Office-Newport-Newport-Beach-CA/Community-Manager---Glendale_R0199597",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9855,7 +9855,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Sienna-Residences-Pomona-CA/Leasing-Manager---Sienna-Residences_R0198818",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9877,7 +9877,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/City-Office-Greenwood-Village-Greenwood-Village-CO/Leasing-Professional---Citadel_R0199586",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9899,7 +9899,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Apiary-Residences-Denver-CO/Resident-Service-Coordinator---Apiary-Residence_R0199585",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9921,7 +9921,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Six-Oaks-Bothell-WA/Multi-Site-Leasing-Professional---Seattle-Eastside_R0194883",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9943,7 +9943,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/The-Bower-TX-Pflugerville-TX/Maintenance-Technician----Lease-Up--The-Bower_R0195218",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9965,7 +9965,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Promenade-Towers-Los-Angeles-CA/Maintenance-Technician---Promenade-Towers_R0196203",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -9987,7 +9987,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Next-on-Lex-Glendale-CA/Maintenance-Technician---Next-on-Lex-Brio_R0194867",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10009,7 +10009,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Treehaus-Clemson-Seneca-SC/Maintenance-Supervisor---Treehaus-Clemson--Student-Living-_R0199048",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10031,7 +10031,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Treehaus-Clemson-Seneca-SC/Leasing-Manager---Treehaus-Clemson--Student-Living-_R0199050",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10053,7 +10053,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Ascend-at-Arcadia-Denver-CO/Leasing-Professional---Ascend-at-Arcadia_R0199576",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10075,7 +10075,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/The-Broadview-at-Vanderbilt-Nashville-TN/Community-Assistant---Broadview-at-Vanderbilt--Student-Living-_R0199577-1",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10097,7 +10097,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Broadstone-at-Sierra-Vista-Rosharon-TX/Maintenance-Supervisor--Lease-Up----Broadstone-at-Sierra-Vista_R0199497",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10119,7 +10119,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Homestead-FL/Floating-Leasing-Professional---Homestead_R0196095",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10141,7 +10141,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/North-Oaks-Landing-Raleigh-NC/Maintenance-Technician---North-Oaks-Landing_R0199312",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10163,7 +10163,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Marlow-Columbia-MD/Leasing-Professional---Marlow_R0199552",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10185,7 +10185,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Ellipse-at-Fairfax-Corner-Fairfax-VA/Leasing-Professional---Ellipse-at-Fairfax-Corner_R0199446",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10207,7 +10207,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Solana-Lakewood-Lakewood-CO/Leasing-Consultant--Solana-Lakewood_R0199498",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10229,7 +10229,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Chorus-Asheville-Asheville-NC/Maintenance-Technician_R0199486",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10251,7 +10251,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Overture-Providence-Charlotte-NC/Community-Manager---Overture-Providence-55-_R0199461",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10273,7 +10273,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Overture-River-District-Fort-Worth-TX/Sales---Marketing-Outreach-Consultant----Active-Adult_R0199336",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10295,7 +10295,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Flats-at-703-Towson-MD/Leasing-Manager---Flats-at-703_R0199548",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10317,7 +10317,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Addison-Row-Capitol-Heights-MD/Assistant-Community-Manager---Addison-Row_R0199514",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10339,7 +10339,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Broadstone-Soren-San-Diego-CA/Service-Technician---Broadstone-Soren_R0199519",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10361,7 +10361,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/Luka-Boston-MA/Assistant-Community-Manager---Luka-On-The-Common_R0199562",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10383,7 +10383,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/400-Meeting-Charleston-SC/Assistant-Community-Manager---400-Meeting--Student-Living-_R0199555",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10405,7 +10405,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/The-Everlin-at-Indian-Trail-Indian-Trail-NC/Maintenance-Supervisor---The-Everlin-at-Indian-Trail_R0199550",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10427,7 +10427,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/The-Henley-NC-Apex-NC/Maintenance-Technician---The-Henley_R0199531",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
@@ -10449,7 +10449,7 @@
       "apply_url": "https://greystar.wd1.myworkdayjobs.com/External/job/The-Sawyer-Providence-Farm-Charlotte-NC/Maintenance-Technician---The-Sawyer-Providence-Farm_R0199508",
       "source": "workday",
       "posted_at": null,
-      "scraped_at": "2026-08-29T12:55:52.799Z",
+      "scraped_at": "2026-08-30T12:30:50.762Z",
       "status": "open"
     },
     {
