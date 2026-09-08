@@ -1061,6 +1061,448 @@ async function coverage(request, env) {
   }, null, 2), { headers: JSON_HEADERS });
 }
 
+
+/* ==========================================================================
+   COMPANIES
+   --------------------------------------------------------------------------
+   Adding a company should not mean editing code. These endpoints let the
+   Command Center manage the list, and let the scraper read it.
+
+   config.js remains the curated core; this table is everything added since.
+   ========================================================================== */
+
+const SLUGGABLE = /[^a-z0-9]+/g;
+const slugify = (s) => String(s).toLowerCase().trim().replace(SLUGGABLE, '-').replace(/^-|-$/g, '');
+
+/** The scraper reads this. Authenticated with the same key the history sync uses. */
+async function companiesForScraper(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ companies: [] }), { headers: JSON_HEADERS });
+  if (!env.STATS_KEY || request.headers.get('x-admin-key') !== env.STATS_KEY) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT id, name, hub, careers_url, website, state, segment, asset_class, priority,
+              method, ats_slug, ats_site, list_url, sitemap, link_override,
+              detect_attempts
+         FROM companies WHERE active = 1 ORDER BY name`).all();
+
+    // Renamed to the shape config.js uses, so run.js can merge the two lists
+    // without caring where a company came from.
+    const companies = (rows.results || []).map((r) => ({
+      id: r.id, name: r.name, hub: r.hub,
+      careersUrl: r.careers_url, website: r.website, state: r.state,
+      segment: r.segment, assetClass: r.asset_class || undefined,
+      priority: !!r.priority,
+      method: r.method || null, atsSlug: r.ats_slug || null, atsSite: r.ats_site || undefined,
+      listUrl: r.list_url || undefined, sitemap: r.sitemap || undefined,
+      linkOverride: r.link_override || undefined,
+      detectAttempts: r.detect_attempts,
+      active: true, fromDatabase: true,
+    }));
+    return new Response(JSON.stringify({ companies }), { headers: JSON_HEADERS });
+  } catch (_) {
+    // Table not created yet — an empty list, not an error, so the scraper runs.
+    return new Response(JSON.stringify({ companies: [] }), { headers: JSON_HEADERS });
+  }
+}
+
+/** Admin view: list with detection state. */
+async function listCompanies(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT * FROM companies ORDER BY active DESC, method IS NULL, name`).all();
+    return new Response(JSON.stringify({ companies: rows.results || [] }), { headers: JSON_HEADERS });
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: 'Companies table not created yet — run db/companies-d1.sql.', companies: [],
+    }), { status: 200, headers: JSON_HEADERS });
+  }
+}
+
+/** Add or update one. */
+async function saveCompany(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let c;
+  try { c = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const name = clean(c.name, 120);
+  const hub = c.hub === 'opco' ? 'opco' : c.hub === 'proptech' ? 'proptech' : null;
+  let url = clean(c.careers_url, 500);
+
+  const missing = [];
+  if (!name) missing.push('name');
+  if (!hub) missing.push('hub (opco or proptech)');
+  if (!url) missing.push('careers URL');
+  if (missing.length) {
+    return new Response(JSON.stringify({ error: 'Missing: ' + missing.join(', ') }), { status: 400, headers: JSON_HEADERS });
+  }
+
+  // Accept a pasted URL without a scheme rather than failing on it.
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url.replace(/^\/+/, '');
+  try { new URL(url); }
+  catch { return new Response(JSON.stringify({ error: 'That careers URL is not valid.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const id = clean(c.id, 80) || slugify(name);
+
+  try {
+    await env.DB.prepare(
+      `INSERT INTO companies
+         (id, name, hub, careers_url, website, state, segment, asset_class, priority,
+          method, ats_slug, ats_site, added_by)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,'admin')
+       ON CONFLICT(id) DO UPDATE SET
+         name=?2, hub=?3, careers_url=?4, website=?5, state=?6, segment=?7,
+         asset_class=?8, priority=?9,
+         method=COALESCE(?10, method), ats_slug=COALESCE(?11, ats_slug),
+         ats_site=COALESCE(?12, ats_site),
+         updated_at=datetime('now')`
+    ).bind(
+      id, name, hub, url, clean(c.website, 300), clean(c.state, 60),
+      clean(c.segment, 120), c.asset_class === 'multifamily' ? 'multifamily' : null,
+      c.priority ? 1 : 0,
+      clean(c.method, 30) || null, clean(c.ats_slug, 200) || null, clean(c.ats_site, 120) || null
+    ).run();
+
+    return new Response(JSON.stringify({ ok: true, id }), { headers: JSON_HEADERS });
+  } catch (err) {
+    if (/no such table/i.test(err.message)) {
+      return new Response(JSON.stringify({ error: 'Run db/companies-d1.sql first.' }), { status: 503, headers: JSON_HEADERS });
+    }
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: JSON_HEADERS });
+  }
+}
+
+/** Park a company without losing it. */
+async function setCompanyActive(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let body;
+  try { body = await request.json(); } catch { body = {}; }
+  const id = clean(body.id, 80);
+  if (!id) return new Response(JSON.stringify({ error: 'No id.' }), { status: 400, headers: JSON_HEADERS });
+
+  await env.DB.prepare(
+    `UPDATE companies SET active = ?2, updated_at = datetime('now') WHERE id = ?1`
+  ).bind(id, body.active ? 1 : 0).run();
+
+  return new Response(JSON.stringify({ ok: true }), { headers: JSON_HEADERS });
+}
+
+/** The detector reports back here. */
+async function recordDetection(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!env.STATS_KEY || request.headers.get('x-admin-key') !== env.STATS_KEY) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+
+  let body;
+  try { body = await request.json(); } catch { body = {}; }
+  const results = Array.isArray(body.results) ? body.results : [];
+  if (!results.length) return new Response(JSON.stringify({ ok: true, updated: 0 }), { headers: JSON_HEADERS });
+
+  const found = env.DB.prepare(
+    `UPDATE companies
+        SET method=?2, ats_slug=?3, ats_site=?4, sitemap=?5, list_url=?6,
+            detect_attempts = detect_attempts + 1,
+            detect_last_at = datetime('now'), detect_last_error = NULL,
+            updated_at = datetime('now')
+      WHERE id = ?1`);
+
+  const missed = env.DB.prepare(
+    `UPDATE companies
+        SET detect_attempts = detect_attempts + 1,
+            detect_last_at = datetime('now'), detect_last_error = ?2,
+            updated_at = datetime('now')
+      WHERE id = ?1`);
+
+  const stmts = results.map((r) => r.method
+    ? found.bind(clean(r.id, 80), clean(r.method, 30), clean(r.slug, 200),
+                 clean(r.site, 120) || null, clean(r.sitemap, 500) || null, clean(r.listUrl, 500) || null)
+    : missed.bind(clean(r.id, 80), clean(r.error, 300) || 'not detected'));
+
+  let updated = 0;
+  for (let i = 0; i < stmts.length; i += 50) {
+    try { await env.DB.batch(stmts.slice(i, i + 50)); updated += Math.min(50, stmts.length - i); }
+    catch (err) { console.error('detection write failed:', err.message); }
+  }
+
+  return new Response(JSON.stringify({ ok: true, updated }), { headers: JSON_HEADERS });
+}
+
+
+/* ==========================================================================
+   DISCOVERY
+   --------------------------------------------------------------------------
+   Finds companies that are hiring, without anyone naming them first.
+
+   Two stages, and the second is the important one:
+
+     PROPOSE   Claude, with web search, names companies in the sector and
+               gives a careers URL for each.
+     VERIFY    The Worker fetches each URL itself, identifies the ATS, and
+               counts the actual open roles.
+
+   Only what survives verification reaches the queue. A model asked to name
+   companies WILL invent some — the names look right, the URLs look right, and
+   neither exists. Verification is what separates a real company from a
+   convincing sentence, and it is why nothing here is trusted on the model's
+   word alone.
+   ========================================================================== */
+
+const DISCOVERY_MODEL = 'claude-sonnet-5';
+
+/** Probes a careers URL and returns what is really there. */
+async function verifyCompany(url) {
+  let res;
+  try {
+    res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FoundersAndFriendsBot/1.0)' },
+      redirect: 'follow',
+    });
+  } catch (err) {
+    return { verified: false, error: 'unreachable: ' + err.message };
+  }
+  if (!res.ok) return { verified: false, error: 'HTTP ' + res.status };
+
+  const html = await res.text();
+
+  // Find the ATS from links on the page. Same signatures the scraper uses.
+  const sig = [
+    [/boards(?:-api)?\.greenhouse\.io\/(?:v1\/boards\/)?([a-z0-9_-]+)/i, 'greenhouse'],
+    [/jobs\.lever\.co\/([a-z0-9_-]+)/i, 'lever'],
+    [/jobs\.ashbyhq\.com\/([a-z0-9_-]+)/i, 'ashby'],
+    [/apply\.workable\.com\/([a-z0-9_-]+)/i, 'workable'],
+    [/([a-z0-9_-]+)\.breezy\.hr/i, 'breezy'],
+  ];
+  for (const [re, method] of sig) {
+    const m = html.match(re);
+    if (!m) continue;
+
+    // Confirm against the ATS's own API rather than trusting a link. A stale
+    // link to a board that no longer exists would otherwise look like proof.
+    const check = await countRoles(method, m[1]);
+    if (check.count > 0) {
+      return { verified: true, method, slug: m[1], count: check.count, titles: check.titles };
+    }
+    return { verified: false, method, slug: m[1], error: 'board found but no live roles' };
+  }
+
+  const wd = html.match(/([a-z0-9-]+)\.(wd\d+)\.myworkdayjobs\.com\/([A-Za-z0-9_-]+)/i);
+  if (wd) return { verified: false, method: 'workday', slug: `${wd[1]}.${wd[2]}.myworkdayjobs.com`,
+                   site: wd[3], error: 'workday found — needs a scrape run to count roles' };
+
+  return { verified: false, error: 'no ATS found; the board is probably JavaScript-rendered' };
+}
+
+/** Asks the ATS how many roles are actually open. */
+async function countRoles(method, slug) {
+  const urls = {
+    greenhouse: `https://boards-api.greenhouse.io/v1/boards/${slug}/jobs`,
+    lever: `https://api.lever.co/v0/postings/${slug}?mode=json`,
+    ashby: `https://api.ashbyhq.com/posting-api/job-board/${slug}`,
+    workable: `https://apply.workable.com/api/v1/widget/accounts/${slug}`,
+    breezy: `https://${slug}.breezy.hr/json`,
+  };
+  try {
+    const r = await fetch(urls[method], { headers: { Accept: 'application/json' } });
+    if (!r.ok) return { count: 0, titles: [] };
+    const b = await r.json();
+    const list = b.jobs || b.results || (Array.isArray(b) ? b : []);
+    return {
+      count: list.length,
+      titles: list.slice(0, 5).map((j) => j.title || j.text || j.name).filter(Boolean),
+    };
+  } catch (_) {
+    return { count: 0, titles: [] };
+  }
+}
+
+async function discover(request, env) {
+  if (!adminAuthed(request, env)) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+  if (!env.ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({
+      error: 'Discovery needs ANTHROPIC_API_KEY. Without it, companies must be added by hand.',
+    }), { status: 503, headers: JSON_HEADERS });
+  }
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+
+  const url = new URL(request.url);
+  const hub = url.searchParams.get('hub') || 'opco';
+
+  // What we already have, so the model is not asked to rediscover it.
+  let known = [];
+  try {
+    const rows = await env.DB.prepare('SELECT name FROM companies').all();
+    known = (rows.results || []).map((r) => r.name);
+  } catch (_) { /* table may not exist yet */ }
+  try {
+    const rows = await env.DB.prepare('SELECT DISTINCT company FROM job_history').all();
+    known = known.concat((rows.results || []).map((r) => r.company));
+  } catch (_) { /* no history yet */ }
+  known = [...new Set(known.filter(Boolean))];
+
+  const brief = hub === 'opco'
+    ? 'companies that OWN or MANAGE single-family rental homes at scale — scattered-site operators, SFR REITs, and the property managers who run their portfolios'
+    : 'technology companies that SELL software or services TO single-family rental operators — property management software, maintenance platforms, leasing tools, resident services';
+
+  const prompt = `Find companies currently hiring in US ${hub === 'opco' ? 'scattered-site rental operations' : 'rental property technology'}.
+
+Looking for: ${brief}.
+
+NOT wanted, however much they look like real estate: outdoor advertising, hospital and healthcare REITs, fibre and infrastructure REITs, office and retail landlords, coworking, senior living, industrial. Multifamily-only operators are also not the target — this network is scattered-site single-family.
+
+Already covered, do not propose these:
+${known.slice(0, 200).join(', ') || '(none yet)'}
+
+Use web search to find real companies with real careers pages. For each, give the exact careers page URL.
+
+Accuracy matters more than quantity. A company that does not exist, or a URL that 404s, is worse than a short list — it wastes a verification attempt and pollutes the queue. If you are not confident a company is real and hiring, leave it out.
+
+Return at most 8. Reply as JSON only:
+{"companies":[{"name":"...","careers_url":"https://...","website":"https://...","segment":"...","why":"one line on why they fit"}]}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: DISCOVERY_MODEL,
+      max_tokens: 4000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 8 }],
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!res.ok) {
+    console.error('discovery: Anthropic ' + res.status + ' ' + (await res.text().catch(() => '')).slice(0, 300));
+    return new Response(JSON.stringify({ error: 'The discovery service is unavailable.' }), { status: 502, headers: JSON_HEADERS });
+  }
+
+  // The reply mixes text and tool-use blocks; the JSON is in the text ones.
+  const body = await res.json();
+  const text = (body.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('\n');
+  const match = text.replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
+
+  let proposed = [];
+  if (match) {
+    try { proposed = JSON.parse(match[0]).companies || []; } catch (_) { /* fall through */ }
+  }
+  if (!proposed.length) {
+    return new Response(JSON.stringify({ ok: true, proposed: 0, verified: 0, queued: 0,
+      note: 'Nothing usable came back this time. Try again, or a different hub.' }), { headers: JSON_HEADERS });
+  }
+
+  // ---- verify every proposal before it goes anywhere ----
+  const runId = new Date().toISOString().slice(0, 16);
+  let verified = 0, queued = 0;
+
+  for (const c of proposed.slice(0, 8)) {
+    const name = clean(c.name, 120);
+    const careers = clean(c.careers_url, 500);
+    if (!name || !careers) continue;
+
+    const id = slugify(name);
+    const v = await verifyCompany(careers);
+    if (v.verified) verified++;
+
+    try {
+      await env.DB.prepare(
+        `INSERT INTO discoveries
+           (id, name, hub, careers_url, website, segment, why,
+            verified, method, ats_slug, ats_site, live_roles, sample_titles, verify_error, source)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)
+         ON CONFLICT(id) DO UPDATE SET
+           verified=?8, method=?9, ats_slug=?10, ats_site=?11,
+           live_roles=?12, sample_titles=?13, verify_error=?14, found_at=datetime('now')`
+      ).bind(
+        id, name, hub === 'opco' ? 'opco' : 'proptech', careers,
+        clean(c.website, 300), clean(c.segment, 120), clean(c.why, 300),
+        v.verified ? 1 : 0, v.method || null, v.slug || null, v.site || null,
+        v.count ?? null, JSON.stringify(v.titles || []), v.error || null, runId
+      ).run();
+      queued++;
+    } catch (err) {
+      if (/no such table/i.test(err.message)) {
+        return new Response(JSON.stringify({ error: 'Run db/discovery-d1.sql first.' }), { status: 503, headers: JSON_HEADERS });
+      }
+      console.error('discovery insert failed:', err.message);
+    }
+  }
+
+  return new Response(JSON.stringify({
+    ok: true, hub, proposed: proposed.length, verified, queued,
+  }), { headers: JSON_HEADERS });
+}
+
+/** The review queue. */
+async function listDiscoveries(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT * FROM discoveries WHERE status = 'pending'
+        ORDER BY verified DESC, live_roles DESC NULLS LAST, name LIMIT 60`).all();
+    return new Response(JSON.stringify({
+      discoveries: (rows.results || []).map((d) => ({ ...d, sample_titles: JSON.parse(d.sample_titles || '[]') })),
+    }), { headers: JSON_HEADERS });
+  } catch (_) {
+    return new Response(JSON.stringify({ discoveries: [], error: 'Run db/discovery-d1.sql first.' }), { headers: JSON_HEADERS });
+  }
+}
+
+/** Approving copies the row into companies, with its ATS already known. */
+async function reviewDiscovery(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let body;
+  try { body = await request.json(); } catch { body = {}; }
+  const id = clean(body.id, 80);
+  const approve = body.approve === true;
+  if (!id) return new Response(JSON.stringify({ error: 'No id.' }), { status: 400, headers: JSON_HEADERS });
+
+  const d = await env.DB.prepare('SELECT * FROM discoveries WHERE id = ?1').bind(id).first();
+  if (!d) return new Response(JSON.stringify({ error: 'No such discovery.' }), { status: 404, headers: JSON_HEADERS });
+
+  if (approve) {
+    // Unverified companies are not approvable. The whole point of the queue is
+    // that nothing unproven reaches the board.
+    if (!d.verified) {
+      return new Response(JSON.stringify({
+        error: 'That company could not be verified — no live roles were found. Approving it would add a company that publishes nothing.',
+      }), { status: 400, headers: JSON_HEADERS });
+    }
+    await env.DB.prepare(
+      `INSERT INTO companies (id, name, hub, careers_url, website, segment, method, ats_slug, ats_site, added_by)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,'discovery')
+       ON CONFLICT(id) DO UPDATE SET
+         method=?7, ats_slug=?8, ats_site=?9, active=1, updated_at=datetime('now')`
+    ).bind(d.id, d.name, d.hub, d.careers_url, d.website, d.segment,
+           d.method, d.ats_slug, d.ats_site).run();
+  }
+
+  await env.DB.prepare(
+    `UPDATE discoveries SET status = ?2, reviewed_at = datetime('now') WHERE id = ?1`
+  ).bind(id, approve ? 'approved' : 'rejected').run();
+
+  return new Response(JSON.stringify({ ok: true, approved: approve }), { headers: JSON_HEADERS });
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
@@ -1080,6 +1522,16 @@ export default {
     if (pathname === '/api/history'       && request.method === 'GET')  return historyReport(request, env);
     if (pathname === '/api/signals'       && request.method === 'GET')  return signals(request, env);
     if (pathname === '/api/coverage'      && request.method === 'GET')  return coverage(request, env);
+
+    if (pathname === '/api/companies/feed' && request.method === 'GET')  return companiesForScraper(request, env);
+    if (pathname === '/api/companies'      && request.method === 'GET')  return listCompanies(request, env);
+    if (pathname === '/api/companies'      && request.method === 'POST') return saveCompany(request, env);
+    if (pathname === '/api/companies/active' && request.method === 'POST') return setCompanyActive(request, env);
+    if (pathname === '/api/companies/detected' && request.method === 'POST') return recordDetection(request, env);
+
+    if (pathname === '/api/discover'      && request.method === 'POST') return discover(request, env);
+    if (pathname === '/api/discoveries'   && request.method === 'GET')  return listDiscoveries(request, env);
+    if (pathname === '/api/discoveries'   && request.method === 'POST') return reviewDiscovery(request, env);
     if (pathname === '/api/introduce'     && request.method === 'POST') return introduce(request, env);
 
     // Everything else is the site itself.
