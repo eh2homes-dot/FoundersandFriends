@@ -315,6 +315,44 @@ textarea:focus{outline:none;border-color:var(--purple)}
 
   <!-- Coverage: the state of the scraper. Operational detail, admin only. -->
   <div id="coverage-view" hidden>
+    <!-- Adding a company here writes it to the database. The next detection
+         sweep resolves its ATS and the next scrape picks it up — no code
+         change, no commit. -->
+    <div class="sig-card">
+      <h3>Add a company</h3>
+      <p class="sig-sub">The careers page is all that is needed. Detection works out the rest on Monday, or press Detect now.</p>
+      <div class="add-grid">
+        <input id="c-name" placeholder="Company name" />
+        <select id="c-hub">
+          <option value="opco">OpCo — operates homes</option>
+          <option value="proptech">PropTech — sells to operators</option>
+        </select>
+        <input id="c-url" placeholder="https://company.com/careers" />
+        <input id="c-segment" placeholder="Segment, e.g. SFR Property Management" />
+        <input id="c-state" placeholder="State" />
+        <label class="dl-check"><input type="checkbox" id="c-mf" /> Multifamily, not scattered-site</label>
+      </div>
+      <div class="send-row">
+        <button class="btn act" type="button" id="c-save">Add company</button>
+        <button class="btn" type="button" id="c-refresh">Refresh list</button>
+      </div>
+      <div class="send-status" id="c-status"></div>
+    </div>
+
+    <!-- Discovery. Nothing here reaches the board until it has been verified —
+         the system fetched the careers page itself and counted real openings. -->
+    <div class="sig-card">
+      <h3>Find companies automatically</h3>
+      <p class="sig-sub">Searches for companies hiring in the sector, then checks each one by fetching its careers page and counting live roles. Only what verifies is offered for approval.</p>
+      <div class="send-row">
+        <button class="btn act" type="button" data-discover="opco">Find operators</button>
+        <button class="btn act" type="button" data-discover="proptech">Find technology companies</button>
+      </div>
+      <div class="send-status" id="d-status"></div>
+    </div>
+
+    <div id="discovery-body"></div>
+    <div id="managed-body"></div>
     <div id="coverage-body"><div class="empty">Loading…</div></div>
   </div>
 
@@ -518,12 +556,193 @@ function setView(next) {
   $('title').textContent = next === 'signals' ? 'Signals' : next === 'coverage' ? 'Coverage' : 'Pipeline';
   document.querySelectorAll('[data-view]').forEach((b) => b.classList.toggle('act', b.dataset.view === next));
   if (next === 'signals' && !sigData) loadSignals();
-  if (next === 'coverage' && !covData) loadCoverage();
+  if (next === 'coverage' && !covData) { loadCoverage(); loadManaged(); loadDiscoveries(); }
 }
 
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-view]');
   if (b) setView(b.dataset.view);
+});
+
+/* ---------- managing companies ---------- */
+
+$('c-save').addEventListener('click', saveCompany);
+$('c-refresh').addEventListener('click', loadManaged);
+
+async function saveCompany() {
+  const status = $('c-status');
+  const body = {
+    name: $('c-name').value.trim(),
+    hub: $('c-hub').value,
+    careers_url: $('c-url').value.trim(),
+    segment: $('c-segment').value.trim() || undefined,
+    state: $('c-state').value.trim() || undefined,
+    asset_class: $('c-mf').checked ? 'multifamily' : undefined,
+  };
+
+  if (!body.name || !body.careers_url) {
+    status.textContent = 'Name and careers URL are both needed.';
+    return;
+  }
+
+  status.textContent = 'Saving…';
+  try {
+    const res = await fetch('/api/companies', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) { status.textContent = out.error || ('Failed (' + res.status + ')'); return; }
+
+    status.textContent = `${esc(body.name)} added. Its ATS is detected on Monday, ` +
+      'or run the scrape workflow with Detect ticked to do it now.';
+    ['c-name', 'c-url', 'c-segment', 'c-state'].forEach((id) => { $(id).value = ''; });
+    $('c-mf').checked = false;
+    loadManaged();
+  } catch (err) {
+    status.textContent = 'Failed: ' + err.message;
+  }
+}
+
+async function loadManaged() {
+  try {
+    const res = await fetch('/api/companies', { headers: authHeaders() });
+    const raw = await res.text();
+    let body = null;
+    try { body = JSON.parse(raw); } catch (_) {}
+    if (!body) { $('managed-body').innerHTML = ''; return; }
+
+    if (body.error && !body.companies?.length) {
+      $('managed-body').innerHTML = '<div class="sig-card"><h3>Added companies</h3>' +
+        '<div class="sig-empty">' + esc(body.error) + '</div></div>';
+      return;
+    }
+
+    const list = body.companies || [];
+    if (!list.length) { $('managed-body').innerHTML = ''; return; }
+
+    const resolved = list.filter((c) => c.method).length;
+    const out = ['<div class="sig-card"><h3>Added companies</h3>',
+      `<p class="sig-sub">${list.length} added here · ${resolved} with an ATS resolved · ` +
+      `${list.length - resolved} awaiting detection. These merge with config.js on every scrape.</p>`];
+
+    list.forEach((c) => {
+      const state = c.method
+        ? `<span class="sig-tag pay">${esc(c.method)}${c.ats_slug ? ' · ' + esc(c.ats_slug) : ''}</span>`
+        : c.detect_attempts >= 3
+          ? '<span class="sig-tag" style="color:var(--amber)">could not detect</span>'
+          : `<span class="sig-tag" style="color:var(--ink-dim)">awaiting detection${c.detect_attempts ? ' · tried ' + c.detect_attempts : ''}</span>`;
+      out.push(`<div class="sig-row">
+        <span class="sig-role">${esc(c.name)}</span>
+        <span class="sig-tag ${c.hub === 'opco' ? 'first' : 'pay'}">${c.hub === 'opco' ? 'operator' : 'tech'}</span>
+        ${state}
+        <span class="sig-meta">
+          <button class="btn" type="button" data-park="${esc(c.id)}" data-active="${c.active ? 1 : 0}"
+            style="padding:5px 12px;font-size:10px">${c.active ? 'Park' : 'Unpark'}</button>
+        </span>
+      </div>`);
+      if (c.detect_last_error && !c.method) {
+        out.push(`<div style="font-size:12px;color:var(--ink-dim);padding:0 0 10px 2px">${esc(c.detect_last_error)}</div>`);
+      }
+    });
+    out.push('</div>');
+    $('managed-body').innerHTML = out.join('');
+  } catch (_) {
+    $('managed-body').innerHTML = '';
+  }
+}
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-park]');
+  if (!b) return;
+  await fetch('/api/companies/active', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ id: b.dataset.park, active: b.dataset.active !== '1' }),
+  });
+  loadManaged();
+});
+
+/* ---------- discovery ---------- */
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-discover]');
+  if (!b) return;
+  const status = $('d-status');
+  status.textContent = 'Searching and verifying — this takes a minute…';
+  document.querySelectorAll('[data-discover]').forEach((x) => { x.disabled = true; });
+
+  try {
+    const res = await fetch('/api/discover?hub=' + b.dataset.discover, {
+      method: 'POST', headers: authHeaders(),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) { status.textContent = out.error || ('Failed (' + res.status + ')'); return; }
+
+    status.textContent = out.note ||
+      `${out.proposed} proposed · ${out.verified} verified with live roles · ${out.queued} queued for review.` +
+      (out.verified < out.proposed ? ' The rest could not be verified and cannot be approved.' : '');
+    loadDiscoveries();
+  } catch (err) {
+    status.textContent = 'Failed: ' + err.message;
+  } finally {
+    document.querySelectorAll('[data-discover]').forEach((x) => { x.disabled = false; });
+  }
+});
+
+async function loadDiscoveries() {
+  try {
+    const res = await fetch('/api/discoveries', { headers: authHeaders() });
+    const body = await res.json().catch(() => ({}));
+    const list = body.discoveries || [];
+    if (!list.length) { $('discovery-body').innerHTML = ''; return; }
+
+    const out = ['<div class="sig-card"><h3>Waiting for review</h3>',
+      '<p class="sig-sub">Verified means the careers page was fetched and real openings were counted. Anything unverified cannot be approved — it would add a company that publishes nothing.</p>'];
+
+    list.forEach((d) => {
+      const titles = (d.sample_titles || []).slice(0, 3).join(' · ');
+      out.push(`<div class="sig-row" style="align-items:flex-start">
+        <div style="flex:1;min-width:220px">
+          <span class="sig-role">${esc(d.name)}</span>
+          <span class="sig-tag ${d.hub === 'opco' ? 'first' : 'pay'}" style="margin-left:8px">${d.hub === 'opco' ? 'operator' : 'tech'}</span>
+          ${d.verified
+            ? `<span class="sig-tag pay" style="margin-left:6px">${d.live_roles} live · ${esc(d.method)}</span>`
+            : '<span class="sig-tag" style="margin-left:6px;color:var(--amber)">unverified</span>'}
+          <div style="font-size:12.5px;color:var(--ink-dim);margin-top:5px">${esc(d.why || '')}</div>
+          ${titles ? `<div style="font-size:12px;color:var(--ink-soft);margin-top:4px">${esc(titles)}</div>` : ''}
+          ${!d.verified && d.verify_error ? `<div style="font-size:12px;color:var(--amber);margin-top:4px">${esc(d.verify_error)}</div>` : ''}
+        </div>
+        <span class="sig-meta" style="display:flex;gap:6px">
+          ${d.verified ? `<button class="btn act" type="button" data-approve="${esc(d.id)}" style="padding:5px 12px;font-size:10px">Add</button>` : ''}
+          <button class="btn danger" type="button" data-reject="${esc(d.id)}" style="padding:5px 12px;font-size:10px">Dismiss</button>
+        </span>
+      </div>`);
+    });
+    out.push('</div>');
+    $('discovery-body').innerHTML = out.join('');
+  } catch (_) {
+    $('discovery-body').innerHTML = '';
+  }
+}
+
+document.addEventListener('click', async (e) => {
+  const a = e.target.closest('[data-approve]');
+  const r = e.target.closest('[data-reject]');
+  if (!a && !r) return;
+  const res = await fetch('/api/discoveries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ id: (a || r).dataset.approve || (a || r).dataset.reject, approve: !!a }),
+  });
+  if (!res.ok) {
+    const out = await res.json().catch(() => ({}));
+    $('d-status').textContent = out.error || 'Failed';
+    return;
+  }
+  loadDiscoveries();
+  loadManaged();
 });
 
 /* ---------- coverage ---------- */
