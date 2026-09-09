@@ -966,7 +966,17 @@ if (HISTORY_URL && HISTORY_KEY) {
       body: JSON.stringify({
         sources_ok: okResults.length,
         sources_failed: results.length - okResults.length,
-        jobs: all.map((j) => ({
+        // Which companies this run actually reached.
+        //
+        // Without it the Worker cannot tell "confirmed still open" from "not
+        // checked". It stamps every role in the payload as freshly seen, so
+        // carried-over roles from a failed or out-of-scope company look
+        // permanently fresh: they never close, and days_open never resolves.
+        scraped_company_ids: [...scrapedIds],
+        // Freshly scraped roles only. A carried-over role was not verified
+        // this run, so moving its last_seen forward would be a lie — and the
+        // whole point of this table is knowing when a role was really open.
+        jobs: fresh.map((j) => ({
           id: j.id, hub: j.hub, company: j.company, company_id: j.company_id,
           title: j.title, category: j.category, level: j.level, location: j.location,
           comp_min: j.comp_min, comp_max: j.comp_max,
@@ -979,6 +989,8 @@ if (HISTORY_URL && HISTORY_KEY) {
       console.error(`history  NOT recorded — ${body.error || res.status}`);
     } else {
       console.log(`history  ${body.recorded} roles recorded · ${body.new_roles} new · ${body.closed} closed` +
+        (body.companies_checked != null ? `  (${body.companies_checked} companies checked` +
+          (body.unchecked_open_roles ? `, ${body.unchecked_open_roles} open roles left unverified` : '') + ')' : '') +
         (body.closing_skipped ? '  (closing skipped: run looked unreliable)' : ''));
     }
   } catch (err) {
