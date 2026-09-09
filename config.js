@@ -561,8 +561,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Digital Mortgage Closing Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "snapdocs",
     active: true,
   },
   {
@@ -639,8 +639,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Cash-Offer / Mortgage Fintech",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "homeward",
     active: true,
   },
   {
@@ -652,8 +652,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Landlord Insurance",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "Steadily",
     active: true,
   },
   {
@@ -704,8 +704,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "AI Permitting & Compliance",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "brettonai",
     active: true,
   },
   {
@@ -795,8 +795,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Smart Access / Intercom Systems",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "butterflymx",
     active: true,
   },
   {
@@ -1201,8 +1201,8 @@ export const COMPANIES = [
     state: "Colorado",
     segment: "Homeowner Engagement Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "homebot",
     active: true,
   },
   {
@@ -1214,8 +1214,8 @@ export const COMPANIES = [
     state: "Colorado",
     segment: "Multifamily Marketing Agency/Tech",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "digible",
     active: true,
   },
   {
@@ -1528,8 +1528,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Workplace Experience Platform",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "envoy",
     active: true,
   },
   {
