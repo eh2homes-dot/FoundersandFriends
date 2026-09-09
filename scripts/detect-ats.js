@@ -25,9 +25,24 @@ const args = Object.fromEntries(process.argv.slice(2).map((a) => {
   return [k, v ?? true];
 }));
 
-const TIMEOUT_MS = 15000;
+const TIMEOUT_MS = 25000;
 const CONCURRENCY = 6;
-const UA = 'FoundersAndFriendsBot/1.0 (+https://propertyandtechnology.com)';
+
+/* An honest bot UA is the polite default, but a careers page behind Cloudflare
+   or Akamai answers it with a 403 before any signature can be read. Thirteen
+   companies failed that way on the first full run — Yardi, CoStar, Rocket,
+   Realtor.com and the rest — none of them for a reason a bot should respect:
+   these are public job listings. So the probe presents as a browser.
+
+   Requests are still one-per-company, six at a time, with a retry that backs
+   off. That is far lighter than a person browsing the same board. */
+const BROWSER_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+    '(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+};
 
 /* ---------------------------------------------------------------------------
    Signatures. Each returns { method, slug } or null.
@@ -37,12 +52,20 @@ const SIGNATURES = [
   {
     method: 'greenhouse',
     test: (html, finalUrl) => {
+      // Order matters, most specific first. The old first-position pattern
+      // made "embed" optional, so an embed URL matched it and captured the
+      // literal word "embed" as the board token. Verification then failed and
+      // the loop moved on to the next ATS — a real Greenhouse board reported
+      // as "no signature found". Every embed-style board was invisible.
       const m =
-        html.match(/boards\.greenhouse\.io\/(?:embed\/job_board\?for=)?([a-z0-9_-]+)/i) ||
+        html.match(/greenhouse\.io\/embed\/job_board(?:\/js)?\?for=([a-z0-9_-]+)/i) ||
         html.match(/job-boards\.greenhouse\.io\/([a-z0-9_-]+)/i) ||
-        html.match(/greenhouse\.io\/embed\/job_board\/js\?for=([a-z0-9_-]+)/i) ||
+        html.match(/boards\.greenhouse\.io\/([a-z0-9_-]+)/i) ||
         finalUrl.match(/greenhouse\.io\/([a-z0-9_-]+)/i);
-      return m ? { slug: m[1] } : null;
+      const slug = m && m[1];
+      // Path segments that are never a board token.
+      if (!slug || /^(embed|js|job_board|jobs|boards)$/i.test(slug)) return null;
+      return { slug };
     },
     verify: async (slug) => {
       const r = await get(`https://boards-api.greenhouse.io/v1/boards/${slug}/jobs`);
@@ -70,6 +93,68 @@ const SIGNATURES = [
         : null;
     },
   },
+  /* The three below were the largest gap in this script. run.js has had
+     working ashby, workable and breezy adapters the whole time, but no
+     signature here could ever assign them, so every company on one of those
+     platforms fell through to "no ATS signature found" and was skipped. */
+  {
+    method: 'ashby',
+    test: (html, finalUrl) => {
+      const m =
+        html.match(/jobs\.ashbyhq\.com\/([a-z0-9_.-]+)/i) ||
+        finalUrl.match(/ashbyhq\.com\/([a-z0-9_.-]+)/i);
+      const slug = m && m[1];
+      if (!slug || /^(embed|api|posting-api)$/i.test(slug)) return null;
+      return { slug };
+    },
+    verify: async (slug) => {
+      const r = await get(`https://api.ashbyhq.com/posting-api/job-board/${slug}`);
+      if (!r.ok) return null;
+      const body = await r.json().catch(() => null);
+      return Array.isArray(body?.jobs)
+        ? { count: body.jobs.length, url: `https://api.ashbyhq.com/posting-api/job-board/${slug}?includeCompensation=true` }
+        : null;
+    },
+  },
+  {
+    method: 'workable',
+    test: (html, finalUrl) => {
+      const m =
+        html.match(/apply\.workable\.com\/([a-z0-9_-]+)/i) ||
+        finalUrl.match(/apply\.workable\.com\/([a-z0-9_-]+)/i);
+      const slug = m && m[1];
+      if (!slug || /^(api|j|embed)$/i.test(slug)) return null;
+      return { slug };
+    },
+    verify: async (slug) => {
+      const r = await get(`https://apply.workable.com/api/v1/widget/accounts/${encodeURIComponent(slug)}`);
+      if (!r.ok) return null;
+      const body = await r.json().catch(() => null);
+      const jobs = body?.jobs;
+      return Array.isArray(jobs)
+        ? { count: jobs.length, url: `https://apply.workable.com/api/v1/widget/accounts/${slug}` }
+        : null;
+    },
+  },
+  {
+    method: 'breezy',
+    test: (html, finalUrl) => {
+      const m =
+        html.match(/([a-z0-9_-]+)\.breezy\.hr/i) ||
+        finalUrl.match(/([a-z0-9_-]+)\.breezy\.hr/i);
+      const slug = m && m[1];
+      if (!slug || /^(app|www)$/i.test(slug)) return null;
+      return { slug };
+    },
+    verify: async (slug) => {
+      const r = await get(`https://${slug}.breezy.hr/json`);
+      if (!r.ok) return null;
+      const body = await r.json().catch(() => null);
+      return Array.isArray(body)
+        ? { count: body.length, url: `https://${slug}.breezy.hr/json` }
+        : null;
+    },
+  },
   {
     method: 'workday',
     test: (html, finalUrl) => {
@@ -94,13 +179,81 @@ const SIGNATURES = [
   },
 ];
 
+/**
+ * Platforms run.js has no adapter for.
+ *
+ * Recognising these does not resolve the company — the method stays NULL and
+ * it is still skipped, exactly as the strict rule requires. What changes is
+ * the report. "no ATS signature found" is a dead end; "iCIMS detected — no
+ * adapter" is a work item, and counting them tells you which adapter is worth
+ * building next rather than guessing.
+ */
+const KNOWN_HOSTS = [
+  [/icims\.com/i, 'iCIMS'],
+  [/\.bamboohr\.com/i, 'BambooHR'],
+  [/recruiting\.paylocity\.com/i, 'Paylocity'],
+  [/jobs\.jobvite\.com|jobvite\.com\/careers/i, 'Jobvite'],
+  [/smartrecruiters\.com/i, 'SmartRecruiters'],
+  [/dayforcehcm\.com|ceridian\.com/i, 'Dayforce'],
+  [/taleo\.net/i, 'Taleo'],
+  [/successfactors\.(com|eu)|sapsf\.(com|eu)/i, 'SuccessFactors'],
+  [/ultipro\.com|\.ukg\.(com|net)/i, 'UKG'],
+  [/applytojob\.com|jazzhr\.com/i, 'JazzHR'],
+  [/pinpointhq\.com/i, 'Pinpoint'],
+  [/\.personio\.(de|com)/i, 'Personio'],
+  [/ats\.rippling\.com|rippling-ats\.com/i, 'Rippling'],
+  [/phenompeople\.com/i, 'Phenom'],
+  [/eightfold\.ai/i, 'Eightfold'],
+  [/oraclecloud\.com/i, 'Oracle HCM'],
+  [/workforcenow\.adp\.com|myjobs\.adp\.com/i, 'ADP'],
+  [/paycomonline\.net/i, 'Paycom'],
+  [/jobs\.paycor\.com/i, 'Paycor'],
+  [/isolvedhire\.com/i, 'isolved'],
+  [/clearcompany\.com/i, 'ClearCompany'],
+  [/hirebridge\.com/i, 'Hirebridge'],
+  [/recruitee\.com/i, 'Recruitee'],
+  [/teamtailor\.com/i, 'Teamtailor'],
+  [/jobs\.deel\.com/i, 'Deel'],
+];
+
+/**
+ * A careers page carrying JobPosting structured data is a candidate for the
+ * jsonld adapter — but that adapter needs a sitemap URL, and writeBack has no
+ * field to set one. So this is reported for a human to finish, never assigned.
+ */
+const JSONLD_HINT = /"@type"\s*:\s*"JobPosting"/i;
+
 /* --------------------------------------------------------------------------- */
 
-function get(url) {
+/**
+ * One fetch, with a timeout and two retries.
+ *
+ * Retries cover the failures that are about the moment rather than the site:
+ * a 429, a 5xx, a DNS blip, a timeout. Nine companies failed that way on the
+ * first run and several would likely have answered on a second attempt.
+ * A 403 or 404 is not retried — those mean something real and repeating the
+ * request only wastes time.
+ */
+async function get(url, attempt = 0) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
-  return fetch(url, { headers: { 'User-Agent': UA, Accept: '*/*' }, redirect: 'follow', signal: ctl.signal })
-    .finally(() => clearTimeout(timer));
+  try {
+    const res = await fetch(url, { headers: BROWSER_HEADERS, redirect: 'follow', signal: ctl.signal });
+    if ((res.status === 429 || res.status >= 500) && attempt < 2) {
+      clearTimeout(timer);
+      await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+      return get(url, attempt + 1);
+    }
+    return res;
+  } catch (err) {
+    if (attempt < 2) {
+      await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+      return get(url, attempt + 1);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function detect(company) {
@@ -136,6 +289,20 @@ async function detect(company) {
       count: confirmed?.count ?? null,
       reason: null,
     };
+  }
+
+  // Nothing scrapeable. Say as much as possible about why, so the unresolved
+  // list is a queue rather than a wall.
+  const known = KNOWN_HOSTS.find(([re]) => re.test(html) || re.test(finalUrl));
+  if (known) return { ...company, method: null, platform: known[1], reason: `${known[1]} detected — no adapter` };
+
+  if (JSONLD_HINT.test(html)) {
+    return { ...company, method: null, platform: 'JSON-LD', reason: 'JobPosting JSON-LD present — set sitemap + method: jsonld by hand' };
+  }
+
+  // An empty shell: almost no markup, or a body that is mostly script tags.
+  if (html.length < 20000 && (html.match(/<script/gi) || []).length > 5) {
+    return { ...company, method: null, reason: 'JS-rendered shell — no server-side job links' };
   }
 
   return { ...company, method: null, reason: 'no ATS signature found' };
@@ -216,9 +383,41 @@ for (const m of ['greenhouse', 'lever', 'workday', 'dom']) {
 
 if (unresolved.length) {
   console.log(`\nunresolved ${unresolved.length} — these stay NULL and will be skipped by run.js:`);
-  unresolved.forEach((r) => console.log(`  ${(r.name || r.id).padEnd(34).slice(0, 34)} ${r.reason}`));
-  console.log('\nMost will be JavaScript-rendered boards. Options: find the underlying');
-  console.log('ATS URL by hand and set scrape_method directly, or leave them out.');
+
+  // Grouped by what would actually fix it, because the four causes need four
+  // different kinds of work and a flat list hides that.
+  const bucket = (r) => {
+    if (r.platform) return 'known platform, no adapter';
+    if (/^HTTP 404/.test(r.reason)) return 'bad careers_url (404)';
+    if (/^HTTP 40[13]/.test(r.reason)) return 'blocked (403/401)';
+    if (/^HTTP 429/.test(r.reason)) return 'rate limited (429)';
+    if (/^fetch failed/.test(r.reason)) return 'network / timeout';
+    return 'no signature';
+  };
+
+  const groups = new Map();
+  for (const r of unresolved) {
+    const b = bucket(r);
+    if (!groups.has(b)) groups.set(b, []);
+    groups.get(b).push(r);
+  }
+
+  for (const [name, rows] of [...groups].sort((a, b) => b[1].length - a[1].length)) {
+    console.log(`\n  ${name} (${rows.length})`);
+    rows.forEach((r) => console.log(`    ${(r.name || r.id).padEnd(34).slice(0, 34)} ${r.reason}`));
+  }
+
+  // Which adapter would unlock the most companies. This is the whole point of
+  // recognising platforms we cannot yet scrape.
+  const byPlatform = new Map();
+  unresolved.filter((r) => r.platform).forEach((r) => byPlatform.set(r.platform, (byPlatform.get(r.platform) || 0) + 1));
+  if (byPlatform.size) {
+    console.log('\n  adapters that would pay off most, in order:');
+    [...byPlatform].sort((a, b) => b[1] - a[1]).forEach(([p, n]) => console.log(`    ${String(p).padEnd(18)} ${n} companies`));
+  }
+
+  console.log('\n  404s are stale careers_url values in config.js — fix the URL, not the code.');
+  console.log('  "no signature" is usually a JS-rendered board with no reachable API.');
 }
 
 const written = await writeBack(results);
