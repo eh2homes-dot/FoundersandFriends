@@ -685,15 +685,32 @@ async function syncHistory(request, env) {
     return new Response(JSON.stringify({ error: 'No jobs in payload — refusing to record an empty run.' }), { status: 400, headers: JSON_HEADERS });
   }
 
+  // Which companies this run actually reached.
+  //
+  // A scraper that does not send this is an older version: fall back to every
+  // company present in the payload, which is the previous behaviour and still
+  // correct for a full run. Keeping the fallback means the Worker can be
+  // deployed before the scraper without a window where nothing closes.
+  const scraped = Array.isArray(body.scraped_company_ids) && body.scraped_company_ids.length
+    ? [...new Set(body.scraped_company_ids.map((s) => String(s).slice(0, 120)).filter(Boolean))]
+    : [...new Set(jobs.map((j) => String(j.company_id || '').slice(0, 120)).filter(Boolean))];
+
   // Millisecond precision matters: closing works by comparing last_seen against
   // this run's timestamp, and two runs sharing a second would close nothing.
   // Daily scrapes would hide that; a manual re-run would not.
   const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
 
   // ---- how many were open before this run, for the sanity check below ----
-  const before = await env.DB.prepare(
-    'SELECT COUNT(*) AS n FROM job_history WHERE closed_at IS NULL').first();
-  const openBefore = before?.n ?? 0;
+  // Scoped to the companies this run covered. Measuring the batch against every
+  // open role in the table would make a single-hub run look like a collapse and
+  // trip the health guard for no reason.
+  const openBefore = scraped.length
+    ? (await env.DB.prepare(
+        `SELECT COUNT(*) AS n FROM job_history
+          WHERE closed_at IS NULL
+            AND company_id IN (${scraped.map((_, i) => '?' + (i + 1)).join(',')})`
+      ).bind(...scraped).first())?.n ?? 0
+    : 0;
 
   // ---- upsert every role in the batch ----
   // ON CONFLICT keeps first_seen fixed and moves last_seen forward. A role that
@@ -731,27 +748,48 @@ async function syncHistory(request, env) {
 
   // ---- close anything this run did not see ----
   //
-  // Deliberately guarded. A scrape that fails badly returns few roles, and
-  // closing everything it missed would record a mass hiring freeze that never
-  // happened — poisoning exactly the numbers this table exists to produce.
+  // Deliberately guarded, twice.
+  //
+  // First, by scope: only companies this run actually reached can have roles
+  // closed. A role at a company that was never checked is not closed, it is
+  // unknown. Closing it would invent a "someone was hired" signal out of a
+  // scrape that never ran — and senior roles closing is precisely the number
+  // this table exists to produce.
+  //
+  // Second, by health: a scrape that fails badly returns few roles, and closing
+  // everything it missed would record a mass hiring freeze that never happened.
   // Nothing is closed if the run looks unreliable; the roles simply stay open
   // until a healthy run confirms otherwise.
   let closed = 0;
-  const healthy = openBefore === 0 || written >= openBefore * 0.6;
+  const healthy = scraped.length > 0 && (openBefore === 0 || written >= openBefore * 0.6);
 
   if (healthy) {
     const res = await env.DB.prepare(
       `UPDATE job_history
           SET closed_at = ?1,
               days_open = CAST(julianday(?1) - julianday(first_seen) AS INTEGER)
-        WHERE closed_at IS NULL AND last_seen < ?1`).bind(now).run();
+        WHERE closed_at IS NULL
+          AND last_seen < ?1
+          AND company_id IN (${scraped.map((_, i) => '?' + (i + 2)).join(',')})`
+    ).bind(now, ...scraped).run();
     closed = res.meta?.changes ?? 0;
   } else {
-    console.warn(`history: only ${written} roles vs ${openBefore} open — not closing anything`);
+    console.warn(`history: only ${written} roles vs ${openBefore} open across ${scraped.length} companies — not closing anything`);
   }
 
   const newRoles = await env.DB.prepare(
     'SELECT COUNT(*) AS n FROM job_history WHERE first_seen = ?1').bind(now).first();
+
+  // Open roles at companies this run did not reach. Neither confirmed open nor
+  // closed — just unverified. Surfacing the count here is what stops them
+  // quietly ageing on the board forever.
+  const unchecked = scraped.length
+    ? (await env.DB.prepare(
+        `SELECT COUNT(*) AS n FROM job_history
+          WHERE closed_at IS NULL
+            AND company_id NOT IN (${scraped.map((_, i) => '?' + (i + 1)).join(',')})`
+      ).bind(...scraped).first())?.n ?? 0
+    : 0;
 
   await env.DB.prepare(
     `INSERT INTO scrape_runs (ran_at, total_roles, sources_ok, sources_failed, new_roles, closed_roles, ok)
@@ -762,6 +800,7 @@ async function syncHistory(request, env) {
   return new Response(JSON.stringify({
     ok: true, recorded: written, new_roles: newRoles?.n ?? 0,
     closed, closing_skipped: !healthy,
+    companies_checked: scraped.length, unchecked_open_roles: unchecked,
   }), { headers: JSON_HEADERS });
 }
 
