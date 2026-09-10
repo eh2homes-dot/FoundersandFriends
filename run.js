@@ -29,6 +29,14 @@ const args = Object.fromEntries(process.argv.slice(2).map((a) => {
 }));
 
 const OUT = args.out || 'site/jobs.json';
+
+/* The Worker's address and admin key. Used twice: to pull companies approved
+   through the discovery queue before scraping, and to post the run to job
+   history afterwards. Declared here because the first use is near the top —
+   both features degrade quietly to nothing when these are unset. */
+const HISTORY_URL = process.env.HISTORY_URL;
+const HISTORY_KEY = process.env.HISTORY_KEY;
+
 const TIMEOUT_MS = 20000;
 const CONCURRENCY = 4;          // polite: four career sites at a time, not 123
 const DELAY_MS = 350;           // between batches
@@ -788,7 +796,48 @@ async function loadPrevious(path) {
   }
 }
 
-const targets = COMPANIES
+/**
+ * Companies approved through the discovery queue, from the Worker.
+ *
+ * config.js stays the source of truth: it is hand-curated, carries the REVIEW
+ * markers, and is what detect-ats.js writes back into. The database is purely
+ * additive — it contributes companies config.js has never heard of, which is
+ * exactly what an approved discovery is.
+ *
+ * A company present in both keeps its config.js definition. That rule matters:
+ * it means nothing you have deliberately set by hand can be silently replaced
+ * by a row in a table.
+ *
+ * Failure here is never fatal. No credentials, no network, no endpoint — the
+ * scrape proceeds on config.js alone. A discovery arriving a day late is a
+ * small cost; a scrape that dies because an API was briefly down is not.
+ */
+async function companiesFromDatabase() {
+  if (!HISTORY_URL || !HISTORY_KEY) return [];
+  try {
+    const res = await fetch(HISTORY_URL.replace(/\/$/, '') + '/api/companies/feed', {
+      headers: { 'X-Admin-Key': HISTORY_KEY },
+    });
+    if (!res.ok) {
+      console.log(`companies  database feed unavailable (HTTP ${res.status}) — using config.js only`);
+      return [];
+    }
+    const body = await res.json();
+    return Array.isArray(body?.companies) ? body.companies : [];
+  } catch (err) {
+    console.log(`companies  database feed unreachable (${err.message}) — using config.js only`);
+    return [];
+  }
+}
+
+const configIds = new Set(COMPANIES.map((c) => c.id));
+const fromDb = (await companiesFromDatabase()).filter((c) => c.id && !configIds.has(c.id));
+if (fromDb.length) {
+  const named = fromDb.map((c) => c.name).join(', ');
+  console.log(`companies  ${fromDb.length} from the discovery queue: ${named}\n`);
+}
+
+const targets = [...COMPANIES, ...fromDb]
   .filter((c) => c.active !== false)
   .filter((c) => (args.hub ? c.hub === args.hub : true))
   .filter((c) => (args.only ? c.id === args.only : true));
@@ -955,8 +1004,6 @@ console.log(`\nwrote ${OUT} — ${all.length} roles`);
    still works without it. A failure here is reported but never fails the run —
    the feed matters more than the archive.
    -------------------------------------------------------------------------- */
-const HISTORY_URL = process.env.HISTORY_URL;
-const HISTORY_KEY = process.env.HISTORY_KEY;
 
 if (HISTORY_URL && HISTORY_KEY) {
   try {
