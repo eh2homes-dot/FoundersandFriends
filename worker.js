@@ -1297,7 +1297,7 @@ async function recordDetection(request, env) {
    word alone.
    ========================================================================== */
 
-const DISCOVERY_MODEL = 'claude-sonnet-4-5';
+const DISCOVERY_MODEL = 'claude-sonnet-5';
 
 /** Probes a careers URL and returns what is really there. */
 async function verifyCompany(url) {
