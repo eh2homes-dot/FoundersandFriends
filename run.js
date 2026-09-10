@@ -420,7 +420,7 @@ function isNotAJob(title) {
  * MRI. So the substance check only applies where a description was actually
  * available and the employer chose not to write one.
  */
-const DESCRIBES = new Set(['greenhouse', 'lever', 'ashby', 'workable', 'breezy', 'jsonld']);
+const DESCRIBES = new Set(['greenhouse', 'lever', 'ashby', 'workable', 'breezy', 'jsonld', 'ukg']);
 
 /**
  * Is there enough here to be worth publishing?
@@ -715,7 +715,104 @@ async function workable(company) {
   return out;
 }
 
-const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, ashby, workable, reffie, dom };
+/**
+ * UKG Ready / UltiPro recruiting boards.
+ *
+ * The public careers page is often behind a WAF that refuses a scripted
+ * request outright — VineBrook's returns 403 to anything that is not a real
+ * browser. The board itself is a separate host and is not protected, so going
+ * straight to it sidesteps the block entirely. That is the whole reason this
+ * adapter exists.
+ *
+ * A board URL carries both values needed:
+ *     recruiting.ultipro.com/{tenant}/JobBoard/{boardId}/
+ * where tenant looks like VIN1007VNB and boardId is a GUID. Same two-field
+ * shape as Workday, so atsSlug holds the tenant and atsSite the board id.
+ *
+ * Results come from a POST, not a GET. A GET returns the HTML shell and would
+ * read as "no openings" rather than as a mistake.
+ */
+async function ukg(company) {
+  const url = company.careersUrl || '';
+  const m = url.match(/recruiting\.ultipro\.com\/([^/]+)\/JobBoard\/([0-9a-f-]{36})/i);
+
+  const tenant = company.atsSlug || (m && m[1]);
+  const board = company.atsSite || (m && m[2]);
+  if (!tenant || !board) {
+    throw new Error('ukg needs atsSlug (tenant, e.g. VIN1007VNB) and atsSite (the board GUID)');
+  }
+
+  const endpoint =
+    `https://recruiting.ultipro.com/${tenant}/JobBoard/${board}/JobBoardView/LoadSearchResults`;
+
+  const all = [];
+  const PAGE = 50;
+
+  for (let skip = 0; skip < 500; skip += PAGE) {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'User-Agent': UA,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        opportunitySearch: {
+          Top: PAGE,
+          Skip: skip,
+          QueryString: '',
+          OrderBy: [{ Value: 'postedDateDesc', PropertyName: 'PostedDate', Ascending: false }],
+          Filters: [],
+        },
+      }),
+    });
+
+    if (!res.ok) throw new Error('ukg HTTP ' + res.status);
+
+    const body = await res.json().catch(() => null);
+    // Named explicitly rather than guessed at: if UltiPro changes the envelope,
+    // this should fail and be fixed, not quietly report a company as not hiring.
+    const page = body?.opportunities;
+    if (!Array.isArray(page)) throw new Error('ukg returned no opportunities array');
+
+    all.push(...page);
+
+    const total = body.totalCount ?? all.length;
+    if (page.length < PAGE || all.length >= total) break;
+    await sleep(250);
+  }
+
+  if (!all.length) throw new Error('ukg returned no opportunities');
+
+  return all.map((j) => {
+    // Locations is an array of nested address objects; City and State are
+    // sometimes plain strings and sometimes { Name } objects, depending on the
+    // tenant's configuration.
+    const loc = Array.isArray(j.Locations) ? j.Locations[0] : null;
+    const addr = loc?.Address || loc || {};
+    const city = addr.City?.Name || addr.City || '';
+    const state = addr.State?.Code || addr.State?.Name || addr.State || '';
+    const location = [city, state].filter(Boolean).join(', ') || 'See posting';
+
+    const posted = typeof j.PostedDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(j.PostedDate)
+      ? j.PostedDate.slice(0, 10)
+      : null;
+
+    const description = toText(j.JobDescription || j.Description || '');
+
+    return {
+      sourceId: String(j.Id ?? j.RequisitionNumber ?? j.Title),
+      title: j.Title,
+      location,
+      url: `https://recruiting.ultipro.com/${tenant}/JobBoard/${board}/OpportunityDetail?opportunityId=${j.Id}`,
+      description,
+      postedAt: posted,
+      ...parseComp(`${j.Title} ${description}`),
+    };
+  });
+}
+
+const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, ashby, workable, reffie, dom, ukg };
 
 /* ==========================================================================
    RUN
