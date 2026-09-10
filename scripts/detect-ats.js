@@ -156,6 +156,41 @@ const SIGNATURES = [
     },
   },
   {
+    // Moved out of KNOWN_HOSTS once the adapter existed. The board URL carries
+    // both values the adapter needs, so a match here fully resolves a company.
+    method: 'ukg',
+    test: (html, finalUrl) => {
+      const re = /recruiting\.ultipro\.com\/([^/"'\s]+)\/JobBoard\/([0-9a-f-]{36})/i;
+      const m = finalUrl.match(re) || html.match(re);
+      // slug carries both halves, tenant first — writeBack stores one value.
+      return m ? { slug: `${m[1]}/${m[2]}` } : null;
+    },
+    verify: async (slug) => {
+      const [tenant, board] = slug.split('/');
+      if (!tenant || !board) return null;
+      const res = await fetch(
+        `https://recruiting.ultipro.com/${tenant}/JobBoard/${board}/JobBoardView/LoadSearchResults`,
+        {
+          method: 'POST',
+          headers: { ...BROWSER_HEADERS, 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            opportunitySearch: {
+              Top: 1, Skip: 0, QueryString: '',
+              OrderBy: [{ Value: 'postedDateDesc', PropertyName: 'PostedDate', Ascending: false }],
+              Filters: [],
+            },
+          }),
+        },
+      );
+      if (!res.ok) return null;
+      const body = await res.json().catch(() => null);
+      return Array.isArray(body?.opportunities)
+        ? { count: body.totalCount ?? body.opportunities.length,
+            url: `https://recruiting.ultipro.com/${tenant}/JobBoard/${board}/` }
+        : null;
+    },
+  },
+  {
     method: 'workday',
     test: (html, finalUrl) => {
       const m =
@@ -197,7 +232,6 @@ const KNOWN_HOSTS = [
   [/dayforcehcm\.com|ceridian\.com/i, 'Dayforce'],
   [/taleo\.net/i, 'Taleo'],
   [/successfactors\.(com|eu)|sapsf\.(com|eu)/i, 'SuccessFactors'],
-  [/ultipro\.com|\.ukg\.(com|net)/i, 'UKG'],
   [/applytojob\.com|jazzhr\.com/i, 'JazzHR'],
   [/pinpointhq\.com/i, 'Pinpoint'],
   [/\.personio\.(de|com)/i, 'Personio'],
