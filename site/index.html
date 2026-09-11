@@ -641,7 +641,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 /* Tall enough to feel like a space rather than a strip, short enough that the
    controls above it stay on screen on a laptop. */
-#orbit-canvas{display:block;width:100%;height:86vh;min-height:520px;max-height:1000px;touch-action:none;cursor:grab}
+#orbit-canvas{display:block;width:100%;height:92vh;min-height:560px;max-height:1160px;touch-action:none;cursor:grab}
 #orbit-canvas:active{cursor:grabbing}
 
 .orbit-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -653,44 +653,14 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 /* The rail keeps every company reachable without leaving the 3D view, which
    is the whole point of the view — no bouncing back to the list to find one. */
-.orbit-rail{
-  position:absolute;top:26px;left:max(18px, calc(50vw - 620px + 24px));width:198px;max-height:calc(100% - 96px);
-  overflow-y:auto;padding-right:8px;scrollbar-width:thin;
-  scrollbar-color:var(--line) transparent;
+/* Legend, in place of the rails that used to flank the globe. */
+.orbit-key{
+  position:absolute;top:24px;left:max(20px, calc(50vw - 620px));
+  display:flex;gap:20px;font-family:var(--mono);font-size:11px;color:var(--ink-dim);
+  letter-spacing:.04em;
 }
-/* The roles rail answers a real limit of the 3D view: at any moment half the
-   globe faces away, so a role you want may simply not be on screen. The list
-   is every role currently matching the filters, scrollable, and it highlights
-   its node on the globe when hovered. */
-.orbit-rail-right{
-  left:auto;
-  right:max(18px, calc(50vw - 620px + 24px));
-  width:260px;
-}
-.orbit-job{
-  display:block;width:100%;text-align:left;background:none;border:0;
-  color:var(--ink-soft);font-family:var(--body);font-size:15px;line-height:1.3;
-  padding:6px 0;cursor:pointer;border-bottom:1px solid rgba(200,197,218,.06);
-  transition:color .16s;
-}
-.orbit-job:hover,.orbit-job.is-hot{color:var(--ink)}
-.orbit-job:focus-visible{outline:2px solid var(--purple-bright);outline-offset:2px;border-radius:3px}
-.orbit-job .co{display:block;font-family:var(--mono);font-size:10px;color:var(--ink-dim);margin-top:2px}
-.orbit-rail::-webkit-scrollbar{width:4px}
-.orbit-rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
-.orbit-rail h3{
-  font-family:var(--mono);font-size:10px;font-weight:400;color:var(--ink-dim);
-  margin:0 0 10px;letter-spacing:.1em;text-transform:uppercase;
-}
-.orbit-co{
-  display:flex;align-items:center;gap:8px;width:100%;text-align:left;
-  background:none;border:0;color:var(--ink-dim);font-family:var(--body);font-size:15px;
-  padding:3px 0;cursor:pointer;line-height:1.3;transition:color .16s;
-}
-.orbit-co:hover,.orbit-co[aria-pressed="true"]{color:var(--ink)}
-.orbit-co:focus-visible{outline:2px solid var(--purple-bright);outline-offset:2px;border-radius:3px}
-.orbit-co .n{font-family:var(--mono);font-size:10px;margin-left:auto;flex-shrink:0}
-.orbit-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.orbit-key span{display:flex;align-items:center;gap:8px}
+.orbit-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
 .orbit-card{
   position:absolute;pointer-events:none;opacity:0;transform:translateY(4px);
@@ -716,10 +686,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   padding-left:5vw;padding-right:5vw;
 }
 
-@media (max-width:1180px){ .orbit-rail-right{display:none} }
 @media (max-width:860px){
-  #orbit-canvas{height:70vh;min-height:420px}
-  .orbit-rail{display:none}
+  #orbit-canvas{height:74vh;min-height:440px}
+  .orbit-key{font-size:10px;gap:14px}
 }
 
 
@@ -1339,15 +1308,11 @@ a.foot-line:hover{color:var(--green)}
     <div class="web-wrap orbit-wrap" id="orbit-view" hidden>
       <canvas id="orbit-canvas" aria-label="Every open role arranged around its company"></canvas>
       <div class="orbit-labels" id="orbit-labels" aria-hidden="true"></div>
+      <div class="orbit-key" aria-hidden="true">
+        <span><i class="orbit-dot" style="background:var(--green)"></i>Open role</span>
+        <span><i class="orbit-dot" style="background:var(--purple-bright)"></i>Company</span>
+      </div>
       <div class="orbit-card" id="orbit-card" role="status" aria-live="polite"></div>
-      <div class="orbit-rail" id="orbit-rail">
-        <h3>Companies</h3>
-        <div id="orbit-colist"></div>
-      </div>
-      <div class="orbit-rail orbit-rail-right" id="orbit-joblist-wrap">
-        <h3 id="orbit-joblist-head">Open roles</h3>
-        <div id="orbit-joblist"></div>
-      </div>
       <p class="web-hint">Drag to turn &nbsp;·&nbsp; scroll to zoom &nbsp;·&nbsp; click a role to open it
         &nbsp;·&nbsp; <button type="button" id="orbit-spin" class="orbit-link">pause rotation</button>
         &nbsp;·&nbsp; <button type="button" id="orbit-reset" class="orbit-link">recentre</button></p>
@@ -3034,18 +2999,23 @@ document.addEventListener('click', (e) => {
    cards do — one way into a posting, not two.
    ========================================================================== */
 const Orbit = (() => {
-  const HUB_COLOUR = { opco:'#00FF88', proptech:'#7F4DE0' };
+  /* Colour separates roles from companies, not one hub from the other.
+     Within a hub page every node is the same hub, so hub-colouring made the
+     whole globe one shade — which is exactly why it read as a single mass.
+     This is the pairing the old matching web used: green role, purple company. */
+  const ROLE_COLOUR = 0x00FF88;
+  const CO_COLOUR   = 0x7F4DE0;
   /* Shell radius scales with the roster. A radius fixed for 35 companies
      leaves four of them stranded on a mostly empty sphere — which is exactly
      what a filtered view produces. Spacing between neighbours stays roughly
      constant instead, so the composition holds at any count. */
-  const MIN_SHELL = 20, MAX_SHELL = 54;
+  const MIN_SHELL = 24, MAX_SHELL = 64;
   let SHELL = 46;          // company ring radius
   let RING = 46;           // alias used at placement time
   let CORE = 28;           // the globe body the roles sit inside
 
   function shellRadius(n){
-    return Math.max(MIN_SHELL, Math.min(MAX_SHELL, 10 * Math.sqrt(Math.max(n, 1))));
+    return Math.max(MIN_SHELL, Math.min(MAX_SHELL, 11.5 * Math.sqrt(Math.max(n, 1))));
   }
   const LIT = 0.5;             // opacity above this counts as visible
 
@@ -3199,14 +3169,15 @@ const Orbit = (() => {
         Math.sin(ringAngle * 2) * RING * 0.07,   // slight waver so the ring is not a flat disc
         Math.sin(ringAngle) * RING,
       );
-      const colour = new THREE.Color(HUB_COLOUR[co.hub] || HUB_COLOUR.proptech);
+      const coColour = new THREE.Color(CO_COLOUR);
+      const roleColour = new THREE.Color(ROLE_COLOUR);
 
       /* Three meshes make a company read as a small globe: a shaded body, a
          coarse wireframe for meridians, and a back-face halo that sits like
          atmosphere at the rim instead of a disc in front of it. */
       const node = new THREE.Mesh(bodyGeo, new THREE.MeshPhongMaterial({
-        color: colour, shininess: 38, specular: 0x6d5f9c,
-        emissive: colour, emissiveIntensity: 0.3, transparent: true, opacity: 1,
+        color: coColour, shininess: 38, specular: 0x6d5f9c,
+        emissive: coColour, emissiveIntensity: 0.3, transparent: true, opacity: 1,
       }));
       node.position.copy(anchor);
       node.userData = { kind:'company', co };
@@ -3220,7 +3191,7 @@ const Orbit = (() => {
       world.add(grid);
 
       const halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({
-        color: colour, transparent: true, opacity: 0.1, side: THREE.BackSide,
+        color: coColour, transparent: true, opacity: 0.1, side: THREE.BackSide,
         blending: THREE.AdditiveBlending, depthWrite: false,
       }));
       halo.position.copy(anchor);
@@ -3254,8 +3225,8 @@ const Orbit = (() => {
         );
 
         const m = new THREE.Mesh(jobGeo, new THREE.MeshPhongMaterial({
-          color: colour, shininess: 52, specular: 0x9a8cc7,
-          emissive: colour, emissiveIntensity: 0.42,
+          color: roleColour, shininess: 52, specular: 0x9a8cc7,
+          emissive: roleColour, emissiveIntensity: 0.42,
           transparent: true, opacity: 0.92,
         }));
         m.position.copy(p);
@@ -3266,7 +3237,7 @@ const Orbit = (() => {
         // rather than clutter at three hundred of them.
         const link = new THREE.Line(
           new THREE.BufferGeometry().setFromPoints([anchor, p]),
-          new THREE.LineBasicMaterial({ color: colour, transparent:true, opacity:0.05 }),
+          new THREE.LineBasicMaterial({ color: ROLE_COLOUR, transparent:true, opacity:0.05 }),
         );
         link.userData = { kind:'arm', co, base: 0.05 };
         world.add(link);
@@ -3310,7 +3281,7 @@ const Orbit = (() => {
     travelCol = new Float32Array(travellers.length * 3);
     const c = new THREE.Color();
     travellers.forEach((t, i) => {
-      c.set(HUB_COLOUR[t.co.hub] || HUB_COLOUR.proptech);
+      c.set(ROLE_COLOUR);
       travelCol[i*3] = c.r; travelCol[i*3+1] = c.g; travelCol[i*3+2] = c.b;
     });
     const geo = new THREE.BufferGeometry();
@@ -3437,33 +3408,20 @@ const Orbit = (() => {
   function fitDistance(){
     const vFov = camera.fov * Math.PI / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return Math.max(70, Math.min(300, (RING * 1.10) / Math.tan(Math.min(vFov, hFov) / 2)));
+    return Math.max(70, Math.min(300, (RING * 0.98) / Math.tan(Math.min(vFov, hFov) / 2)));
   }
 
   /* Every role currently passing the filters, whichever side of the globe it
      happens to be on. Hovering one lifts its node so the list and the globe
      stay tied together; clicking opens the same drawer the node does. */
+  /* The side rails were removed to give the globe the full width. Both
+     functions stay as no-ops so every existing call site keeps working; the
+     List view remains the place to read roles as text. */
   function drawJobList(){
-    const shown = jobMeshes.filter(m => m.material.opacity > LIT);
-    $('orbit-joblist-head').textContent =
-      focus ? `${focus} — ${shown.length} role${shown.length === 1 ? '' : 's'}`
-            : `Open roles — ${shown.length}`;
-    $('orbit-joblist').innerHTML = shown.map((m, i) =>
-      `<button type="button" class="orbit-job" data-i="${i}">
-         ${esc(m.userData.job.title)}
-         <span class="co">${esc(m.userData.job.company)}${m.userData.job.location ? ' · ' + esc(m.userData.job.location) : ''}</span>
-       </button>`).join('') || '<p class="m" style="color:var(--ink-dim);font-size:14px">No roles match those filters.</p>';
-    jobListRefs = shown;
+    jobListRefs = jobMeshes.filter(m => m.material.opacity > LIT);
   }
 
-  function drawRail(){
-    const host = $('orbit-colist');
-    host.innerHTML = companies.map(co =>
-      `<button type="button" class="orbit-co" data-co="${esc(co.name)}" aria-pressed="${focus === co.name}">
-         <i class="orbit-dot" style="background:${HUB_COLOUR[co.hub] || HUB_COLOUR.proptech}"></i>
-         ${esc(co.name)}<span class="n">${co.jobs.length}</span>
-       </button>`).join('');
-  }
+  function drawRail(){ /* rails removed — companies are selected on the globe */ }
 
   /* Dim rather than hide: the shape of the whole network stays readable while
      one company is being looked at. */
@@ -3596,33 +3554,6 @@ const Orbit = (() => {
     /* Hovering a row lifts its node, so it is obvious which speck on the globe
        the row refers to — otherwise the list is just a list sitting next to an
        unrelated picture. */
-    const jl = $('orbit-joblist');
-    jl.addEventListener('pointerover', e => {
-      const b = e.target.closest('.orbit-job');
-      if (!b) return;
-      const m = jobListRefs[+b.dataset.i];
-      if (!m) return;
-      if (listHot && listHot !== m) listHot.scale.setScalar(1);
-      listHot = m;
-      m.scale.setScalar(2.2);
-    });
-    jl.addEventListener('pointerleave', () => {
-      if (listHot){ listHot.scale.setScalar(1); listHot = null; }
-    });
-    jl.addEventListener('click', e => {
-      const b = e.target.closest('.orbit-job');
-      if (!b) return;
-      const m = jobListRefs[+b.dataset.i];
-      if (m) openDrawer(m.userData.job.id);
-    });
-
-    $('orbit-colist').addEventListener('click', e => {
-      const b = e.target.closest('.orbit-co');
-      if (!b) return;
-      focus = focus === b.dataset.co ? null : b.dataset.co;
-      drawRail(); emphasise();
-    });
-
     $('orbit-spin').addEventListener('click', () => {
       spinning = !spinning;
       $('orbit-spin').textContent = spinning ? 'pause rotation' : 'resume rotation';
