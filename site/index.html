@@ -641,19 +641,22 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 /* Tall enough to feel like a space rather than a strip, short enough that the
    controls above it stay on screen on a laptop. */
-#orbit-canvas{display:block;width:100%;height:92vh;min-height:560px;max-height:1160px;touch-action:none;cursor:grab}
+#orbit-canvas{display:block;width:100%;height:94vh;min-height:580px;max-height:1200px;touch-action:none;cursor:grab}
 #orbit-canvas:active{cursor:grabbing}
 
 .orbit-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .orbit-lab{
-  position:absolute;transform:translate(-50%,-50%);white-space:nowrap;
+  /* transform is set per frame in JS — labels align left, right or centre
+     depending on which side of the globe they sit. */
+  position:absolute;white-space:nowrap;
   font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink);
   text-shadow:0 1px 8px var(--void),0 0 16px var(--void);
 }
 
 /* The rail keeps every company reachable without leaving the 3D view, which
    is the whole point of the view — no bouncing back to the list to find one. */
-/* Legend, in place of the rails that used to flank the globe. */
+/* Legend. The only chrome left over the canvas, so it stays small and out of
+   the way in the top corner. */
 .orbit-key{
   position:absolute;top:24px;left:max(20px, calc(50vw - 620px));
   display:flex;gap:20px;font-family:var(--mono);font-size:11px;color:var(--ink-dim);
@@ -679,12 +682,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 }
 .orbit-link:hover{color:var(--ink)}
 .orbit-link:focus-visible{outline:2px solid var(--purple-bright);outline-offset:2px}
-
-/* Keep the footer hint aligned with the page column, not the viewport edge. */
-.orbit-wrap .web-hint{
-  max-width:1240px;margin-left:auto;margin-right:auto;
-  padding-left:5vw;padding-right:5vw;
-}
 
 @media (max-width:860px){
   #orbit-canvas{height:74vh;min-height:440px}
@@ -1313,9 +1310,6 @@ a.foot-line:hover{color:var(--green)}
         <span><i class="orbit-dot" style="background:var(--purple-bright)"></i>Company</span>
       </div>
       <div class="orbit-card" id="orbit-card" role="status" aria-live="polite"></div>
-      <p class="web-hint">Drag to turn &nbsp;·&nbsp; scroll to zoom &nbsp;·&nbsp; click a role to open it
-        &nbsp;·&nbsp; <button type="button" id="orbit-spin" class="orbit-link">pause rotation</button>
-        &nbsp;·&nbsp; <button type="button" id="orbit-reset" class="orbit-link">recentre</button></p>
     </div>
 
     <div class="rail" id="rail">
@@ -3026,7 +3020,7 @@ const Orbit = (() => {
   let travelPoints = null, travelPos = null, travelCol = null;
   let links = [], linkSegs = null, linkPos = null;
   let linkLit = null, litPos = null, litCap = 0, litLinks = [];
-  let hiddenRoles = 0;
+  let hiddenRoles = 0, coRadius = 1.9;
   let yaw = 0.6, pitch = 0.44, dist = 150;
   let dragging = false, px = 0, py = 0, moved = 0;
   let VW = 1, VH = 1;
@@ -3071,7 +3065,6 @@ const Orbit = (() => {
     fill.position.set(-80, -30, -60); scene.add(fill);
 
     spinning = false;
-    $('orbit-spin').textContent = spinning ? 'pause rotation' : 'resume rotation';
 
     wire();
     ready = true;
@@ -3158,8 +3151,12 @@ const Orbit = (() => {
     CORE  = SHELL * (0.40 + Math.min(0.14, drawn / 1800));
     drawGlobe();
 
-    const bodyGeo = new THREE.SphereGeometry(2.5, 36, 28);
-    const haloGeo = new THREE.SphereGeometry(3.7, 22, 18);
+    /* Node radius falls as the ring fills up. At thirty-five companies a fixed
+       size leaves the nodes almost touching, and the labels have nowhere to
+       sit; at four it would look needlessly timid. */
+    const coR = Math.max(1.0, Math.min(2.4, 11 / Math.sqrt(Math.max(companies.length, 1))));
+    coRadius = coR;
+    const bodyGeo = new THREE.SphereGeometry(coR, 20, 16);
     // Big enough to pick out at twenty roles, small enough not to merge into
     // a single mass at a hundred and seventy.
     const jobR = Math.max(0.5, Math.min(1.25, 20 / Math.sqrt(Math.max(drawn, 1))));
@@ -3184,26 +3181,15 @@ const Orbit = (() => {
       /* Three meshes make a company read as a small globe: a shaded body, a
          coarse wireframe for meridians, and a back-face halo that sits like
          atmosphere at the rim instead of a disc in front of it. */
-      /* A solid orb: opaque, no wireframe, one clear highlight. The wireframe
-         shell that used to sit over these read as a cage and made the company
-         nodes compete with the roles for attention — they are the fixed base
-         the roles hang off, so they should sit still and stay quiet. */
-      const node = new THREE.Mesh(bodyGeo, new THREE.MeshPhongMaterial({
-        color: coColour, shininess: 64, specular: 0xbba9f0,
-        emissive: coColour, emissiveIntensity: 0.22,
-        transparent: false, opacity: 1,
+      /* A plain node. The globe treatment moved to the sphere itself, so the
+         companies are back to what they are — anchor points on a perimeter.
+         Anything more here and two things on screen compete to be the globe. */
+      const node = new THREE.Mesh(bodyGeo, new THREE.MeshBasicMaterial({
+        color: coColour,
       }));
       node.position.copy(anchor);
       node.userData = { kind:'company', co };
       world.add(node); coMeshes.push(node);
-
-      const halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({
-        color: coColour, transparent: true, opacity: 0.07, side: THREE.BackSide,
-        blending: THREE.AdditiveBlending, depthWrite: false,
-      }));
-      halo.position.copy(anchor);
-      halo.userData = { kind:'decor', co, base: 0.1 };
-      world.add(halo);
 
       const el = document.createElement('div');
       el.className = 'orbit-lab';
@@ -3363,84 +3349,64 @@ const Orbit = (() => {
      sphere, because a wireframe triangulates and the diagonals read as a
      geodesic mesh instead of a globe. */
   function drawGlobe(){
-    /* The globe body, which the roles sit inside.
+    /* The globe itself, given the treatment the company orbs used to carry: a
+       translucent body, a wireframe skin over it, and a light at the core.
 
-       Earlier this drew a wireframe at the company radius, which put the
-       companies on the surface — so with a handful of them there was nothing
-       to see but dots adrift. The body now sits inside the company ring, and
-       being a filled volume rather than a cage it reads as a globe whether it
-       holds twelve roles or three hundred. */
+       Two things on screen cannot both be the globe. The wireframe reads as a
+       surface you are looking through, which is what the roles inside need —
+       a filled sphere alone hides them, and bare lat/long rings never read as
+       a body at all. */
 
-    const faint = (opacity) => new THREE.LineBasicMaterial({
-      color: 0x8c7ad6, transparent: true, opacity, depthWrite: false,
-    });
-
-    // Translucent body. Front-face, low opacity, no depth write so the roles
-    // inside stay visible through it rather than being swallowed.
+    // Body. Low opacity and no depth write, so every role inside stays visible
+    // through it rather than being swallowed by it.
     const body = new THREE.Mesh(
       new THREE.SphereGeometry(CORE, 48, 36),
       new THREE.MeshPhongMaterial({
-        color: 0x3a2470, emissive: 0x1d1040, emissiveIntensity: 0.6,
-        shininess: 10, transparent: true, opacity: 0.30, depthWrite: false,
+        color: 0x4a2d8f, emissive: 0x2a1560, emissiveIntensity: 0.75,
+        shininess: 18, transparent: true, opacity: 0.26, depthWrite: false,
       }),
     );
     body.userData = { kind:'globe' };
     world.add(body);
 
-    // Rim light, back-face only, so the body has an edge without a disc in
+    /* The wireframe skin. Deliberately coarse: a fine mesh turns into a grey
+       haze at this size, while large facets read as a constructed surface. */
+    const skin = new THREE.Mesh(
+      new THREE.SphereGeometry(CORE * 1.004, 26, 18),
+      new THREE.MeshBasicMaterial({
+        color: 0xc9b8ff, wireframe: true, transparent: true,
+        opacity: 0.20, depthWrite: false,
+      }),
+    );
+    skin.userData = { kind:'globe' };
+    world.add(skin);
+
+    /* Light at the core, falling off through the volume. Additive and
+       back-faced so it glows from within rather than masking what sits in
+       front of it. */
+    for (const [r, o] of [[CORE * 0.30, 0.22], [CORE * 0.55, 0.12], [CORE * 0.80, 0.07]]){
+      const g = new THREE.Mesh(
+        new THREE.SphereGeometry(r, 24, 18),
+        new THREE.MeshBasicMaterial({
+          color: 0xb9a4ff, transparent: true, opacity: o,
+          blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide,
+        }),
+      );
+      g.userData = { kind:'globe' };
+      world.add(g);
+    }
+
+    // Rim. Back-face only, so the sphere has an edge without a disc sitting in
     // front of its contents.
     const rim = new THREE.Mesh(
-      new THREE.SphereGeometry(CORE * 1.05, 48, 32),
+      new THREE.SphereGeometry(CORE * 1.06, 48, 32),
       new THREE.MeshBasicMaterial({
-        color: 0x7F4DE0, transparent: true, opacity: 0.14,
+        color: 0x8f6bff, transparent: true, opacity: 0.16,
         side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
       }),
     );
     rim.userData = { kind:'globe' };
     world.add(rim);
-
-    /* Latitude rings and meridians on the body. Built as real circles rather
-       than a wireframe sphere: wireframe triangulates, and the diagonals read
-       as a geodesic dome instead of a globe. */
-    const LATS = 6, MERIDIANS = 12, SEGMENTS = 84;
-
-    for (let i = 1; i <= LATS; i++){
-      const phi = (i / (LATS + 1)) * Math.PI;
-      const y = Math.cos(phi) * CORE;
-      const r = Math.sin(phi) * CORE;
-      const pts = [];
-      for (let sgm = 0; sgm <= SEGMENTS; sgm++){
-        const t = (sgm / SEGMENTS) * Math.PI * 2;
-        pts.push(new THREE.Vector3(Math.cos(t) * r, y, Math.sin(t) * r));
-      }
-      const line = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(pts),
-        faint(Math.abs(y) < 0.001 ? 0.24 : 0.08),
-      );
-      line.userData = { kind:'globe' };
-      world.add(line);
-    }
-
-    for (let m = 0; m < MERIDIANS; m++){
-      const theta = (m / MERIDIANS) * Math.PI * 2;
-      const pts = [];
-      for (let sgm = 0; sgm <= SEGMENTS; sgm++){
-        const phi = (sgm / SEGMENTS) * Math.PI;
-        pts.push(new THREE.Vector3(
-          Math.cos(theta) * Math.sin(phi) * CORE,
-          Math.cos(phi) * CORE,
-          Math.sin(theta) * Math.sin(phi) * CORE,
-        ));
-      }
-      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), faint(0.07));
-      line.userData = { kind:'globe' };
-      world.add(line);
-    }
-
-    /* No ring line: the companies now sit in the plane of the screen while
-       this geometry lives in world space, so a drawn circle would only match
-       from one angle and look broken from every other. The evenly spaced
-       nodes carry the ring on their own. */
   }
 
   /* Distance that frames the shell at whatever shape the panel is. A fixed
@@ -3449,7 +3415,7 @@ const Orbit = (() => {
   function fitDistance(){
     const vFov = camera.fov * Math.PI / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return Math.max(70, Math.min(300, (CORE * 1.78 * 1.22) / Math.tan(Math.min(vFov, hFov) / 2)));
+    return Math.max(70, Math.min(300, (CORE * 1.78 * 1.46) / Math.tan(Math.min(vFov, hFov) / 2)));
   }
 
   /* Every role currently passing the filters, whichever side of the globe it
@@ -3475,7 +3441,6 @@ const Orbit = (() => {
       const k = o.userData.kind;
       if (k === 'job')        o.material.opacity = on ? 0.92 : 0.06;
       else if (k === 'arm')   o.material.opacity = on ? (focus ? 0.4 : o.userData.base) : 0.015;
-      else if (k === 'decor') o.material.opacity = on ? o.userData.base : 0.015;
       else                    o.material.opacity = on ? 1 : 0.12;
     });
     labels.forEach(l => { l.visible = lit(l.co); });
@@ -3628,13 +3593,19 @@ const Orbit = (() => {
     /* Hovering a row lifts its node, so it is obvious which speck on the globe
        the row refers to — otherwise the list is just a list sitting next to an
        unrelated picture. */
-    $('orbit-spin').addEventListener('click', () => {
-      spinning = !spinning;
-      $('orbit-spin').textContent = spinning ? 'pause rotation' : 'resume rotation';
-    });
-    $('orbit-reset').addEventListener('click', () => {
-      yaw = 0.6; pitch = 0.44; dist = fitDistance(); focus = null;
-      drawRail(); emphasise(); setTrace();
+    /* The hint bar that used to carry a pause and a recentre button is gone,
+       so the keyboard is the only way to reach them: R recentres, space stops
+       and starts the drift. Both are conveniences rather than requirements —
+       dragging already recentres in practice, and the globe is still by
+       default. */
+    canvas().setAttribute('tabindex', '0');
+    canvas().addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R'){
+        yaw = 0.6; pitch = 0.44; dist = fitDistance(); focus = null;
+        drawRail(); emphasise(); setTrace();
+        e.preventDefault();
+      }
+      if (e.key === ' '){ spinning = !spinning; e.preventDefault(); }
     });
 
     // A panel can change size without the window doing so.
@@ -3663,11 +3634,6 @@ const Orbit = (() => {
         .addScaledVector(camUp, Math.sin(co.ringAngle) * ringR);
       node.position.copy(co.anchor);
     }
-    // The meridian shell and the halo ride along with their company node.
-    for (const o of world.children){
-      if (o.userData && o.userData.kind === 'decor') o.position.copy(o.userData.co.anchor);
-    }
-
     // The company end of every link moved, so rewrite the segments.
     if (linkSegs && links.length){
       for (let i = 0; i < links.length; i++){
@@ -3723,32 +3689,62 @@ const Orbit = (() => {
        not a company. Project them all, sort near to far, and drop any that
        would land on a name already placed. The nearest wins, which is the one
        the eye is drawn to anyway. */
+    /* Labels sit outside the ring, pushed away from the globe along the line
+       from its centre through their node.
+
+       Centring a label on its node put the text straight over the orb, and on
+       a ring of thirty-five it also put neighbouring names on top of each
+       other. Offsetting radially fixes both at once: the names splay outward
+       like numbers on a clock face, so they gain room as they go and nothing
+       covers the node it belongs to. */
     const placed = [];
     const candidates = [];
+
+    // Where the globe's centre lands on screen, to measure "outward" from.
+    v.set(0, 0, 0).project(camera);
+    const cx = (v.x * 0.5 + 0.5) * VW;
+    const cy = (-v.y * 0.5 + 0.5) * VH;
+
     for (const l of labels){
       if (!l.visible){ l.el.style.opacity = 0; continue; }
-      const facing = v.copy(l.node.position).sub(camera.position).normalize().dot(camDir);
-      // Every company faces the camera now, so nothing is culled by angle.
       v.copy(l.node.position).project(camera);
       if (v.z > 1){ l.el.style.opacity = 0; continue; }
+
+      const nx = (v.x * 0.5 + 0.5) * VW;
+      const ny = (-v.y * 0.5 + 0.5) * VH;
+
+      let dx = nx - cx, dy = ny - cy;
+      const len = Math.hypot(dx, dy) || 1;
+      dx /= len; dy /= len;
+
+      // Clear of the orb: its on-screen radius plus a little air.
+      const gap = (coRadius / len) * 0 + 18 + coRadius * 3.2;
+      const w = l.el.offsetWidth || l.co.name.length * 6.2;
+
       candidates.push({
-        l, facing,
-        x: (v.x * 0.5 + 0.5) * VW,
-        y: (-v.y * 0.5 + 0.5) * VH - 16,
+        l,
+        x: nx + dx * gap,
+        y: ny + dy * gap,
+        // Text grows away from the globe rather than back across it.
+        align: dx < -0.25 ? 'right' : dx > 0.25 ? 'left' : 'centre',
         depth: camera.position.distanceTo(l.node.position),
-        w: l.el.offsetWidth || l.co.name.length * 6.2,
+        w,
       });
     }
     candidates.sort((a, b) => a.depth - b.depth);
 
     for (const c of candidates){
       const clash = placed.some(q =>
-        Math.abs(q.y - c.y) < 15 && Math.abs(q.x - c.x) < (q.w + c.w) / 2 + 10);
+        Math.abs(q.y - c.y) < 14 && Math.abs(q.x - c.x) < (q.w + c.w) / 2 + 8);
       if (clash){ c.l.el.style.opacity = 0; continue; }
       placed.push(c);
       c.l.el.style.opacity = 0.92;
       c.l.el.style.left = c.x + 'px';
       c.l.el.style.top  = c.y + 'px';
+      c.l.el.style.transform =
+        c.align === 'right' ? 'translate(-100%, -50%)'
+        : c.align === 'left' ? 'translate(0, -50%)'
+        : 'translate(-50%, -50%)';
     }
 
     renderer.render(scene, camera);
