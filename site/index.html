@@ -616,8 +616,92 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
     radial-gradient(circle at 16% 50%,rgba(59,232,255,.10),transparent 42%),
     radial-gradient(circle at 84% 50%,rgba(0,255,136,.09),transparent 42%);
 }
-#web{display:block;width:100%;height:560px;touch-action:none}
-/* height is set in JS to fit the rows — see buildGraph */
+
+/* ---------- orbit ---------- */
+/* Full-bleed. The board sits in a 1240px column, but a globe inside a bordered
+   card reads as a widget on a page — the thing itself should be the field the
+   page sits in. Breaking out to the viewport edge and dropping the frame does
+   that without moving anything else on the page. */
+.orbit-wrap{
+  position:relative;
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+  margin-right:calc(50% - 50vw);
+  margin-top:8px;
+  border:0;border-radius:0;
+  background:
+    radial-gradient(120% 80% at 50% 0%,rgba(43,16,85,.42),transparent 62%),
+    radial-gradient(90% 70% at 18% 100%,rgba(0,255,136,.06),transparent 60%),
+    radial-gradient(90% 70% at 82% 100%,rgba(127,77,224,.09),transparent 60%);
+  backdrop-filter:none;
+}
+/* The card's inner vignette is tuned for a small panel and bands badly across
+   a full-width field. */
+.orbit-wrap::before{content:none}
+
+/* Tall enough to feel like a space rather than a strip, short enough that the
+   controls above it stay on screen on a laptop. */
+#orbit-canvas{display:block;width:100%;height:76vh;min-height:460px;max-height:860px;touch-action:none;cursor:grab}
+#orbit-canvas:active{cursor:grabbing}
+
+.orbit-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.orbit-lab{
+  position:absolute;transform:translate(-50%,-50%);white-space:nowrap;
+  font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink);
+  text-shadow:0 1px 8px var(--void),0 0 16px var(--void);
+}
+
+/* The rail keeps every company reachable without leaving the 3D view, which
+   is the whole point of the view — no bouncing back to the list to find one. */
+.orbit-rail{
+  position:absolute;top:26px;left:max(18px, calc(50vw - 620px + 24px));width:198px;max-height:calc(100% - 96px);
+  overflow-y:auto;padding-right:8px;scrollbar-width:thin;
+  scrollbar-color:var(--line) transparent;
+}
+.orbit-rail::-webkit-scrollbar{width:4px}
+.orbit-rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.orbit-rail h3{
+  font-family:var(--mono);font-size:10px;font-weight:400;color:var(--ink-dim);
+  margin:0 0 10px;letter-spacing:.1em;text-transform:uppercase;
+}
+.orbit-co{
+  display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  background:none;border:0;color:var(--ink-dim);font-family:var(--body);font-size:15px;
+  padding:3px 0;cursor:pointer;line-height:1.3;transition:color .16s;
+}
+.orbit-co:hover,.orbit-co[aria-pressed="true"]{color:var(--ink)}
+.orbit-co:focus-visible{outline:2px solid var(--purple-bright);outline-offset:2px;border-radius:3px}
+.orbit-co .n{font-family:var(--mono);font-size:10px;margin-left:auto;flex-shrink:0}
+.orbit-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+.orbit-card{
+  position:absolute;pointer-events:none;opacity:0;transform:translateY(4px);
+  transition:opacity .14s,transform .14s;max-width:300px;z-index:5;
+  background:rgba(11,6,24,.94);border:1px solid var(--line);border-radius:12px;
+  padding:12px 15px;backdrop-filter:blur(14px);
+}
+.orbit-card.is-on{opacity:1;transform:translateY(0)}
+.orbit-card .t{font-family:var(--head);font-size:17px;line-height:1.28;color:var(--ink);margin-bottom:4px}
+.orbit-card .m{font-family:var(--mono);font-size:10.5px;color:var(--ink-dim);line-height:1.6}
+.orbit-card .go{font-family:var(--mono);font-size:10px;color:var(--purple-text);margin-top:8px}
+
+.orbit-link{
+  background:none;border:0;padding:0;font:inherit;color:var(--purple-text);
+  cursor:pointer;text-decoration:underline;text-underline-offset:2px;
+}
+.orbit-link:hover{color:var(--ink)}
+.orbit-link:focus-visible{outline:2px solid var(--purple-bright);outline-offset:2px}
+
+/* Keep the footer hint aligned with the page column, not the viewport edge. */
+.orbit-wrap .web-hint{
+  max-width:1240px;margin-left:auto;margin-right:auto;
+  padding-left:5vw;padding-right:5vw;
+}
+
+@media (max-width:860px){
+  #orbit-canvas{height:62vh;min-height:380px}
+  .orbit-rail{display:none}
+}
 
 
 .web-link{fill:none;stroke:url(#thread);stroke-width:1.2;opacity:.5;transition:stroke-width .25s,opacity .25s}
@@ -1217,7 +1301,7 @@ a.foot-line:hover{color:var(--green)}
           <button type="button" data-hub="proptech">PropTech Hub</button>
         </div>
         <div class="view-toggle" role="group" aria-label="View">
-          <button type="button" id="v-graph" class="is-on" aria-pressed="true">Graph</button>
+          <button type="button" id="v-orbit" class="is-on" aria-pressed="true">Orbit</button>
           <button type="button" id="v-list" aria-pressed="false">List</button>
         </div>
       </div>
@@ -1232,9 +1316,18 @@ a.foot-line:hover{color:var(--green)}
       <p class="result-count" id="count" role="status"></p>
     </div>
 
-    <div class="web-wrap" id="graph-view">
-      <svg id="web" role="img" aria-label="Matching web connecting role families to hiring companies"></svg>
-      <p class="web-hint"><span class="lg-dot job"></span> Open role &nbsp;·&nbsp; <span class="lg-dot co"></span> Company &nbsp;·&nbsp; hover to trace, click to open</p>
+
+    <div class="web-wrap orbit-wrap" id="orbit-view" hidden>
+      <canvas id="orbit-canvas" aria-label="Every open role arranged around its company"></canvas>
+      <div class="orbit-labels" id="orbit-labels" aria-hidden="true"></div>
+      <div class="orbit-card" id="orbit-card" role="status" aria-live="polite"></div>
+      <div class="orbit-rail" id="orbit-rail">
+        <h3>Companies</h3>
+        <div id="orbit-colist"></div>
+      </div>
+      <p class="web-hint">Drag to turn &nbsp;·&nbsp; scroll to zoom &nbsp;·&nbsp; click a role to open it
+        &nbsp;·&nbsp; <button type="button" id="orbit-spin" class="orbit-link">pause rotation</button>
+        &nbsp;·&nbsp; <button type="button" id="orbit-reset" class="orbit-link">recentre</button></p>
     </div>
 
     <div class="rail" id="rail">
@@ -1353,6 +1446,10 @@ a.foot-line:hover{color:var(--green)}
   </footer>
 </div>
 
+<!-- three.js powers the Orbit view. Loaded without defer so THREE exists by the
+     time the inline script runs; if the CDN is blocked, Orbit.show() says so and
+     the Graph and List views carry on unaffected. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ==========================================================================
    Data — in the real app this comes from Cloudflare D1 via /api/jobs
@@ -1904,7 +2001,6 @@ function closeDrawer(keepFocus){
   scrim = drawer = null;
   document.body.style.overflow = '';
   cardsEl.querySelectorAll('.is-opened').forEach(el => el.classList.remove('is-opened'));
-  if (!keepFocus && view === 'graph') setFocus(null);
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
 
@@ -2383,446 +2479,38 @@ async function submitApply(){
 
 
 /* ==========================================================================
-   THE MATCHING WEB
-   Role families on the left, companies on the right, a thread wherever a
-   posting connects the two. Geometry is recomputed from the SVG's own box, so
-   it survives resizing and filtering without a layout pass anywhere else.
+   VIEW STATE
+   The matching-web graph that used to live here was replaced by Orbit, which
+   shows the same relationships in three dimensions. Its code is gone rather
+   than hidden: an SVG kept in the DOM only to satisfy a listener is the kind
+   of thing that looks live in a future search and wastes an hour.
    ========================================================================== */
 
-const web = $('web');
-const SVGNS = 'http://www.w3.org/2000/svg';
-let view = 'graph';
-let graph = { roles: [], cos: [], links: [], w: 0, h: 0 };
-let focusKey = null;          // node or link currently traced
-let pointer = { x: -9999, y: -9999, inside: false };
-let webRAF = null;
-
-const el = (name, attrs = {}) => {
-  const n = document.createElementNS(SVGNS, name);
-  for (const k in attrs) n.setAttribute(k, attrs[k]);
-  return n;
-};
-
-/* companies alternate green and purple, in the order they first appear */
-function companyTone(name){
-  const order = [...new Set(hubJobs().map(j => j.company))];
-  return order.indexOf(name) % 2 === 0 ? 'c-green' : 'c-purple';
-}
-
-/**
- * The web: every open role is a green dot on the left, wired to its company —
- * a purple dot on the right. A company with six openings has six threads
- * converging on it, so the shape of the web is the shape of who is hiring.
- */
-
-// A real scrape can return several hundred roles, and 300 dots on one axis is
-// a smear rather than a graph. Past this the densest companies are kept and
-// the rest are reachable through the list view.
-// Legibility, not capacity, sets these. A role dot is 6px with an 11px halo,
-// so it needs ~30px of vertical room; a company circle plus its two-line label
-// needs ~56px. Past that the dots merge into a solid bar, which is what 90 in a
-// 560px canvas looked like. Everything is always reachable in the list view.
-const MAX_ROLES = 24;
-const MAX_COMPANIES = 12;
-const ROLE_GAP = 30;
-const CO_GAP = 56;
-const PAD_TOP = 74;
-const PAD_BOTTOM = 54;
-
-function buildGraph(){
-  const all = visibleJobs();
-
-  const byCompany = new Map();
-  for (const j of all){
-    if (!byCompany.has(j.company)) byCompany.set(j.company, []);
-    byCompany.get(j.company).push(j);
-  }
-  // Priority companies first, then whoever is hiring most. Without the pin, a
-  // key operator with three openings would be pushed off the graph by a vendor
-  // posting forty — which is backwards for a board about operators.
-  const isPriority = (jobs) => jobs.some(j => j.priority);
-  const ranked = [...byCompany.entries()]
-    .sort((a, b) => (isPriority(b[1]) - isPriority(a[1])) || (b[1].length - a[1].length))
-    .slice(0, MAX_COMPANIES);
-
-  // One role from each company in turn, rather than filling from the top down.
-  // A single 47-role company would otherwise take the entire canvas.
-  const list = [];
-  const pools = ranked.map(([, jobs]) => jobs.slice());
-  let round = 0;
-  while (list.length < MAX_ROLES){
-    let took = 0;
-    for (const pool of pools){
-      if (round >= pool.length) continue;
-      if (list.length >= MAX_ROLES) break;
-      list.push(pool[round]);
-      took++;
-    }
-    if (!took) break;
-    round++;
-  }
-  const hidden = all.length - list.length;
-
-  // Company dots show their TRUE total, not the sampled count, so the graph
-  // never understates who is hiring.
-  const totals = new Map([...byCompany.entries()].map(([n, j]) => [n, j.length]));
-
-  const coNames = ranked.map(([name]) => name).filter(name => list.some(j => j.company === name));
-
-  const box = web.getBoundingClientRect();
-  const w = Math.max(320, box.width);
-
-  // Grow the canvas to fit whichever column needs more room, so rows never
-  // collide. The wrapper scrolls if that exceeds the viewport.
-  const needed = Math.max(list.length * ROLE_GAP, coNames.length * CO_GAP);
-  const h = Math.max(420, PAD_TOP + PAD_BOTTOM + needed);
-  web.style.height = h + 'px';
-
-  const narrow = w < 720;
-  const lx = narrow ? w * 0.36 : w * 0.30;
-  const rx = narrow ? w * 0.80 : w * 0.815;
-  const top = PAD_TOP, bottom = h - PAD_BOTTOM;
-  const span = (n, i) => n === 1 ? (top + bottom) / 2 : top + (bottom - top) * (i / (n - 1));
-
-  const cos = coNames.map((name, i) => ({
-    key: 'c:' + name, name, side: 'r',
-    count: totals.get(name) || 0,
-    x: rx, y: span(coNames.length, i),
-  }));
-
-  // Group roles by their company's vertical position so the threads run
-  // roughly parallel instead of criss-crossing.
-  const ordered = [];
-  for (const c of cos) ordered.push(...list.filter(j => j.company === c.name));
-
-  const roles = ordered.map((job, i) => ({
-    key: 'j:' + job.id, name: job.title, side: 'l', job,
-    x: lx, y: span(ordered.length, i),
-  }));
-
-  const links = roles.map((r) => {
-    const c = cos.find(x => x.name === r.job.company);
-    return {
-      key: 'l:' + r.job.id, from: r, to: c, jobs: [r.job],
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.18 + Math.random() * 0.22,
-      offset: Math.random(),
-      pull: { x: 0, y: 0 },
-    };
-  }).filter(L => L.to);
-
-  graph = { roles, cos, links, w, h, hidden, totalCompanies: byCompany.size };
-  drawGraph();
-}
-
-function drawGraph(){
-  const { roles, cos, links, w, h, hidden } = graph;
-  web.setAttribute('viewBox', `0 0 ${w} ${h}`);
-  web.innerHTML = '';
-
-  document.querySelector('.web-empty')?.remove();
-  if (!links.length){
-    const p = document.createElement('p');
-    p.className = 'web-empty';
-    p.textContent = 'Nothing matches that filter yet. Clear it to see the whole web.';
-    $('graph-view').append(p);
-    return;
-  }
-
-  const headL = el('text', { class: 'col-head', x: roles[0].x, y: 40, 'text-anchor': 'middle' });
-  headL.textContent = hidden > 0
-    ? roles.length + ' of ' + (roles.length + hidden) + ' Openings'
-    : (roles.length === 1 ? '1 Opening' : roles.length + ' Openings');
-  const headR = el('text', { class: 'col-head', x: cos[0].x, y: 40, 'text-anchor': 'middle' });
-  const totalCos = graph.totalCompanies || cos.length;
-  headR.textContent = totalCos > cos.length
-    ? cos.length + ' of ' + totalCos + ' Companies'
-    : (cos.length === 1 ? '1 Company' : cos.length + ' Companies');
-  web.append(headL, headR);
-
-  // Threads run green at the role end into purple at the company end, so the
-  // line itself carries the meaning of the two dot colours.
-  const defs = el('defs');
-  const ramp = (id, a, b) => {
-    const g = el('linearGradient', { id, x1: '0', y1: '0', x2: '1', y2: '0' });
-    g.append(el('stop', { offset: '0%',  'stop-color': a }),
-             el('stop', { offset: '100%', 'stop-color': b }));
-    return g;
-  };
-  defs.append(ramp('thread', '#00FF88', '#7F4DE0'),
-              ramp('threadLit', '#7CFFC0', '#A98FEC'));
-  web.append(defs);
-
-  const gLinks = el('g'), gParticles = el('g'), gNodes = el('g');
-  web.append(gLinks, gParticles, gNodes);
-
-  for (const L of links){
-    L.path = el('path', { class: 'web-link', 'data-key': L.key });
-    L.hit  = el('path', { class: 'web-hit',  'data-key': L.key });
-    gLinks.append(L.path, L.hit);
-    L.dot = el('circle', { class: 'web-particle', r: 2.6, 'data-key': L.key });
-    gParticles.append(L.dot);
-  }
-
-  // Labels are hidden only if rows are genuinely too close to read. Since the
-  // canvas now grows to keep ROLE_GAP between rows, this should never trigger —
-  // it is a guard, not a policy.
-  const rowGap = roles.length > 1 ? Math.abs(roles[1].y - roles[0].y) : 999;
-  const dense = rowGap < 18;
-
-  for (const n of roles){
-    const g = el('g', { class: 'web-node node-job', 'data-key': n.key, tabindex: '0', role: 'button' });
-    g.setAttribute('aria-label', `${n.job.title} at ${n.job.company}`);
-    g.append(el('circle', { class: 'halo', cx: n.x, cy: n.y, r: 11 }));
-    g.append(el('circle', { class: 'core', cx: n.x, cy: n.y, r: 6 }));
-    if (!dense){
-      // Truncate to the space actually available rather than a fixed character
-      // count, so a narrow canvas does not push titles off the left edge.
-      // ~5.9px per character at 11px in this face.
-      const room = n.x - 22;
-      const maxChars = Math.max(8, Math.floor(room / 5.9));
-      const text = n.job.title.length > maxChars
-        ? n.job.title.slice(0, maxChars - 1).trimEnd() + '…'
-        : n.job.title;
-      const lbl = el('text', { class: 'lbl', x: n.x - 15, y: n.y + 4, 'text-anchor': 'end' });
-      lbl.textContent = text;
-      g.append(lbl);
-    }
-    const title = el('title');
-    title.textContent = `${n.job.title} — ${n.job.company}`;
-    g.append(title);
-    n.g = g;
-    gNodes.append(g);
-  }
-
-  for (const n of cos){
-    const g = el('g', { class: 'web-node node-co', 'data-key': n.key, tabindex: '0', role: 'button' });
-    g.setAttribute('aria-label', `${n.name}, ${n.count} openings`);
-    // the dot grows with how much a company is hiring
-    const r = Math.min(20, 11 + Math.sqrt(n.count) * 1.8);
-    g.append(el('circle', { class: 'halo', cx: n.x, cy: n.y, r: r + 6 }));
-    g.append(el('circle', { class: 'core', cx: n.x, cy: n.y, r }));
-    const num = el('text', { class: 'n', x: n.x, y: n.y });
-    num.textContent = n.count;
-    const lbl = el('text', { class: 'lbl', x: n.x + r + 13, y: n.y - 3, 'text-anchor': 'start' });
-    lbl.textContent = n.name;
-    const sub = el('text', { class: 'sub', x: n.x + r + 13, y: n.y + 12, 'text-anchor': 'start' });
-    sub.textContent = n.count === 1 ? '1 opening' : n.count + ' openings';
-    g.append(num, lbl, sub);
-    n.g = g;
-    gNodes.append(g);
-  }
-
-  stepWeb(performance.now());
-}
-
-/* ---------- shape of a thread ---------- */
-function linkPath(L, time){
-  const a = L.from, b = L.to;
-  const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
-
-  // a slow idle sway, plus whatever the pointer is currently dragging out of it
-  const sway = Math.sin(time * 0.00042 * L.speed + L.phase) * 12;
-  const cx = mx + L.pull.x;
-  const cy = my + sway + L.pull.y;
-
-  // two control points either side of the midpoint keep the curve smooth
-  return `M ${a.x} ${a.y} C ${a.x + (mx-a.x)*0.55} ${a.y}, ${cx - (b.x-mx)*0.28} ${cy}, ${cx} ${cy}`
-       + ` S ${b.x - (b.x-mx)*0.55} ${b.y}, ${b.x} ${b.y}`;
-}
-
-/* ---------- the frame loop ---------- */
-function stepWeb(time){
-  if (view !== 'graph' || !graph.links.length){ webRAF = null; return; }
-
-  for (const L of graph.links){
-    // elastic: the thread is tugged toward the pointer when it is close, and
-    // springs back when it leaves. Lerping the displacement is what makes it
-    // feel like a thread rather than a jump.
-    let tx = 0, ty = 0;
-    if (pointer.inside){
-      const mx = (L.from.x + L.to.x)/2, my = (L.from.y + L.to.y)/2;
-      const dx = pointer.x - mx, dy = pointer.y - my;
-      const dist = Math.hypot(dx, dy);
-      const reach = 240;
-      if (dist < reach){
-        const force = (1 - dist/reach) ** 2 * 46;
-        tx = (dx/(dist||1)) * force;
-        ty = (dy/(dist||1)) * force;
-      }
-    }
-    L.pull.x += (tx - L.pull.x) * 0.075;
-    L.pull.y += (ty - L.pull.y) * 0.075;
-
-    const d = linkPath(L, time);
-    L.path.setAttribute('d', d);
-    L.hit.setAttribute('d', d);
-
-    // glow rises as the pointer nears, independent of the hover highlight
-    const near = Math.hypot(L.pull.x, L.pull.y) / 46;
-    if (!L.path.classList.contains('is-lit')){
-      L.path.style.stroke = `rgba(59,232,255,${(0.30 + near*0.45).toFixed(3)})`;
-      L.path.style.strokeWidth = (1.4 + near*1.2).toFixed(2);
-    } else {
-      L.path.style.stroke = ''; L.path.style.strokeWidth = '';
-    }
-
-    // the pulse travelling the thread
-    const total = L.path.getTotalLength();
-    if (total){
-      L.offset = (L.offset + 0.00075 * (0.6 + L.speed)) % 1;
-      const pt = L.path.getPointAtLength(total * L.offset);
-      L.dot.setAttribute('cx', pt.x);
-      L.dot.setAttribute('cy', pt.y);
-      L.dot.setAttribute('r', (2.2 + near*1.8).toFixed(2));
-    }
-  }
-
-  webRAF = requestAnimationFrame(stepWeb);
-}
-
-/* ---------- hover and click ---------- */
-function relatedKeys(key){
-  const set = new Set([key]);
-  if (key.startsWith('l:')){
-    const L = graph.links.find(x => x.key === key);
-    if (L){ set.add(L.from.key); set.add(L.to.key); }
-  } else {
-    for (const L of graph.links){
-      if (L.from.key === key || L.to.key === key){
-        set.add(L.key); set.add(L.from.key); set.add(L.to.key);
-      }
-    }
-  }
-  return set;
-}
-
-function setFocus(key){
-  focusKey = key;
-  const lit = key ? relatedKeys(key) : null;
-  web.classList.toggle('is-focused', Boolean(key));
-  for (const L of graph.links){
-    const on = lit ? lit.has(L.key) : false;
-    L.path.classList.toggle('is-lit', on);
-    L.dot.classList.toggle('lit', on);
-  }
-  for (const n of [...graph.roles, ...graph.cos]){
-    n.g?.classList.toggle('is-lit', lit ? lit.has(n.key) : false);
-  }
-}
-
-web.addEventListener('pointermove', (e) => {
-  const box = web.getBoundingClientRect();
-  pointer.inside = true;
-  pointer.x = (e.clientX - box.left) * (graph.w / box.width);
-  pointer.y = (e.clientY - box.top) * (graph.h / box.height);
-
-  const key = e.target.closest?.('[data-key]')?.dataset.key || null;
-  if (key !== focusKey) setFocus(key);
-});
-web.addEventListener('pointerleave', () => { pointer.inside = false; setFocus(null); });
-
-web.addEventListener('click', (e) => {
-  const key = e.target.closest?.('[data-key]')?.dataset.key;
-  if (key) openMatch(key);
-});
-
-
-/* ---------- the slide-over for a match ---------- */
-function openMatch(key){
-  const list = visibleJobs();
-  let jobs = [], title = '', sub = '';
-
-  // A green dot is one specific role, so it opens that role directly rather
-  // than a panel listing a single item.
-  if (key.startsWith('j:')){
-    const job = list.find(j => j.id === key.slice(2));
-    if (!job) return;
-    setFocus(key);
-    openDrawer(job.id);
-    return;
-  }
-
-  if (key.startsWith('l:')){
-    // A thread is one role and its company — same destination as its dot.
-    const L = graph.links.find(x => x.key === key);
-    if (!L || !L.jobs.length) return;
-    setFocus(key);
-    openDrawer(L.jobs[0].id);
-    return;
-  }
-
-  // A purple dot is a company: list everything they have open.
-  const name = key.slice(2);
-  jobs = list.filter(j => j.company === name);
-  track('open_company', null, { company: name });
-  title = name;
-  sub = `${jobs.length} open across ${new Set(jobs.map(j => j.category)).size} role families`;
-  if (!jobs.length) return;
-
-  setFocus(key);
-  closeDrawer(true);
-
-  scrim = document.createElement('div');
-  scrim.className = 'drawer-scrim';
-  scrim.addEventListener('click', () => { closeDrawer(); setFocus(null); });
-
-  drawer = document.createElement('div');
-  drawer.className = 'drawer';
-  drawer.setAttribute('role','dialog');
-  drawer.setAttribute('aria-modal','true');
-  drawer.innerHTML = `
-    <div class="drawer-top">
-      <button type="button" class="drawer-close" aria-label="Close">✕</button>
-      <div class="job-meta"><span class="chip cat">Match</span></div>
-      <h2>${esc(title)}</h2>
-      <p class="drawer-company">${esc(sub)}</p>
-    </div>
-    <div class="drawer-body" style="padding-top:20px">
-      <div class="match-list">
-        ${jobs.map(j => `
-          <button class="match-row" type="button" data-job="${j.id}">
-            <span class="mr-main">
-              <span class="mr-title">${esc(j.title)}</span>
-              <span class="mr-line">${esc(j.company)} <span class="sep">·</span> ${esc(j.location)} <span class="sep">·</span> ${esc(j.category)}</span>
-            </span>
-            <span class="mr-side">
-              ${compRange(j) ? `<span class="mr-comp">${compRange(j)}</span>` : ''}
-              <span class="mr-go" aria-hidden="true">→</span>
-            </span>
-          </button>`).join('')}
-      </div>
-    </div>`;
-
-  document.body.append(scrim, drawer);
-  document.body.style.overflow = 'hidden';
-  drawer.querySelector('.drawer-close').addEventListener('click', () => { closeDrawer(); setFocus(null); });
-  drawer.querySelectorAll('.match-row').forEach(row =>
-    row.addEventListener('click', () => openDrawer(row.dataset.job)));
-  drawer.querySelector('.drawer-close').focus();
-}
+let view = 'orbit';
 
 /* ---------- graph / list toggle ---------- */
 function setView(next){
   view = next;
-  const graphOn = view === 'graph';
-  $('graph-view').style.display = graphOn ? 'block' : 'none';
-  $('rail').style.display = graphOn ? 'none' : 'grid';
-  $('nav').style.display = graphOn ? 'none' : '';
-  document.querySelector('.pill-row').style.display = graphOn ? 'none' : 'flex';
-  $('v-graph').classList.toggle('is-on', graphOn);
-  $('v-list').classList.toggle('is-on', !graphOn);
-  $('v-graph').setAttribute('aria-pressed', String(graphOn));
-  $('v-list').setAttribute('aria-pressed', String(!graphOn));
+  const orbitOn = view === 'orbit';
+  const listOn  = view === 'list';
 
-  if (graphOn){
-    buildGraph();
-    if (!webRAF) webRAF = requestAnimationFrame(stepWeb);
-  } else {
-    if (webRAF) cancelAnimationFrame(webRAF);
-    webRAF = null;
-    renderCards();
+  $('orbit-view').hidden = !orbitOn;
+
+  // Both visual views carry their own company controls, so the list chrome
+  // stays hidden for either of them rather than only for the graph.
+  $('rail').style.display = listOn ? 'grid' : 'none';
+  $('nav').style.display = listOn ? '' : 'none';
+  document.querySelector('.pill-row').style.display = listOn ? 'flex' : 'none';
+
+  for (const [id, on] of [['v-orbit', orbitOn], ['v-list', listOn]]){
+    $(id).classList.toggle('is-on', on);
+    $(id).setAttribute('aria-pressed', String(on));
   }
+
+  // Orbit's loop only runs while Orbit is on screen — a hidden canvas
+  // rendering at 60fps burns battery for something nobody can see.
+  if (orbitOn) Orbit.show(); else Orbit.hide();
+  if (listOn) renderCards();
 }
 
 function renderStats(){
@@ -2833,7 +2521,14 @@ function renderStats(){
     `<b>${list.length}</b> Openings <span class="bullet">•</span> <b>${co}</b> Companies <span class="bullet">•</span> <b>${fam}</b> Role Families`;
 }
 
-$('v-graph').addEventListener('click', () => setView('graph'));
+/* Every filter change routes through here, so a new view only has to be added
+   in one place rather than at each call site. */
+function redrawView(){
+  if (view === 'orbit') Orbit.build();
+  else renderCards();
+}
+
+$('v-orbit').addEventListener('click', () => setView('orbit'));
 $('v-list').addEventListener('click', () => setView('list'));
 
 /* ---------- controls ---------- */
@@ -2860,14 +2555,14 @@ document.addEventListener('keydown', (e) => {
 $('search').addEventListener('input', (e) => {
   query = e.target.value; page = 0; slideDir = 'right';
   renderStats();
-  if (view === 'graph') buildGraph(); else renderCards();
+  redrawView();
 });
 $('pills').addEventListener('click', (e) => {
   const pill = e.target.closest('.filter-pill');
   if (!pill) return;
   company = pill.dataset.company;
   page = 0; slideDir = 'right';
-  renderPills(); renderStats(); renderCards();
+  renderPills(); renderStats(); redrawView();
 });
 
 /* ---------- admin preview ---------- */
@@ -3301,12 +2996,543 @@ document.addEventListener('click', (e) => {
   document.querySelector('.board').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
+
+/* ==========================================================================
+   Orbit — the 3D view.
+
+   Companies sit on the outer shell; each one's roles trail inward along a
+   single spiral arm. Scattering roles randomly through the interior would look
+   busier and say less: a role only means anything in relation to the company
+   hiring for it, so every node stays visibly attached to its arm. Density then
+   reads as "this operator is hiring hard" without anyone having to count.
+
+   Reads visibleJobs(), so the search box and hub toggle drive it exactly as
+   they drive the other two views. Clicking a role opens the same drawer the
+   cards do — one way into a posting, not two.
+   ========================================================================== */
+const Orbit = (() => {
+  const HUB_COLOUR = { opco:'#00FF88', proptech:'#7F4DE0' };
+  /* Shell radius scales with the roster. A radius fixed for 35 companies
+     leaves four of them stranded on a mostly empty sphere — which is exactly
+     what a filtered view produces. Spacing between neighbours stays roughly
+     constant instead, so the composition holds at any count. */
+  const MIN_SHELL = 20, MAX_SHELL = 54;
+  let SHELL = 46;          // company ring radius
+  let RING = 46;           // alias used at placement time
+  let CORE = 28;           // the globe body the roles sit inside
+
+  function shellRadius(n){
+    return Math.max(MIN_SHELL, Math.min(MAX_SHELL, 10 * Math.sqrt(Math.max(n, 1))));
+  }
+  const LIT = 0.5;             // opacity above this counts as visible
+
+  let renderer, scene, camera, world, raf = null, ready = false;
+  let jobMeshes = [], coMeshes = [], labels = [], companies = [];
+  let focus = null, spinning = true;
+  let yaw = 0.6, pitch = 0.44, dist = 150;
+  let dragging = false, px = 0, py = 0, moved = 0;
+  let VW = 1, VH = 1;
+  let hot = null;
+
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const v = new THREE.Vector3();
+  const camDir = new THREE.Vector3();
+  const ndc = new THREE.Vector2();
+  const ray = new THREE.Raycaster();
+
+  function canvas(){ return $('orbit-canvas'); }
+
+  /* Measure the canvas, never the window. Inside this page the canvas is one
+     panel among several, so window.innerWidth would put the labels somewhere
+     the nodes are not. */
+  function viewport(){
+    const r = canvas().getBoundingClientRect();
+    VW = Math.max(1, r.width); VH = Math.max(1, r.height);
+    return r;
+  }
+
+  function init(){
+    if (ready) return;
+    if (typeof THREE === 'undefined') return;      // CDN blocked; caller handles it
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvas(), antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
+    world = new THREE.Group();
+    scene.add(world);
+
+    /* Unlit spheres render as flat discs — round outline, no volume. A key
+       light gives the highlight, a violet fill keeps the dark side alive. */
+    scene.add(new THREE.AmbientLight(0xffffff, 0.34));
+    const key = new THREE.DirectionalLight(0xffffff, 0.95);
+    key.position.set(60, 80, 90); scene.add(key);
+    const fill = new THREE.DirectionalLight(0x8b7bd8, 0.5);
+    fill.position.set(-80, -30, -60); scene.add(fill);
+
+    spinning = !reduceMotion;
+    $('orbit-spin').textContent = spinning ? 'pause rotation' : 'resume rotation';
+
+    wire();
+    ready = true;
+  }
+
+  /* Even spacing on a sphere. Naive lat/long bunches everything at the poles;
+     the golden angle does not. */
+  function shellPoint(i, total, radius){
+    const y = 1 - (i / Math.max(total - 1, 1)) * 2;
+    const r = Math.sqrt(Math.max(0, 1 - y * y));
+    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+    return new THREE.Vector3(Math.cos(theta) * r, y, Math.sin(theta) * r).multiplyScalar(radius);
+  }
+
+  function clear(){
+    world.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) o.material.dispose();
+    });
+    world.clear();
+    jobMeshes = []; coMeshes = []; labels = [];
+    $('orbit-labels').innerHTML = '';
+  }
+
+  function build(){
+    if (!ready) init();
+    if (!ready) return;
+    clear();
+
+    const data = visibleJobs();
+    if (!data.length){ drawRail(); tally(); return; }
+
+    const byCo = new Map();
+    data.forEach(j => {
+      if (!byCo.has(j.company)) byCo.set(j.company, []);
+      byCo.get(j.company).push(j);
+    });
+    companies = [...byCo.entries()]
+      .map(([name, jobs]) => ({ name, hub: jobs[0].hub, jobs }))
+      .sort((a, b) => b.jobs.length - a.jobs.length);
+
+    SHELL = shellRadius(companies.length);
+    RING  = SHELL;
+    // The gap matters: too close and the ring reads as part of the surface,
+    // too far and the companies stop looking attached to anything.
+    CORE  = SHELL * 0.62;
+    drawGlobe();
+
+    const bodyGeo = new THREE.SphereGeometry(1.5, 26, 20);
+    const gridGeo = new THREE.SphereGeometry(1.56, 12, 8);     // coarse = meridians
+    const haloGeo = new THREE.SphereGeometry(2.5, 20, 16);
+    const jobGeo  = new THREE.SphereGeometry(0.62, 14, 12);
+
+    companies.forEach((co, ci) => {
+      /* Companies ring the globe rather than sitting on its surface. Evenly
+         spaced around one circle, they read as a perimeter from any angle the
+         camera settles at, and the interior is left clear for the roles. */
+      const ringAngle = (ci / companies.length) * Math.PI * 2;
+      const anchor = new THREE.Vector3(
+        Math.cos(ringAngle) * RING,
+        Math.sin(ringAngle * 2) * RING * 0.07,   // slight waver so the ring is not a flat disc
+        Math.sin(ringAngle) * RING,
+      );
+      const colour = new THREE.Color(HUB_COLOUR[co.hub] || HUB_COLOUR.proptech);
+
+      /* Three meshes make a company read as a small globe: a shaded body, a
+         coarse wireframe for meridians, and a back-face halo that sits like
+         atmosphere at the rim instead of a disc in front of it. */
+      const node = new THREE.Mesh(bodyGeo, new THREE.MeshPhongMaterial({
+        color: colour, shininess: 38, specular: 0x6d5f9c,
+        emissive: colour, emissiveIntensity: 0.3, transparent: true, opacity: 1,
+      }));
+      node.position.copy(anchor);
+      node.userData = { kind:'company', co };
+      world.add(node); coMeshes.push(node);
+
+      const grid = new THREE.Mesh(gridGeo, new THREE.MeshBasicMaterial({
+        color: 0xffffff, wireframe: true, transparent: true, opacity: 0.2,
+      }));
+      grid.position.copy(anchor);
+      grid.userData = { kind:'decor', co, base: 0.2 };
+      world.add(grid);
+
+      const halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({
+        color: colour, transparent: true, opacity: 0.1, side: THREE.BackSide,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      }));
+      halo.position.copy(anchor);
+      halo.userData = { kind:'decor', co, base: 0.1 };
+      world.add(halo);
+
+      const el = document.createElement('div');
+      el.className = 'orbit-lab';
+      el.textContent = co.name;
+      $('orbit-labels').appendChild(el);
+      labels.push({ el, node, co, visible: true });
+
+      /* Roles fill the globe's interior, seeded in the wedge nearest their own
+         company. Scattering them uniformly would look the same but make every
+         connecting line cross the middle; keeping each company's roles on its
+         own side means the links stay short and the eye can follow one company
+         inward without untangling anything. */
+      const wedge = (Math.PI * 2) / companies.length;
+      co.jobs.forEach((job, ji) => {
+        const n = co.jobs.length;
+        // Golden-ratio sequences fill a volume evenly without clumping, which
+        // Math.random does not at these counts.
+        const a = ringAngle + (((ji * 0.6180339887) % 1) - 0.5) * wedge * 1.5;
+        const rad = CORE * (0.30 + 0.66 * Math.sqrt((ji + 0.5) / n));
+        const yAng = (((ji * 0.7548776662) % 1) - 0.5) * Math.PI * 0.82;
+
+        const p = new THREE.Vector3(
+          Math.cos(a) * Math.cos(yAng) * rad,
+          Math.sin(yAng) * rad,
+          Math.sin(a) * Math.cos(yAng) * rad,
+        );
+
+        const m = new THREE.Mesh(jobGeo, new THREE.MeshPhongMaterial({
+          color: colour, shininess: 52, specular: 0x9a8cc7,
+          emissive: colour, emissiveIntensity: 0.42,
+          transparent: true, opacity: 0.92,
+        }));
+        m.position.copy(p);
+        m.userData = { kind:'job', job, co };
+        world.add(m); jobMeshes.push(m);
+
+        // One line per role, company to role. Faint enough to read as structure
+        // rather than clutter at three hundred of them.
+        const link = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([anchor, p]),
+          new THREE.LineBasicMaterial({ color: colour, transparent:true, opacity:0.1 }),
+        );
+        link.userData = { kind:'arm', co, base: 0.1 };
+        world.add(link);
+      });
+    });
+
+    resize();
+    dist = fitDistance();
+    drawRail();
+    emphasise();
+  }
+
+
+  /* The sphere itself.
+     Companies were being placed on an invisible shell, which with a handful of
+     them just reads as dots adrift — there was no globe, only points that
+     happened to sit on one. Drawing the shell makes the structure legible at
+     any roster size: you can see where the surface is, which side you are
+     looking at, and that the roles hang inside it.
+
+     Built from real latitude rings and meridians rather than a wireframe
+     sphere, because a wireframe triangulates and the diagonals read as a
+     geodesic mesh instead of a globe. */
+  function drawGlobe(){
+    /* The globe body, which the roles sit inside.
+
+       Earlier this drew a wireframe at the company radius, which put the
+       companies on the surface — so with a handful of them there was nothing
+       to see but dots adrift. The body now sits inside the company ring, and
+       being a filled volume rather than a cage it reads as a globe whether it
+       holds twelve roles or three hundred. */
+
+    const faint = (opacity) => new THREE.LineBasicMaterial({
+      color: 0x8c7ad6, transparent: true, opacity, depthWrite: false,
+    });
+
+    // Translucent body. Front-face, low opacity, no depth write so the roles
+    // inside stay visible through it rather than being swallowed.
+    const body = new THREE.Mesh(
+      new THREE.SphereGeometry(CORE, 48, 36),
+      new THREE.MeshPhongMaterial({
+        color: 0x3a2470, emissive: 0x1d1040, emissiveIntensity: 0.6,
+        shininess: 10, transparent: true, opacity: 0.30, depthWrite: false,
+      }),
+    );
+    body.userData = { kind:'globe' };
+    world.add(body);
+
+    // Rim light, back-face only, so the body has an edge without a disc in
+    // front of its contents.
+    const rim = new THREE.Mesh(
+      new THREE.SphereGeometry(CORE * 1.05, 48, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0x7F4DE0, transparent: true, opacity: 0.14,
+        side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
+      }),
+    );
+    rim.userData = { kind:'globe' };
+    world.add(rim);
+
+    /* Latitude rings and meridians on the body. Built as real circles rather
+       than a wireframe sphere: wireframe triangulates, and the diagonals read
+       as a geodesic dome instead of a globe. */
+    const LATS = 6, MERIDIANS = 12, SEGMENTS = 84;
+
+    for (let i = 1; i <= LATS; i++){
+      const phi = (i / (LATS + 1)) * Math.PI;
+      const y = Math.cos(phi) * CORE;
+      const r = Math.sin(phi) * CORE;
+      const pts = [];
+      for (let sgm = 0; sgm <= SEGMENTS; sgm++){
+        const t = (sgm / SEGMENTS) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(t) * r, y, Math.sin(t) * r));
+      }
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        faint(Math.abs(y) < 0.001 ? 0.24 : 0.08),
+      );
+      line.userData = { kind:'globe' };
+      world.add(line);
+    }
+
+    for (let m = 0; m < MERIDIANS; m++){
+      const theta = (m / MERIDIANS) * Math.PI * 2;
+      const pts = [];
+      for (let sgm = 0; sgm <= SEGMENTS; sgm++){
+        const phi = (sgm / SEGMENTS) * Math.PI;
+        pts.push(new THREE.Vector3(
+          Math.cos(theta) * Math.sin(phi) * CORE,
+          Math.cos(phi) * CORE,
+          Math.sin(theta) * Math.sin(phi) * CORE,
+        ));
+      }
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), faint(0.07));
+      line.userData = { kind:'globe' };
+      world.add(line);
+    }
+
+    // The circle the companies stand on, drawn so the ring is a structure
+    // rather than a coincidence of evenly spaced dots.
+    const orbitPts = [];
+    for (let sgm = 0; sgm <= 160; sgm++){
+      const t = (sgm / 160) * Math.PI * 2;
+      orbitPts.push(new THREE.Vector3(
+        Math.cos(t) * RING, Math.sin(t * 2) * RING * 0.07, Math.sin(t) * RING,
+      ));
+    }
+    const orbitLine = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(orbitPts), faint(0.13),
+    );
+    orbitLine.userData = { kind:'globe' };
+    world.add(orbitLine);
+  }
+
+  /* Distance that frames the shell at whatever shape the panel is. A fixed
+     number fits one screen and clips every other: a narrow panel is limited by
+     width, a wide one by height, so both are checked. */
+  function fitDistance(){
+    const vFov = camera.fov * Math.PI / 180;
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+    return Math.max(70, Math.min(300, (RING * 1.30) / Math.tan(Math.min(vFov, hFov) / 2)));
+  }
+
+  function drawRail(){
+    const host = $('orbit-colist');
+    host.innerHTML = companies.map(co =>
+      `<button type="button" class="orbit-co" data-co="${esc(co.name)}" aria-pressed="${focus === co.name}">
+         <i class="orbit-dot" style="background:${HUB_COLOUR[co.hub] || HUB_COLOUR.proptech}"></i>
+         ${esc(co.name)}<span class="n">${co.jobs.length}</span>
+       </button>`).join('');
+  }
+
+  /* Dim rather than hide: the shape of the whole network stays readable while
+     one company is being looked at. */
+  function emphasise(){
+    const lit = co => !focus || co.name === focus;
+    world.children.forEach(o => {
+      const co = o.userData?.co;
+      if (!co) return;
+      const on = lit(co);
+      const k = o.userData.kind;
+      if (k === 'job')        o.material.opacity = on ? 0.92 : 0.06;
+      else if (k === 'arm')   o.material.opacity = on ? o.userData.base : 0.02;
+      else if (k === 'decor') o.material.opacity = on ? o.userData.base : 0.015;
+      else                    o.material.opacity = on ? 1 : 0.12;
+    });
+    labels.forEach(l => { l.visible = lit(l.co); });
+    tally();
+  }
+
+  function tally(){
+    const shown = jobMeshes.filter(m => m.material.opacity > LIT);
+    const cos = new Set(shown.map(m => m.userData.co.name)).size;
+    $('count').textContent = shown.length
+      ? `${shown.length} role${shown.length === 1 ? '' : 's'} across ${cos} compan${cos === 1 ? 'y' : 'ies'}`
+      : 'No roles match those filters.';
+  }
+
+  function place(){
+    camera.position.set(
+      dist * Math.cos(pitch) * Math.sin(yaw),
+      dist * Math.sin(pitch),
+      dist * Math.cos(pitch) * Math.cos(yaw),
+    );
+    camera.lookAt(0, 0, 0);
+  }
+
+  function resize(){
+    viewport();
+    renderer.setSize(VW, VH, false);
+    camera.aspect = VW / VH;
+    camera.updateProjectionMatrix();
+  }
+
+  function pick(e){
+    const r = viewport();
+    ndc.x = ((e.clientX - r.left) / VW) * 2 - 1;
+    ndc.y = -((e.clientY - r.top) / VH) * 2 + 1;
+    ray.setFromCamera(ndc, camera);
+    const hits = ray.intersectObjects([...jobMeshes, ...coMeshes], false);
+    return hits.find(h => h.object.material.opacity > LIT)?.object || null;
+  }
+
+  function hover(e){
+    const obj = pick(e);
+    if (obj === hot){ if (hot) placeCard(e); return; }
+    if (hot) hot.scale.setScalar(1);
+    hot = obj;
+
+    const card = $('orbit-card');
+    if (!hot){ card.classList.remove('is-on'); canvas().style.cursor = 'grab'; return; }
+
+    hot.scale.setScalar(1.7);
+    canvas().style.cursor = 'pointer';
+    const d = hot.userData;
+    card.innerHTML = d.kind === 'job'
+      ? `<div class="t">${esc(d.job.title)}</div>
+         <div class="m">${esc(d.job.company)}<br>${esc(d.job.location || '')}</div>
+         <div class="go">Click to open this role</div>`
+      : `<div class="t">${esc(d.co.name)}</div>
+         <div class="m">${d.co.jobs.length} open role${d.co.jobs.length === 1 ? '' : 's'}</div>
+         <div class="go">Click to show only this company</div>`;
+    card.classList.add('is-on');
+    placeCard(e);
+  }
+
+  function placeCard(e){
+    const card = $('orbit-card');
+    const box = $('orbit-view').getBoundingClientRect();
+    const x = e.clientX - box.left + 14;
+    const y = e.clientY - box.top + 14;
+    card.style.left = Math.min(x, box.width - card.offsetWidth - 12) + 'px';
+    card.style.top  = Math.min(y, box.height - card.offsetHeight - 12) + 'px';
+  }
+
+  function wire(){
+    const c = canvas();
+
+    c.addEventListener('pointerdown', e => {
+      dragging = true; moved = 0; px = e.clientX; py = e.clientY;
+      c.setPointerCapture(e.pointerId);
+    });
+    c.addEventListener('pointerup', e => {
+      dragging = false;
+      try { c.releasePointerCapture(e.pointerId); } catch {}
+    });
+    c.addEventListener('pointermove', e => {
+      if (dragging){
+        const dx = e.clientX - px, dy = e.clientY - py;
+        moved += Math.abs(dx) + Math.abs(dy);
+        yaw -= dx * 0.005;
+        pitch = Math.max(-1.35, Math.min(1.35, pitch + dy * 0.005));
+        px = e.clientX; py = e.clientY;
+      }
+      hover(e);
+    });
+    c.addEventListener('pointerleave', () => {
+      $('orbit-card').classList.remove('is-on');
+      if (hot){ hot.scale.setScalar(1); hot = null; }
+    });
+    c.addEventListener('wheel', e => {
+      e.preventDefault();
+      dist = Math.max(58, Math.min(280, dist + e.deltaY * 0.09));
+    }, { passive:false });
+
+    c.addEventListener('click', e => {
+      if (moved > 6) return;                    // that was a drag
+      const obj = pick(e);
+      if (!obj) return;
+      const d = obj.userData;
+      if (d.kind === 'job'){
+        openDrawer(d.job.id);                   // same drawer the cards open
+      } else {
+        focus = focus === d.co.name ? null : d.co.name;
+        drawRail(); emphasise();
+      }
+    });
+
+    $('orbit-colist').addEventListener('click', e => {
+      const b = e.target.closest('.orbit-co');
+      if (!b) return;
+      focus = focus === b.dataset.co ? null : b.dataset.co;
+      drawRail(); emphasise();
+    });
+
+    $('orbit-spin').addEventListener('click', () => {
+      spinning = !spinning;
+      $('orbit-spin').textContent = spinning ? 'pause rotation' : 'resume rotation';
+    });
+    $('orbit-reset').addEventListener('click', () => {
+      yaw = 0.6; pitch = 0.44; dist = fitDistance(); focus = null;
+      drawRail(); emphasise();
+    });
+
+    // A panel can change size without the window doing so.
+    if (window.ResizeObserver) new ResizeObserver(() => { if (raf) resize(); }).observe(c);
+  }
+
+  function frame(){
+    raf = requestAnimationFrame(frame);
+    if (spinning && !dragging) yaw += 0.0013;
+    place();
+
+    const r = viewport();
+    camera.getWorldDirection(camDir);
+
+    /* Name only the companies on the near face when the roster is large —
+       thirty-five labels at once is a wall of text. With a handful there is
+       nothing to crowd, so hiding any of them just looks broken. */
+    const cull = labels.length > 12 ? 0.62 : 0.05;
+    for (const l of labels){
+      if (!l.visible){ l.el.style.opacity = 0; continue; }
+      const facing = v.copy(l.node.position).sub(camera.position).normalize().dot(camDir);
+      if (facing < cull){ l.el.style.opacity = 0; continue; }
+      v.copy(l.node.position).project(camera);
+      if (v.z > 1){ l.el.style.opacity = 0; continue; }
+      l.el.style.opacity = Math.min(0.95, 0.3 + (facing - cull) * 2).toFixed(2);
+      l.el.style.left = ((v.x * 0.5 + 0.5) * VW) + 'px';
+      l.el.style.top  = ((-v.y * 0.5 + 0.5) * VH - 15) + 'px';
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  return {
+    build,
+    show(){
+      if (typeof THREE === 'undefined'){
+        $('count').textContent = 'The 3D view needs WebGL, which did not load. Graph and List still work.';
+        return;
+      }
+      init();
+      if (!ready) return;
+      build();
+      if (!raf) raf = requestAnimationFrame(frame);
+    },
+    hide(){
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+      $('orbit-card').classList.remove('is-on');
+    },
+  };
+})();
+
 /* ---------- boot ---------- */
 initBackLink();
 wireHubCards();
 initData();
 new ResizeObserver(() => { if (view === 'list') measure(); }).observe(rail);
-new ResizeObserver(() => { if (view === 'graph') buildGraph(); }).observe($('graph-view'));
 window.addEventListener('resize', measure);
 window.addEventListener('scroll', onScroll, { passive: true });
 // web fonts land after first paint and shift every card
