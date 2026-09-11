@@ -641,7 +641,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 /* Tall enough to feel like a space rather than a strip, short enough that the
    controls above it stay on screen on a laptop. */
-#orbit-canvas{display:block;width:100%;height:76vh;min-height:460px;max-height:860px;touch-action:none;cursor:grab}
+#orbit-canvas{display:block;width:100%;height:86vh;min-height:520px;max-height:1000px;touch-action:none;cursor:grab}
 #orbit-canvas:active{cursor:grabbing}
 
 .orbit-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -658,6 +658,24 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   overflow-y:auto;padding-right:8px;scrollbar-width:thin;
   scrollbar-color:var(--line) transparent;
 }
+/* The roles rail answers a real limit of the 3D view: at any moment half the
+   globe faces away, so a role you want may simply not be on screen. The list
+   is every role currently matching the filters, scrollable, and it highlights
+   its node on the globe when hovered. */
+.orbit-rail-right{
+  left:auto;
+  right:max(18px, calc(50vw - 620px + 24px));
+  width:260px;
+}
+.orbit-job{
+  display:block;width:100%;text-align:left;background:none;border:0;
+  color:var(--ink-soft);font-family:var(--body);font-size:15px;line-height:1.3;
+  padding:6px 0;cursor:pointer;border-bottom:1px solid rgba(200,197,218,.06);
+  transition:color .16s;
+}
+.orbit-job:hover,.orbit-job.is-hot{color:var(--ink)}
+.orbit-job:focus-visible{outline:2px solid var(--purple-bright);outline-offset:2px;border-radius:3px}
+.orbit-job .co{display:block;font-family:var(--mono);font-size:10px;color:var(--ink-dim);margin-top:2px}
 .orbit-rail::-webkit-scrollbar{width:4px}
 .orbit-rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
 .orbit-rail h3{
@@ -698,8 +716,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   padding-left:5vw;padding-right:5vw;
 }
 
+@media (max-width:1180px){ .orbit-rail-right{display:none} }
 @media (max-width:860px){
-  #orbit-canvas{height:62vh;min-height:380px}
+  #orbit-canvas{height:70vh;min-height:420px}
   .orbit-rail{display:none}
 }
 
@@ -1324,6 +1343,10 @@ a.foot-line:hover{color:var(--green)}
       <div class="orbit-rail" id="orbit-rail">
         <h3>Companies</h3>
         <div id="orbit-colist"></div>
+      </div>
+      <div class="orbit-rail orbit-rail-right" id="orbit-joblist-wrap">
+        <h3 id="orbit-joblist-head">Open roles</h3>
+        <div id="orbit-joblist"></div>
       </div>
       <p class="web-hint">Drag to turn &nbsp;·&nbsp; scroll to zoom &nbsp;·&nbsp; click a role to open it
         &nbsp;·&nbsp; <button type="button" id="orbit-spin" class="orbit-link">pause rotation</button>
@@ -3028,7 +3051,9 @@ const Orbit = (() => {
 
   let renderer, scene, camera, world, raf = null, ready = false;
   let jobMeshes = [], coMeshes = [], labels = [], companies = [];
-  let focus = null, spinning = true;
+  let focus = null, spinning = false;
+  let jobListRefs = [], listHot = null;
+  let travellers = [], travelPoints = null, travelPos = null, travelCol = null;
   let yaw = 0.6, pitch = 0.44, dist = 150;
   let dragging = false, px = 0, py = 0, moved = 0;
   let VW = 1, VH = 1;
@@ -3071,7 +3096,7 @@ const Orbit = (() => {
     const fill = new THREE.DirectionalLight(0x8b7bd8, 0.5);
     fill.position.set(-80, -30, -60); scene.add(fill);
 
-    spinning = !reduceMotion;
+    spinning = false;
     $('orbit-spin').textContent = spinning ? 'pause rotation' : 'resume rotation';
 
     wire();
@@ -3094,6 +3119,8 @@ const Orbit = (() => {
     });
     world.clear();
     jobMeshes = []; coMeshes = []; labels = [];
+    jobListRefs = []; listHot = null;
+    travellers = []; travelPoints = null; travelPos = null; travelCol = null;
     $('orbit-labels').innerHTML = '';
   }
 
@@ -3121,10 +3148,10 @@ const Orbit = (() => {
     CORE  = SHELL * 0.62;
     drawGlobe();
 
-    const bodyGeo = new THREE.SphereGeometry(1.5, 26, 20);
-    const gridGeo = new THREE.SphereGeometry(1.56, 12, 8);     // coarse = meridians
-    const haloGeo = new THREE.SphereGeometry(2.5, 20, 16);
-    const jobGeo  = new THREE.SphereGeometry(0.62, 14, 12);
+    const bodyGeo = new THREE.SphereGeometry(2.3, 28, 22);
+    const gridGeo = new THREE.SphereGeometry(2.39, 14, 9);     // coarse = meridians
+    const haloGeo = new THREE.SphereGeometry(3.7, 22, 18);
+    const jobGeo  = new THREE.SphereGeometry(1.15, 16, 14);
 
     companies.forEach((co, ci) => {
       /* Companies ring the globe rather than sitting on its surface. Evenly
@@ -3207,13 +3234,43 @@ const Orbit = (() => {
         );
         link.userData = { kind:'arm', co, base: 0.1 };
         world.add(link);
+
+        // Recorded for the travelling dot that runs this thread. Phase is
+        // seeded from the index so the dots do not set off in lockstep.
+        travellers.push({ from: anchor.clone(), to: p.clone(), co,
+                          phase: ((ci * 7 + ji * 13) % 100) / 100 });
       });
     });
+
+    buildTravellers();
 
     resize();
     dist = fitDistance();
     drawRail();
     emphasise();
+  }
+
+  /* One Points object carrying every travelling dot. Five hundred separate
+     meshes would cost more draw calls than the rest of the scene put together;
+     this is one, with positions rewritten each frame. */
+  function buildTravellers(){
+    if (!travellers.length) return;
+    travelPos = new Float32Array(travellers.length * 3);
+    travelCol = new Float32Array(travellers.length * 3);
+    const c = new THREE.Color();
+    travellers.forEach((t, i) => {
+      c.set(HUB_COLOUR[t.co.hub] || HUB_COLOUR.proptech);
+      travelCol[i*3] = c.r; travelCol[i*3+1] = c.g; travelCol[i*3+2] = c.b;
+    });
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(travelPos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(travelCol, 3));
+    travelPoints = new THREE.Points(geo, new THREE.PointsMaterial({
+      size: 1.9, vertexColors: true, transparent: true, opacity: 0.9,
+      sizeAttenuation: true, depthWrite: false,
+    }));
+    travelPoints.userData = { kind:'globe' };
+    world.add(travelPoints);
   }
 
 
@@ -3324,7 +3381,23 @@ const Orbit = (() => {
   function fitDistance(){
     const vFov = camera.fov * Math.PI / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return Math.max(70, Math.min(300, (RING * 1.30) / Math.tan(Math.min(vFov, hFov) / 2)));
+    return Math.max(70, Math.min(300, (RING * 1.10) / Math.tan(Math.min(vFov, hFov) / 2)));
+  }
+
+  /* Every role currently passing the filters, whichever side of the globe it
+     happens to be on. Hovering one lifts its node so the list and the globe
+     stay tied together; clicking opens the same drawer the node does. */
+  function drawJobList(){
+    const shown = jobMeshes.filter(m => m.material.opacity > LIT);
+    $('orbit-joblist-head').textContent =
+      focus ? `${focus} — ${shown.length} role${shown.length === 1 ? '' : 's'}`
+            : `Open roles — ${shown.length}`;
+    $('orbit-joblist').innerHTML = shown.map((m, i) =>
+      `<button type="button" class="orbit-job" data-i="${i}">
+         ${esc(m.userData.job.title)}
+         <span class="co">${esc(m.userData.job.company)}${m.userData.job.location ? ' · ' + esc(m.userData.job.location) : ''}</span>
+       </button>`).join('') || '<p class="m" style="color:var(--ink-dim);font-size:14px">No roles match those filters.</p>';
+    jobListRefs = shown;
   }
 
   function drawRail(){
@@ -3351,6 +3424,7 @@ const Orbit = (() => {
       else                    o.material.opacity = on ? 1 : 0.12;
     });
     labels.forEach(l => { l.visible = lit(l.co); });
+    drawJobList();
     tally();
   }
 
@@ -3462,6 +3536,29 @@ const Orbit = (() => {
       }
     });
 
+    /* Hovering a row lifts its node, so it is obvious which speck on the globe
+       the row refers to — otherwise the list is just a list sitting next to an
+       unrelated picture. */
+    const jl = $('orbit-joblist');
+    jl.addEventListener('pointerover', e => {
+      const b = e.target.closest('.orbit-job');
+      if (!b) return;
+      const m = jobListRefs[+b.dataset.i];
+      if (!m) return;
+      if (listHot && listHot !== m) listHot.scale.setScalar(1);
+      listHot = m;
+      m.scale.setScalar(2.2);
+    });
+    jl.addEventListener('pointerleave', () => {
+      if (listHot){ listHot.scale.setScalar(1); listHot = null; }
+    });
+    jl.addEventListener('click', e => {
+      const b = e.target.closest('.orbit-job');
+      if (!b) return;
+      const m = jobListRefs[+b.dataset.i];
+      if (m) openDrawer(m.userData.job.id);
+    });
+
     $('orbit-colist').addEventListener('click', e => {
       const b = e.target.closest('.orbit-co');
       if (!b) return;
@@ -3487,22 +3584,59 @@ const Orbit = (() => {
     if (spinning && !dragging) yaw += 0.0013;
     place();
 
+    /* The travelling dots. The globe itself is still now, so this is the only
+       motion on screen — it reads as the threads being live rather than as the
+       whole picture drifting. */
+    if (travelPoints && travellers.length){
+      const t = performance.now() * 0.00009;
+      for (let i = 0; i < travellers.length; i++){
+        const tr = travellers[i];
+        const k = (t + tr.phase) % 1;
+        const e = k * k * (3 - 2 * k);              // ease so they slow at each end
+        travelPos[i*3]   = tr.from.x + (tr.to.x - tr.from.x) * e;
+        travelPos[i*3+1] = tr.from.y + (tr.to.y - tr.from.y) * e;
+        travelPos[i*3+2] = tr.from.z + (tr.to.z - tr.from.z) * e;
+      }
+      travelPoints.geometry.attributes.position.needsUpdate = true;
+    }
+
     const r = viewport();
     camera.getWorldDirection(camDir);
 
     /* Name only the companies on the near face when the roster is large —
        thirty-five labels at once is a wall of text. With a handful there is
        nothing to crowd, so hiding any of them just looks broken. */
-    const cull = labels.length > 12 ? 0.62 : 0.05;
+    /* Companies sit on a ring, so most of them face the camera at once and the
+       names pile up — "CompTheGuarantors" is two labels on top of each other,
+       not a company. Project them all, sort near to far, and drop any that
+       would land on a name already placed. The nearest wins, which is the one
+       the eye is drawn to anyway. */
+    const placed = [];
+    const candidates = [];
     for (const l of labels){
       if (!l.visible){ l.el.style.opacity = 0; continue; }
       const facing = v.copy(l.node.position).sub(camera.position).normalize().dot(camDir);
-      if (facing < cull){ l.el.style.opacity = 0; continue; }
+      if (facing < 0.02){ l.el.style.opacity = 0; continue; }
       v.copy(l.node.position).project(camera);
       if (v.z > 1){ l.el.style.opacity = 0; continue; }
-      l.el.style.opacity = Math.min(0.95, 0.3 + (facing - cull) * 2).toFixed(2);
-      l.el.style.left = ((v.x * 0.5 + 0.5) * VW) + 'px';
-      l.el.style.top  = ((-v.y * 0.5 + 0.5) * VH - 15) + 'px';
+      candidates.push({
+        l, facing,
+        x: (v.x * 0.5 + 0.5) * VW,
+        y: (-v.y * 0.5 + 0.5) * VH - 16,
+        depth: camera.position.distanceTo(l.node.position),
+        w: l.el.offsetWidth || l.co.name.length * 6.2,
+      });
+    }
+    candidates.sort((a, b) => a.depth - b.depth);
+
+    for (const c of candidates){
+      const clash = placed.some(q =>
+        Math.abs(q.y - c.y) < 15 && Math.abs(q.x - c.x) < (q.w + c.w) / 2 + 10);
+      if (clash){ c.l.el.style.opacity = 0; continue; }
+      placed.push(c);
+      c.l.el.style.opacity = Math.min(0.95, 0.35 + c.facing * 0.6).toFixed(2);
+      c.l.el.style.left = c.x + 'px';
+      c.l.el.style.top  = c.y + 'px';
     }
 
     renderer.render(scene, camera);
