@@ -244,9 +244,12 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-hemi:not(.is-current) .g-half{opacity:.62}
 .g-hemi:hover .g-half{opacity:1}
 
-.g-lat,.g-mer{fill:none;stroke:rgba(200,197,218,.11);stroke-width:1}
-.g-mer{stroke:rgba(200,197,218,.08)}
-.g-rim{fill:none;stroke:rgba(200,197,218,.18);stroke-width:1}
+.g-lat,.g-mer{fill:none;stroke:url(#g-mesh-grad);stroke-width:.9;vector-effect:non-scaling-stroke}
+.g-mer{opacity:.62}
+.g-lat{opacity:.5}
+.g-lat.equator{opacity:.9;stroke-width:1.2}
+.g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1.4;
+  filter:drop-shadow(0 0 7px rgba(120,190,255,.3))}
 /* the jobs' orbit — a slow drift in the dashes gives it motion without
    moving the jobs themselves */
 .g-orbit{fill:none;stroke:rgba(200,197,218,.2);stroke-width:1;stroke-dasharray:1 5;
@@ -255,7 +258,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-axis{stroke-width:1}
 
 /* the outer circle the companies ride on */
-.g-ring{fill:none;stroke:rgba(200,197,218,.18);stroke-width:1;stroke-dasharray:2 6}
+.g-ring{fill:none;stroke:rgba(200,197,218,.16);stroke-width:1;stroke-dasharray:2 6}
 .g-arc{fill:none;stroke-width:1.2;stroke-linecap:round}
 .g-arc.opco{stroke:rgba(0,255,136,.34)}
 .g-arc.proptech{stroke:rgba(169,143,236,.42)}
@@ -308,6 +311,17 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #globe.is-focused .g-thread:not(.is-lit){opacity:.07}
 #globe.is-focused .g-role:not(.is-lit),
 #globe.is-focused .g-co:not(.is-lit){opacity:.28}
+
+/* The beat between selecting and arriving: the chosen path holds bright while
+   the globe recedes, so the connection is legible before the board takes over. */
+#globe.is-handoff .g-thread:not(.is-lit),
+#globe.is-handoff .g-role:not(.is-lit),
+#globe.is-handoff .g-co:not(.is-lit),
+#globe.is-handoff .g-lat,#globe.is-handoff .g-mer,
+#globe.is-handoff .g-ring,#globe.is-handoff .g-arc{opacity:.05;transition:opacity .3s}
+#globe.is-handoff .g-thread.is-lit{stroke-width:2.8}
+#globe.is-handoff .g-role.is-lit .halo{animation:handoff-ping .52s ease-out both}
+@keyframes handoff-ping{from{opacity:.9}to{opacity:0;stroke-width:5}}
 
 .hemi-label{text-anchor:middle;font-family:var(--mono);font-size:13px;letter-spacing:.24em;text-transform:uppercase}
 .hemi-label.opco{fill:#00FF88}
@@ -450,6 +464,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .page-num em{font-style:normal;color:var(--ink-dim);text-shadow:none}
 
 .job-card{
+  cursor:pointer;
   position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;
   gap:16px;align-items:center;padding:14px 18px;border-radius:12px;min-height:128px;
   background:linear-gradient(150deg,rgba(43,16,85,.46),rgba(11,6,24,.84));
@@ -469,6 +484,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 }
 .job-card:hover::before,.job-card.is-active::before,.job-card.is-opened::before{opacity:1}
 .job-card.is-opened{border-color:rgba(0,255,136,.5)}
+.job-card:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 
 .job-index{
   width:32px;height:32px;flex:none;border-radius:9px;display:grid;place-items:center;
@@ -1315,9 +1331,22 @@ a.foot-line:hover{color:var(--green)}
             </linearGradient>
             <clipPath id="g-clip-l"><rect x="0" y="0" width="500" height="610"/></clipPath>
             <clipPath id="g-clip-r"><rect x="500" y="0" width="500" height="610"/></clipPath>
+            <!-- The wireframe runs green on the operator side into purple on the
+                 technology side, so the mesh itself carries the split. -->
+            <linearGradient id="g-mesh-grad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"   stop-color="rgba(0,255,136,.42)"/>
+              <stop offset="46%"  stop-color="rgba(0,255,136,.20)"/>
+              <stop offset="54%"  stop-color="rgba(150,110,240,.26)"/>
+              <stop offset="100%" stop-color="rgba(150,110,240,.50)"/>
+            </linearGradient>
+            <linearGradient id="g-rim-grad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"   stop-color="rgba(0,255,136,.85)"/>
+              <stop offset="50%"  stop-color="rgba(190,180,220,.5)"/>
+              <stop offset="100%" stop-color="rgba(168,140,255,.9)"/>
+            </linearGradient>
           </defs>
 
-          <circle class="g-ring" cx="500" cy="290" r="252"/>
+          <circle class="g-ring" cx="500" cy="290" r="266"/>
           <g id="g-arcs"></g>
 
           <g class="g-hemi opco" data-goto="opco">
@@ -1327,12 +1356,11 @@ a.foot-line:hover{color:var(--green)}
             <circle class="g-half" cx="500" cy="290" r="190" clip-path="url(#g-clip-r)"/>
           </g>
 
+          <!-- The wireframe is built in JS: the meridians have to be redrawn
+               each frame for the sphere to turn, and hand-writing twenty-odd
+               ellipses here would only duplicate that. -->
+          <g id="g-mesh" pointer-events="none"></g>
           <g pointer-events="none">
-            <ellipse class="g-lat" cx="500" cy="290" rx="190" ry="56"/>
-            <ellipse class="g-lat" cx="500" cy="290" rx="190" ry="118"/>
-            <ellipse class="g-lat" cx="500" cy="290" rx="190" ry="168"/>
-            <ellipse class="g-mer" id="g-mer-a" cx="500" cy="290" rx="120" ry="190"/>
-            <ellipse class="g-mer" id="g-mer-b" cx="500" cy="290" rx="60"  ry="190"/>
             <circle class="g-rim" cx="500" cy="290" r="190"/>
             <circle class="g-orbit" cx="500" cy="290" r="150"/>
             <line class="g-axis" x1="500" y1="92" x2="500" y2="488" stroke="url(#g-axis-grad)"/>
@@ -1421,7 +1449,7 @@ a.foot-line:hover{color:var(--green)}
       <div class="rail-dots" id="dots"></div>
       <div class="rail-target" id="target">
         <div class="target-ring">View</div>
-        <p class="target-label">Drag a node here to open the role</p>
+        <p class="target-label">Select a role, or drag its node here</p>
       </div>
     </div>
 
@@ -1740,7 +1768,8 @@ function renderCards(){
   }
 
   cardsEl.innerHTML = list.map(j => `
-    <article class="job-card" data-id="${j.id}">
+    <article class="job-card" data-id="${j.id}" tabindex="0" role="button"
+      aria-label="${esc(j.title)} at ${esc(j.company)}. Open the role.">
       <span class="job-index" aria-hidden="true">+</span>
       <div class="job-main">
         <h3 class="job-title">${esc(j.title)}</h3>
@@ -1753,7 +1782,7 @@ function renderCards(){
       <div class="job-side">
         <span class="job-stamp"><span class="job-type">${esc(j.type)}</span><span class="sep">·</span><span>${ago(j.days)}</span></span>
         ${compRange(j) ? `<span class="job-comp">${compRange(j)}</span>` : ''}
-        <span class="dot-hint">Drag to view</span>
+        <span class="dot-hint">Open</span>
         <span class="drag-anchor" aria-hidden="true"></span>
       </div>
     </article>`).join('');
@@ -1950,6 +1979,35 @@ function settle(id, from){
 function complete(id){
   place(id, 1);
   openDrawer(id);
+  fireBeam();
+  setTimeout(() => settle(id, 1), 520);
+}
+
+/* Selecting a card opens the role. The drag is the flourish, not the only way
+   in — arriving from the globe and finding the cards inert broke the run from
+   company to role to application. Clicks on the dot overlay are excluded, so
+   the drag still works. */
+cardsEl.addEventListener('click', (e) => {
+  if (dragging) return;
+  const card = e.target.closest('.job-card');
+  if (!card || e.target.closest('button, a, input')) return;
+  runLine(card.dataset.id);
+  openDrawer(card.dataset.id);
+});
+cardsEl.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const card = e.target.closest('.job-card');
+  if (!card || e.target.closest('button, a, input')) return;
+  e.preventDefault();
+  runLine(card.dataset.id);
+  openDrawer(card.dataset.id);
+});
+
+/* Send the dot down its thread to the target, so opening by click still shows
+   the connection the drag would have drawn. */
+function runLine(id){
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  place(id, 1);
   fireBeam();
   setTimeout(() => settle(id, 1), 520);
 }
@@ -3319,7 +3377,9 @@ function wireHubCards(){
 const GLOBE = {
   CX: 500, CY: 290,
   R: 190,          // the sphere
-  RC: 252,         // the outer ring the companies ride on
+  RC: 266,         // the outer ring the companies ride on — clear of the sphere
+  LATS: 9,         // wireframe density
+  MERS: 16,
   MAX_COS: 12,     // per side — past this the labels collide
   MAX_ROLES: 20,   // per side — keeps ~22px between jobs on the orbit
   RO: 150,         // the orbit the jobs ride on, inside the sphere
@@ -3330,7 +3390,7 @@ const GLOBE = {
 };
 
 const globeState = {
-  sig: '', links: [], roles: [], cos: [],
+  sig: '', links: [], roles: [], cos: [], held: null, mers: [],
   raf: null, visible: true, focus: null,
   pointer: { x: 0, y: 0, inside: false },
   bound: false,
@@ -3563,12 +3623,14 @@ function globeStep(time, once){
     }
   }
 
-  // Two meridians drifting round, so it reads as a turning sphere rather
-  // than a flat disc. A full turn takes a minute and a half.
-  if (!still){
+  // The meridians narrow and widen as the sphere turns. A full turn takes a
+  // minute and a half — slow enough to read as a globe, not a spinner.
+  if (!still && globeState.mers.length){
     const ph = time / 90000 * Math.PI * 2;
-    $('g-mer-a')?.setAttribute('rx', (GLOBE.R * Math.abs(Math.sin(ph))).toFixed(1));
-    $('g-mer-b')?.setAttribute('rx', (GLOBE.R * Math.abs(Math.sin(ph + Math.PI / 3))).toFixed(1));
+    const step = Math.PI / globeState.mers.length;
+    globeState.mers.forEach((el, i) => {
+      el.setAttribute('rx', (GLOBE.R * Math.abs(Math.sin(ph + i * step))).toFixed(1));
+    });
   }
 
   if (once) return;
@@ -3597,6 +3659,9 @@ function globeRelated(key){
 }
 
 function globeFocus(key){
+  // A click is holding this trace lit on its way to the list; a stray
+  // pointermove must not put it out before it has been seen.
+  if (globeState.held && key !== globeState.held) return;
   if (key === globeState.focus) return;
   globeState.focus = key;
   const svg = $('globe');
@@ -3612,27 +3677,70 @@ function globeFocus(key){
   }
 }
 
+/* Selecting on the globe lights the path first, then follows it. Without the
+   pause the trace is drawn and destroyed in the same frame, so the link
+   between an employer and its roles is never actually seen — which is the
+   whole reason the threads are drawn. A company leads to its roles on the
+   board; a single role opens straight into its own posting. */
+const HANDOFF_MS = 520;
+
 function globeActivate(key){
-  if (key.startsWith('c:')){
-    const c = globeState.cos.find(x => x.key === key);
-    if (!c) return;
-    if (hub !== c.hub) setHub(c.hub);
-    company = c.name;
-    page = 0;
-    renderPills(); renderStats();
-    openList();
-  } else if (key.startsWith('j:')){
-    const r = globeState.roles.find(x => x.key === key);
-    if (!r) return;
-    if (hub !== r.hub) setHub(r.hub);
-    openDrawer(r.job.id);
+  if (globeState.held) return;        // a second click must not queue a second jump
+  const c = globeState.cos.find(x => x.key === key);
+  const r = globeState.roles.find(x => x.key === key);
+  if (!c && !r) return;
+
+  globeFocus(key);                    // light the threads and whatever they join
+  globeState.held = key;
+  $('globe')?.classList.add('is-handoff');
+
+  const go = () => {
+    globeState.held = null;
+    $('globe')?.classList.remove('is-handoff');
+    if (c){
+      if (hub !== c.hub) setHub(c.hub);
+      company = c.name;
+      page = 0;
+      renderPills(); renderStats();
+      openList();
+    } else {
+      if (hub !== r.hub) setHub(r.hub);
+      openDrawer(r.job.id);
+    }
+  };
+
+  if (globeCalm()) go();              // no pause for anyone who asked for less motion
+  else setTimeout(go, HANDOFF_MS);
+}
+
+/* The wireframe. Latitudes are fixed rings; meridians are ellipses whose width
+   is animated to give the turn. Built once — it does not depend on the feed. */
+function globeMesh(){
+  const g = $('g-mesh');
+  if (!g || globeState.mers.length) return;
+  const { CX, CY, R, LATS, MERS } = GLOBE;
+  const frag = [];
+
+  for (let i = 1; i < LATS; i++){
+    // Evenly spaced by angle, so the rings crowd near the poles the way they
+    // do on a real globe rather than being equally far apart on screen.
+    const a = (i / LATS) * Math.PI;
+    const ry = R * Math.cos(a - Math.PI / 2);
+    const equator = Math.abs(i - LATS / 2) < 0.5;
+    frag.push(`<ellipse class="g-lat${equator ? ' equator' : ''}" cx="${CX}" cy="${CY}" rx="${R}" ry="${Math.abs(ry).toFixed(1)}"/>`);
   }
+  for (let i = 0; i < MERS; i++){
+    frag.push(`<ellipse class="g-mer" cx="${CX}" cy="${CY}" rx="${(R * Math.abs(Math.sin(i * Math.PI / MERS))).toFixed(1)}" ry="${R}"/>`);
+  }
+  g.innerHTML = frag.join('');
+  globeState.mers = [...g.querySelectorAll('.g-mer')];
 }
 
 function globeBind(){
   const svg = $('globe');
   if (!svg || globeState.bound) return;
   globeState.bound = true;
+  globeMesh();
 
   const toLocal = (e) => {
     const m = svg.getScreenCTM?.();
@@ -3694,6 +3802,7 @@ function paintOrbits(){
   if (!o && !pt){ section.hidden = true; globeStop(); return; }
   section.hidden = false;
   globeBind();
+  globeMesh();
 
   const sig = ['opco', 'proptech'].map(h => (HUBS[h].jobs || []).map(j => j.id).join(',')).join('|');
   if (sig !== globeState.sig){ globeState.sig = sig; globeBuild(); }
