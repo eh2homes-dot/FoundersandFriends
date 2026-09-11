@@ -245,18 +245,23 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-hemi:hover .g-half{opacity:1}
 
 .g-lat,.g-mer{fill:none;stroke:url(#g-mesh-grad);stroke-width:.9;vector-effect:non-scaling-stroke}
-.g-mer{opacity:.58}
-.g-lat-row{opacity:.72}
-.g-lat-fill{opacity:.34}
-.g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1.4;
-  filter:drop-shadow(0 0 7px rgba(120,190,255,.3))}
+.g-mer{opacity:.55}
+.g-lat-row{opacity:.7}
+.g-lat-fill{opacity:.32}
+.g-atmo,.g-shade{pointer-events:none}
+.g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1.5;
+  filter:drop-shadow(0 0 10px rgba(120,190,255,.4))}
+.g-band{fill:none;stroke:url(#g-rim-grad);stroke-width:1.3;opacity:.5;
+  filter:drop-shadow(0 0 6px rgba(150,200,255,.35))}
+.g-band.b2{opacity:.32;stroke-width:1.1}
 /* the jobs' orbit — a slow drift in the dashes gives it motion without
    moving the jobs themselves */
 .g-orbit{fill:none;stroke:rgba(200,197,218,.16);stroke-width:1}
+.g-orbit.inner{stroke:rgba(200,197,218,.12)}
 .g-axis{stroke-width:1}
 
 /* the outer circle the companies ride on */
-.g-ring{fill:none;stroke:rgba(200,197,218,.15);stroke-width:1}
+.g-ring{fill:none;stroke:url(#g-ring-grad);stroke-width:1}
 /* The lit stretch where each side's companies sit, drawn over the ring so the
    circle stays continuous and only its brightness changes. */
 .g-arc{fill:none;stroke-width:1.3;stroke-linecap:round}
@@ -317,7 +322,8 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #globe.is-handoff .g-thread:not(.is-lit),
 #globe.is-handoff .g-role:not(.is-lit),
 #globe.is-handoff .g-co:not(.is-lit),
-#globe.is-handoff .g-lat,#globe.is-handoff .g-mer,
+#globe.is-handoff .g-lat,#globe.is-handoff .g-mer,#globe.is-handoff .g-band,
+#globe.is-handoff .g-shade,#globe.is-handoff .g-atmo,
 #globe.is-handoff .g-ring,#globe.is-handoff .g-arc{opacity:.05;transition:opacity .3s}
 #globe.is-handoff .g-thread.is-lit{stroke-width:2.8}
 #globe.is-handoff .g-role.is-lit .halo{animation:handoff-ping .52s ease-out both}
@@ -326,6 +332,21 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hemi-label{text-anchor:middle;font-family:var(--mono);font-size:13px;letter-spacing:.24em;text-transform:uppercase}
 .hemi-label.opco{fill:#00FF88}
 .hemi-label.proptech{fill:#A98FEC}
+
+.orbit-more{display:flex;justify-content:center;margin-top:14px}
+.orbit-more[hidden]{display:none}
+.all-cos{
+  display:inline-flex;align-items:center;gap:10px;padding:11px 22px;border-radius:100px;
+  cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-soft);background:rgba(11,6,24,.7);border:1px solid var(--line-2);
+  transition:border-color .2s,color .2s,background .2s,transform .2s,box-shadow .2s;
+}
+.all-cos::after{content:"→";opacity:.7}
+.all-cos:hover{
+  color:#fff;border-color:rgba(0,255,136,.5);background:rgba(0,255,136,.08);
+  transform:translateY(-1px);box-shadow:0 0 22px rgba(0,255,136,.18);
+}
+.all-cos:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 
 .orbit-hint{
   text-align:center;margin-top:10px;min-height:20px;
@@ -1316,12 +1337,12 @@ a.foot-line:hover{color:var(--green)}
         <svg id="globe" viewBox="0 0 1000 610" role="img" aria-label="Open roles by hub, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(0,255,136,.13)"/>
-              <stop offset="100%" stop-color="rgba(0,255,136,.02)"/>
+              <stop offset="0%"   stop-color="rgba(0,255,136,.15)"/>
+              <stop offset="100%" stop-color="rgba(0,255,136,.03)"/>
             </linearGradient>
             <linearGradient id="gs-prop" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(127,77,224,.14)"/>
-              <stop offset="100%" stop-color="rgba(127,77,224,.24)"/>
+              <stop offset="0%"   stop-color="rgba(127,77,224,.04)"/>
+              <stop offset="100%" stop-color="rgba(127,77,224,.26)"/>
             </linearGradient>
             <linearGradient id="g-axis-grad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%"   stop-color="rgba(200,197,218,0)"/>
@@ -1334,18 +1355,48 @@ a.foot-line:hover{color:var(--green)}
             <!-- The wireframe runs green on the operator side into purple on the
                  technology side, so the mesh itself carries the split. -->
             <linearGradient id="g-mesh-grad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(0,255,136,.42)"/>
-              <stop offset="46%"  stop-color="rgba(0,255,136,.20)"/>
+              <stop offset="0%"   stop-color="rgba(34,238,190,.46)"/>
+              <stop offset="46%"  stop-color="rgba(34,222,190,.22)"/>
               <stop offset="54%"  stop-color="rgba(150,110,240,.26)"/>
-              <stop offset="100%" stop-color="rgba(150,110,240,.50)"/>
+              <stop offset="100%" stop-color="rgba(152,112,244,.52)"/>
             </linearGradient>
+            <!-- The company ring fades out where it crosses the axis. Drawn
+                 solid, the top and bottom of the circle run straight from the
+                 last operator to the first technology company and read as a
+                 link between two firms that have nothing to do with each other. -->
+            <linearGradient id="g-ring-grad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"   stop-color="rgba(200,197,218,.2)"/>
+              <stop offset="38%"  stop-color="rgba(200,197,218,.16)"/>
+              <stop offset="49%"  stop-color="rgba(200,197,218,0)"/>
+              <stop offset="51%"  stop-color="rgba(200,197,218,0)"/>
+              <stop offset="62%"  stop-color="rgba(200,197,218,.16)"/>
+              <stop offset="100%" stop-color="rgba(200,197,218,.2)"/>
+            </linearGradient>
+            <!-- Sphere shading: a light source up and to the left, and the limb
+                 falling away into shadow. This is what makes it read as a ball
+                 rather than a disc with lines drawn on it. -->
+            <radialGradient id="g-shade" cx="34%" cy="28%" r="78%">
+              <stop offset="0%"   stop-color="rgba(255,255,255,.10)"/>
+              <stop offset="34%"  stop-color="rgba(255,255,255,.02)"/>
+              <stop offset="62%"  stop-color="rgba(4,2,10,.18)"/>
+              <stop offset="88%"  stop-color="rgba(4,2,10,.52)"/>
+              <stop offset="100%" stop-color="rgba(4,2,10,.72)"/>
+            </radialGradient>
+            <radialGradient id="g-atmo" cx="50%" cy="50%" r="50%">
+              <stop offset="86%"  stop-color="rgba(95,185,225,0)"/>
+              <stop offset="94%"  stop-color="rgba(100,195,230,.16)"/>
+              <stop offset="100%" stop-color="rgba(100,195,230,0)"/>
+            </radialGradient>
             <linearGradient id="g-rim-grad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(0,255,136,.85)"/>
-              <stop offset="50%"  stop-color="rgba(190,180,220,.5)"/>
-              <stop offset="100%" stop-color="rgba(168,140,255,.9)"/>
+              <stop offset="0%"   stop-color="rgba(46,242,196,.9)"/>
+              <stop offset="50%"  stop-color="rgba(200,195,230,.55)"/>
+              <stop offset="100%" stop-color="rgba(172,142,255,.92)"/>
             </linearGradient>
           </defs>
 
+          <!-- The halo sits outside the sphere, so it has to be drawn before
+               anything that should appear in front of it. -->
+          <circle class="g-atmo" cx="500" cy="290" r="207" fill="url(#g-atmo)"/>
           <circle class="g-ring" cx="500" cy="290" r="266"/>
           <g id="g-arcs"></g>
 
@@ -1360,11 +1411,22 @@ a.foot-line:hover{color:var(--green)}
                each frame for the sphere to turn, and hand-writing twenty-odd
                ellipses here would only duplicate that. -->
           <g id="g-mesh" pointer-events="none"></g>
+          <!-- Two bright bands crossing the sphere, as in the reference: they
+               catch the eye the way a lit great circle does and stop the mesh
+               reading as flat cross-hatching. -->
+          <g class="g-bands" pointer-events="none">
+            <ellipse class="g-band" cx="500" cy="290" rx="190" ry="66" transform="rotate(-28 500 290)"/>
+            <ellipse class="g-band b2" cx="500" cy="290" rx="190" ry="112" transform="rotate(24 500 290)"/>
+          </g>
           <g pointer-events="none">
             <circle class="g-rim" cx="500" cy="290" r="190"/>
-            <circle class="g-orbit" cx="500" cy="290" r="150"/>
+            <g id="g-orbits"></g>
             <line class="g-axis" x1="500" y1="92" x2="500" y2="488" stroke="url(#g-axis-grad)"/>
           </g>
+
+          <!-- Laid over the wireframe but under the jobs, so the mesh curves
+               away into shadow while the dots stay at full strength. -->
+          <circle class="g-shade" cx="500" cy="290" r="190" fill="url(#g-shade)" pointer-events="none"/>
 
           <g id="g-threads"></g>
           <g id="g-sparks"></g>
@@ -1375,6 +1437,12 @@ a.foot-line:hover{color:var(--green)}
           <text class="hemi-label proptech" x="670" y="600">PropTech</text>
         </svg>
         <p class="orbit-hint" id="orbit-hint"></p>
+        <!-- The globe only has room for the busiest companies each side. This
+             is the way to everyone else, and it names the number so the gap is
+             never a surprise. -->
+        <div class="orbit-more">
+          <button type="button" class="all-cos" id="all-cos"></button>
+        </div>
       </div>
 
       <div class="hub-cards">
@@ -3090,6 +3158,13 @@ function setView(next, opts = {}){
   }
 }
 
+/* Every company, including the ones the globe has no room for. The roster on
+   the list page is built from the feed, so it is always the full set. */
+$('all-cos')?.addEventListener('click', () => {
+  setView('list');
+  $('roster')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
 /* Go to the list, at the top of the board. */
 function openList(){
   setView('list');
@@ -3379,18 +3454,19 @@ const GLOBE = {
   R: 190,          // the sphere
   RC: 266,         // the outer ring the companies ride on — clear of the sphere
   LATS: 9,         // wireframe density
-  MERS: 16,
+  MERS: 22,
   MAX_COS: 12,     // per side — past this the labels collide
-  MAX_ROLES: 20,   // per side — keeps ~22px between jobs on the orbit
-  RO: 150,         // the orbit the jobs ride on, inside the sphere
-  ORBIT_SPAN: 82,  // degrees above and below the horizon each half uses —
+  MAX_ROLES: 36,   // per side — every slot the rings below provide
+  ORBITS: [150, 116, 84, 56],   // concentric orbits the jobs ride on
+  ROW_SLOTS: 20,   // slots on the outer orbit, which set the horizontal lines
+  ORBIT_SPAN: 82,  // degrees above and below the horizon the outer orbit uses —
                    // the small gap at the poles keeps the axis readable
   ARC_MAX: 136,    // degrees of ring each side may use
   ARC_STEP: 16,    // degrees between companies when there are only a few
 };
 
 const globeState = {
-  sig: '', links: [], roles: [], cos: [], held: null, mers: [],
+  sig: '', links: [], roles: [], cos: [], held: null, mers: [], rows: null,
   raf: null, visible: true, focus: null,
   pointer: { x: 0, y: 0, inside: false },
   bound: false,
@@ -3405,16 +3481,59 @@ function globeHash(i){
   return x - Math.floor(x);
 }
 
-/* Jobs on the orbit: evenly spaced round this side's half of the circle,
-   top to bottom. Both halves together make one full ring. */
-function globeOrbitPoints(n, side){
-  if (!n) return [];
-  const { CX, CY, RO, ORBIT_SPAN } = GLOBE;
-  return Array.from({ length: n }, (_, i) => {
-    const rel = n === 1 ? 0 : -ORBIT_SPAN + (i / (n - 1)) * ORBIT_SPAN * 2;
-    const rad = (side > 0 ? rel : 180 - rel) * Math.PI / 180;
-    return { x: CX + Math.cos(rad) * RO, y: CY + Math.sin(rad) * RO };
-  });
+/* The horizontal lines of the wireframe. They come from evenly spacing slots
+   around the outer orbit, and every inner orbit then reuses the same lines —
+   which is what keeps each job on an intersection rather than near one. */
+function globeRows(){
+  if (globeState.rows) return globeState.rows;
+  const { CX, CY, ORBITS, ROW_SLOTS, ORBIT_SPAN } = GLOBE;
+  const RO = ORBITS[0];
+  const set = new Set();
+  for (let i = 0; i < ROW_SLOTS; i++){
+    const rel = -ORBIT_SPAN + (i / (ROW_SLOTS - 1)) * ORBIT_SPAN * 2;
+    if (rel <= 0) continue;                       // mirrored, so one half is enough
+    const rad = rel * Math.PI / 180;
+    const L = globeLatFor(CX + Math.cos(rad) * RO, CY + Math.sin(rad) * RO);
+    if (L && L > 4) set.add(+L.toFixed(2));
+  }
+  globeState.rows = [...set].sort((a, b) => a - b);
+  return globeState.rows;
+}
+
+/* Where a job can sit on one side: every point where an orbit crosses one of
+   those lines. An orbit only reaches the lines inside it, so the inner rings
+   hold fewer jobs than the outer — which is also what keeps them from
+   crowding together near the middle. */
+function globeSlots(side){
+  const key = 'slots' + side;
+  if (globeState[key]) return globeState[key];
+  const { CX, CY, R, ORBITS } = GLOBE;
+  const out = [];
+  for (const RO of ORBITS){
+    for (const L of globeRows()){
+      if (L > RO * 0.985) continue;               // this orbit never reaches that line
+      const y2 = (1 - (RO / R) ** 2) / (1 / (L * L) - 1 / (R * R));
+      if (!(y2 >= 0) || y2 > RO * RO) continue;
+      const y = Math.sqrt(y2), x = Math.sqrt(Math.max(0, RO * RO - y2));
+      for (const sy of [-1, 1]){
+        const px = CX + side * x, py = CY + sy * y;
+        out.push({ x: px, y: py, ro: RO, rel: globeRel(px, py, side) });
+      }
+    }
+  }
+  // Top to bottom, outer ring first where two slots share a line, so a company's
+  // jobs stay in one angular band and its threads fan instead of crossing.
+  out.sort((a, b) => a.rel - b.rel || b.ro - a.ro);
+  globeState[key] = out;
+  return out;
+}
+
+/* The angle of a point from the horizon on its own side, used to order slots
+   and to keep each company's jobs together. */
+function globeRel(x, y, side){
+  const a = Math.atan2(y - GLOBE.CY, x - GLOBE.CX) * 180 / Math.PI;
+  if (side > 0) return a;
+  return a > 0 ? 180 - a : -180 - a;
 }
 
 function globeBuild(){
@@ -3493,7 +3612,11 @@ function globeBuild(){
 
     // Sorted by company, so each company's jobs sit together on the orbit
     // opposite it and the threads run out like spokes rather than crossing.
-    const pts = globeOrbitPoints(sample.length, side);
+    const all = globeSlots(side);
+    // Spread whatever is showing across the rings rather than filling the outer
+    // one first, so a short feed still reads as a globe.
+    const step = all.length / Math.max(1, sample.length);
+    const pts = sample.map((_, i) => all[Math.min(all.length - 1, Math.floor(i * step))]);
 
     sample.forEach((s, i) => {
       const p = pts[i];
@@ -3733,14 +3856,16 @@ function globeLatFor(x, y){
 function globeMesh(){
   const g = $('g-mesh');
   if (!g) return;
+
+  const rings = $('g-orbits');
+  if (rings && !rings.children.length){
+    rings.innerHTML = GLOBE.ORBITS
+      .map((r, i) => `<circle class="g-orbit${i ? ' inner' : ''}" cx="${GLOBE.CX}" cy="${GLOBE.CY}" r="${r}"/>`)
+      .join('');
+  }
   const { CX, CY, R, MERS } = GLOBE;
 
-  const rows = [...new Set(
-    globeState.roles
-      .map((n) => globeLatFor(n.x, n.y))
-      .filter((v) => v && v > 4)
-      .map((v) => +v.toFixed(1)),
-  )].sort((a, b) => a - b);
+  const rows = globeRows();
 
   // Halfway between each pair, and one above the widest, so the mesh keeps its
   // density even when few roles are showing.
@@ -3840,11 +3965,20 @@ function paintOrbits(){
   document.querySelectorAll('.g-hemi[data-goto]').forEach((g) =>
     g.classList.toggle('is-current', g.dataset.goto === hub));
 
-  const more = globeState.hiddenCos
-    ? ` · busiest ${GLOBE.MAX_COS} companies per side shown`
-    : '';
   $('orbit-hint').textContent =
-    `${o} operator ${o === 1 ? 'role' : 'roles'} · ${pt} technology ${pt === 1 ? 'role' : 'roles'}${more} · select a company to see its roles`;
+    `${o} operator ${o === 1 ? 'role' : 'roles'} · ${pt} technology ${pt === 1 ? 'role' : 'roles'} · select a company to see its roles`;
+
+  const total = new Set([...(HUBS.opco.jobs || []), ...(HUBS.proptech.jobs || [])].map(j => j.company)).size;
+  const shown = globeState.cos.length;
+  const btn = $('all-cos');
+  if (btn){
+    btn.textContent = `See all ${total} ${total === 1 ? 'company' : 'companies'}`;
+    // Nothing is hidden when they all fit, so the button would be a detour.
+    btn.closest('.orbit-more').hidden = total <= shown;
+    const hiddenN = Math.max(0, total - shown);
+    btn.setAttribute('aria-label',
+      `See all ${total} companies, including the ${hiddenN} not shown on the globe`);
+  }
   globeStart();
 }
 
