@@ -3023,7 +3023,9 @@ const Orbit = (() => {
   let jobMeshes = [], coMeshes = [], labels = [], companies = [];
   let focus = null, spinning = false;
   let jobListRefs = [], listHot = null;
-  let travellers = [], travelPoints = null, travelPos = null, travelCol = null;
+  let travelPoints = null, travelPos = null, travelCol = null;
+  let links = [], linkSegs = null, linkPos = null;
+  let linkLit = null, litPos = null, litCap = 0, litLinks = [];
   let hiddenRoles = 0;
   let yaw = 0.6, pitch = 0.44, dist = 150;
   let dragging = false, px = 0, py = 0, moved = 0;
@@ -3033,6 +3035,7 @@ const Orbit = (() => {
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const v = new THREE.Vector3();
   const camDir = new THREE.Vector3();
+  const camRight = new THREE.Vector3(), camUp = new THREE.Vector3();
   const ndc = new THREE.Vector2();
   const ray = new THREE.Raycaster();
 
@@ -3091,7 +3094,9 @@ const Orbit = (() => {
     world.clear();
     jobMeshes = []; coMeshes = []; labels = [];
     jobListRefs = []; listHot = null;
-    travellers = []; travelPoints = null; travelPos = null; travelCol = null;
+    travelPoints = null; travelPos = null; travelCol = null;
+    links = []; linkSegs = null; linkPos = null;
+    linkLit = null; litPos = null; litCap = 0; litLinks = [];
     $('orbit-labels').innerHTML = '';
   }
 
@@ -3148,6 +3153,8 @@ const Orbit = (() => {
     // also grows with how many roles it has to hold, so density stays even
     // rather than packing tighter as the board fills up.
     const drawn = companies.reduce((n, c) => n + c.shown.length, 0);
+    const totalDrawn = drawn;
+    let seedIndex = 0;
     CORE  = SHELL * (0.52 + Math.min(0.18, drawn / 1400));
     drawGlobe();
 
@@ -3163,12 +3170,15 @@ const Orbit = (() => {
       /* Companies ring the globe rather than sitting on its surface. Evenly
          spaced around one circle, they read as a perimeter from any angle the
          camera settles at, and the interior is left clear for the roles. */
-      const ringAngle = (ci / companies.length) * Math.PI * 2;
-      const anchor = new THREE.Vector3(
-        Math.cos(ringAngle) * RING,
-        Math.sin(ringAngle * 2) * RING * 0.07,   // slight waver so the ring is not a flat disc
-        Math.sin(ringAngle) * RING,
-      );
+      /* The angle this company holds on the ring. Its world position is set
+         every frame in the render loop, not here: the ring is locked to the
+         view plane so it stays a clean circle outside the globe however the
+         globe is turned. On a 3D ring the companies swung behind the sphere
+         and the perimeter stopped being a perimeter. */
+      const ringAngle = (ci / companies.length) * Math.PI * 2 - Math.PI / 2;
+      co.ringAngle = ringAngle;
+      const anchor = new THREE.Vector3(Math.cos(ringAngle) * RING, Math.sin(ringAngle) * RING, 0);
+      co.anchor = anchor;
       const coColour = new THREE.Color(CO_COLOUR);
       const roleColour = new THREE.Color(ROLE_COLOUR);
 
@@ -3209,19 +3219,25 @@ const Orbit = (() => {
          connecting line cross the middle; keeping each company's roles on its
          own side means the links stay short and the eye can follow one company
          inward without untangling anything. */
-      const wedge = (Math.PI * 2) / companies.length;
       co.shown.forEach((job, ji) => {
-        const n = co.shown.length;
-        // Golden-ratio sequences fill a volume evenly without clumping, which
-        // Math.random does not at these counts.
-        const a = ringAngle + (((ji * 0.6180339887) % 1) - 0.5) * wedge * 1.5;
-        const rad = CORE * (0.30 + 0.66 * Math.sqrt((ji + 0.5) / n));
-        const yAng = (((ji * 0.7548776662) % 1) - 0.5) * Math.PI * 0.82;
+        /* Spread through the whole interior rather than clustered under their
+           own company. The ring no longer holds a fixed world position, so
+           there is nothing to cluster toward — and an even fill is what the
+           globe should look like anyway. seedIndex keeps the sequence
+           continuous across companies so the fill stays even overall. */
+        const k = seedIndex++;
+        const golden = Math.PI * (3 - Math.sqrt(5));
+        const y = 1 - (2 * (k + 0.5)) / Math.max(totalDrawn, 1);
+        const rXY = Math.sqrt(Math.max(0, 1 - y * y));
+        const theta = golden * k;
+        // Cube root keeps the fill even by volume; without it everything piles
+        // up near the surface.
+        const rad = CORE * 0.94 * Math.cbrt(((k * 0.6180339887) % 1) * 0.88 + 0.12);
 
         const p = new THREE.Vector3(
-          Math.cos(a) * Math.cos(yAng) * rad,
-          Math.sin(yAng) * rad,
-          Math.sin(a) * Math.cos(yAng) * rad,
+          Math.cos(theta) * rXY * rad,
+          y * rad,
+          Math.sin(theta) * rXY * rad,
         );
 
         const m = new THREE.Mesh(jobGeo, new THREE.MeshPhongMaterial({
@@ -3233,22 +3249,16 @@ const Orbit = (() => {
         m.userData = { kind:'job', job, co };
         world.add(m); jobMeshes.push(m);
 
-        // One line per role, company to role. Faint enough to read as structure
-        // rather than clutter at three hundred of them.
-        const link = new THREE.Line(
-          new THREE.BufferGeometry().setFromPoints([anchor, p]),
-          new THREE.LineBasicMaterial({ color: ROLE_COLOUR, transparent:true, opacity:0.05 }),
-        );
-        link.userData = { kind:'arm', co, base: 0.05 };
-        world.add(link);
+        /* Links are drawn as one LineSegments rather than a Line each: the
+           company end moves every frame now, so every link needs rewriting per
+           frame. One geometry means one buffer upload instead of a hundred and
+           seventy. */
+        links.push({ co, job, to: p.clone(), ci });
 
-        // Recorded for the travelling dot that runs this thread. Phase is
-        // seeded from the index so the dots do not set off in lockstep.
-        travellers.push({ from: anchor.clone(), to: p.clone(), co,
-                          phase: ((ci * 7 + ji * 13) % 100) / 100 });
       });
     });
 
+    buildLinks();
     buildTravellers();
 
     resize();
@@ -3260,6 +3270,42 @@ const Orbit = (() => {
   /* One Points object carrying every travelling dot. Five hundred separate
      meshes would cost more draw calls than the rest of the scene put together;
      this is one, with positions rewritten each frame. */
+  /* Two link layers.
+
+     The old matching web dimmed every thread and lit the one under the cursor,
+     which is what made a dense picture readable — you could follow a single
+     connection without the other five hundred arguing with it. One geometry
+     cannot do that: a LineSegments has one material and therefore one opacity.
+     So there are two, sharing the same data. The base layer holds every thread
+     at a whisper; the lit layer holds only the traced ones, bright, and is
+     rewritten whenever the cursor moves to something new. */
+  function buildLinks(){
+    if (!links.length) return;
+
+    linkPos = new Float32Array(links.length * 6);       // two ends per link
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(linkPos, 3));
+    linkSegs = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
+      color: ROLE_COLOUR, transparent: true, opacity: 0.05, depthWrite: false,
+    }));
+    linkSegs.userData = { kind:'globe' };
+    world.add(linkSegs);
+
+    // Sized for the busiest single company, since that is the most that can
+    // ever be lit at once.
+    litCap = Math.max(1, ...companies.map(c => c.shown.length));
+    litPos = new Float32Array(litCap * 6);
+    const lgeo = new THREE.BufferGeometry();
+    lgeo.setAttribute('position', new THREE.BufferAttribute(litPos, 3));
+    lgeo.setDrawRange(0, 0);
+    linkLit = new THREE.LineSegments(lgeo, new THREE.LineBasicMaterial({
+      color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }));
+    linkLit.userData = { kind:'globe' };
+    world.add(linkLit);
+  }
+
   let DOT_TEX = null;
   function dotTexture(){
     if (DOT_TEX) return DOT_TEX;
@@ -3275,23 +3321,25 @@ const Orbit = (() => {
     return DOT_TEX;
   }
 
+  /* Sized to the most threads that can be traced at once, not to every thread
+     on the globe — only the traced ones ever carry a dot. */
   function buildTravellers(){
-    if (!travellers.length) return;
-    travelPos = new Float32Array(travellers.length * 3);
-    travelCol = new Float32Array(travellers.length * 3);
-    const c = new THREE.Color();
-    travellers.forEach((t, i) => {
-      c.set(ROLE_COLOUR);
+    if (!links.length) return;
+    travelPos = new Float32Array(litCap * 3);
+    travelCol = new Float32Array(litCap * 3);
+    const c = new THREE.Color(0xffffff);
+    for (let i = 0; i < litCap; i++){
       travelCol[i*3] = c.r; travelCol[i*3+1] = c.g; travelCol[i*3+2] = c.b;
-    });
+    }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(travelPos, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(travelCol, 3));
+    geo.setDrawRange(0, 0);
     /* PointsMaterial draws squares by default, which at this size look like
        specks of grit rather than lights. A tiny radial-gradient sprite costs
        one texture and makes them round. */
     travelPoints = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 2.2, vertexColors: true, transparent: true, opacity: 0.95,
+      size: 3.0, vertexColors: true, transparent: true, opacity: 1,
       sizeAttenuation: true, depthWrite: false, map: dotTexture(),
       blending: THREE.AdditiveBlending,
     }));
@@ -3386,20 +3434,10 @@ const Orbit = (() => {
       world.add(line);
     }
 
-    // The circle the companies stand on, drawn so the ring is a structure
-    // rather than a coincidence of evenly spaced dots.
-    const orbitPts = [];
-    for (let sgm = 0; sgm <= 160; sgm++){
-      const t = (sgm / 160) * Math.PI * 2;
-      orbitPts.push(new THREE.Vector3(
-        Math.cos(t) * RING, Math.sin(t * 2) * RING * 0.07, Math.sin(t) * RING,
-      ));
-    }
-    const orbitLine = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(orbitPts), faint(0.13),
-    );
-    orbitLine.userData = { kind:'globe' };
-    world.add(orbitLine);
+    /* No ring line: the companies now sit in the plane of the screen while
+       this geometry lives in world space, so a drawn circle would only match
+       from one angle and look broken from every other. The evenly spaced
+       nodes carry the ring on their own. */
   }
 
   /* Distance that frames the shell at whatever shape the panel is. A fixed
@@ -3408,7 +3446,7 @@ const Orbit = (() => {
   function fitDistance(){
     const vFov = camera.fov * Math.PI / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return Math.max(70, Math.min(300, (RING * 0.98) / Math.tan(Math.min(vFov, hFov) / 2)));
+    return Math.max(70, Math.min(300, (CORE * 1.42 * 1.26) / Math.tan(Math.min(vFov, hFov) / 2)));
   }
 
   /* Every role currently passing the filters, whichever side of the globe it
@@ -3476,11 +3514,33 @@ const Orbit = (() => {
     return hits.find(h => h.object.material.opacity > LIT)?.object || null;
   }
 
+  /* Which threads are traced right now. Hovering a company lights every thread
+     it owns; hovering a role lights the one thread it sits on. Falls back to
+     the isolated company so the trace survives after a click. */
+  function setTrace(){
+    litLinks.length = 0;
+    let co = null, job = null;
+    if (hot && hot.userData.kind === 'company') co = hot.userData.co;
+    else if (hot && hot.userData.kind === 'job'){ co = hot.userData.co; job = hot.userData.job; }
+    else if (focus) co = companies.find(c => c.name === focus) || null;
+
+    if (co){
+      for (let i = 0; i < links.length; i++){
+        if (links[i].co !== co) continue;
+        if (job && links[i].job !== job) continue;
+        litLinks.push(i);
+        if (litLinks.length >= litCap) break;
+      }
+    }
+    if (linkLit) linkLit.geometry.setDrawRange(0, litLinks.length * 2);
+  }
+
   function hover(e){
     const obj = pick(e);
     if (obj === hot){ if (hot) placeCard(e); return; }
     if (hot) hot.scale.setScalar(1);
     hot = obj;
+    setTrace();
 
     const card = $('orbit-card');
     if (!hot){ card.classList.remove('is-on'); canvas().style.cursor = 'grab'; return; }
@@ -3547,7 +3607,7 @@ const Orbit = (() => {
         openDrawer(d.job.id);                   // same drawer the cards open
       } else {
         focus = focus === d.co.name ? null : d.co.name;
-        drawRail(); emphasise();
+        drawRail(); emphasise(); setTrace();
       }
     });
 
@@ -3560,7 +3620,7 @@ const Orbit = (() => {
     });
     $('orbit-reset').addEventListener('click', () => {
       yaw = 0.6; pitch = 0.44; dist = fitDistance(); focus = null;
-      drawRail(); emphasise();
+      drawRail(); emphasise(); setTrace();
     });
 
     // A panel can change size without the window doing so.
@@ -3572,24 +3632,69 @@ const Orbit = (() => {
     if (spinning && !dragging) yaw += 0.0013;
     place();
 
-    /* The travelling dots. The globe itself is still now, so this is the only
-       motion on screen — it reads as the threads being live rather than as the
-       whole picture drifting. */
-    /* Only while a company is isolated. Running on all five hundred threads at
-       once they read as specks of litter rather than as signal — the old web
-       had two dozen threads, not five hundred. On one company's threads the
-       effect survives intact. */
-    if (travelPoints && travellers.length && focus){
-      travelPoints.visible = true;
-      const t = performance.now() * 0.00009;
-      for (let i = 0; i < travellers.length; i++){
-        const tr = travellers[i];
-        const k = (t + tr.phase) % 1;
-        const e = k * k * (3 - 2 * k);              // ease so they slow at each end
-        travelPos[i*3]   = tr.from.x + (tr.to.x - tr.from.x) * e;
-        travelPos[i*3+1] = tr.from.y + (tr.to.y - tr.from.y) * e;
-        travelPos[i*3+2] = tr.from.z + (tr.to.z - tr.from.z) * e;
+    /* Hold the company ring in the plane of the screen.
+
+       Built from the camera's own right and up vectors, so the circle is
+       always face-on: the companies keep their positions on screen however the
+       globe is turned, and none of them ever swings behind it. That is what
+       makes the ring read as a perimeter rather than as a band wrapped around
+       a sphere. */
+    camRight.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+    camUp.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
+    const ringR = CORE * 1.42;
+
+    for (const node of coMeshes){
+      const co = node.userData.co;
+      co.anchor.copy(camRight).multiplyScalar(Math.cos(co.ringAngle) * ringR)
+        .addScaledVector(camUp, Math.sin(co.ringAngle) * ringR);
+      node.position.copy(co.anchor);
+    }
+    // The meridian shell and the halo ride along with their company node.
+    for (const o of world.children){
+      if (o.userData && o.userData.kind === 'decor') o.position.copy(o.userData.co.anchor);
+    }
+
+    // The company end of every link moved, so rewrite the segments.
+    if (linkSegs && links.length){
+      for (let i = 0; i < links.length; i++){
+        const L = links[i], a = L.co.anchor;
+        linkPos[i*6]   = a.x; linkPos[i*6+1] = a.y; linkPos[i*6+2] = a.z;
+        linkPos[i*6+3] = L.to.x; linkPos[i*6+4] = L.to.y; linkPos[i*6+5] = L.to.z;
       }
+      linkSegs.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // The traced threads, written from the same link data into the bright layer.
+    if (linkLit && litLinks.length){
+      for (let n = 0; n < litLinks.length; n++){
+        const L = links[litLinks[n]], a = L.co.anchor;
+        litPos[n*6]   = a.x; litPos[n*6+1] = a.y; litPos[n*6+2] = a.z;
+        litPos[n*6+3] = L.to.x; litPos[n*6+4] = L.to.y; litPos[n*6+5] = L.to.z;
+      }
+      linkLit.geometry.attributes.position.needsUpdate = true;
+      linkLit.visible = true;
+    } else if (linkLit){
+      linkLit.visible = false;
+    }
+
+    /* The travelling dots run the traced threads only.
+
+       On all five hundred at once they read as grit; on the handful under the
+       cursor they are the old web's signature — the thread is not merely
+       highlighted, it is carrying something. */
+    if (travelPoints && litLinks.length){
+      travelPoints.visible = true;
+      const t = performance.now() * 0.00016;
+      for (let n = 0; n < litLinks.length; n++){
+        const L = links[litLinks[n]];
+        const a = L.co.anchor;
+        const k = (t + ((litLinks[n] * 37) % 100) / 100) % 1;
+        const e = k * k * (3 - 2 * k);            // ease so they slow at each end
+        travelPos[n*3]   = a.x + (L.to.x - a.x) * e;
+        travelPos[n*3+1] = a.y + (L.to.y - a.y) * e;
+        travelPos[n*3+2] = a.z + (L.to.z - a.z) * e;
+      }
+      travelPoints.geometry.setDrawRange(0, litLinks.length);
       travelPoints.geometry.attributes.position.needsUpdate = true;
     } else if (travelPoints){
       travelPoints.visible = false;
@@ -3611,7 +3716,7 @@ const Orbit = (() => {
     for (const l of labels){
       if (!l.visible){ l.el.style.opacity = 0; continue; }
       const facing = v.copy(l.node.position).sub(camera.position).normalize().dot(camDir);
-      if (facing < 0.02){ l.el.style.opacity = 0; continue; }
+      // Every company faces the camera now, so nothing is culled by angle.
       v.copy(l.node.position).project(camera);
       if (v.z > 1){ l.el.style.opacity = 0; continue; }
       candidates.push({
@@ -3629,7 +3734,7 @@ const Orbit = (() => {
         Math.abs(q.y - c.y) < 15 && Math.abs(q.x - c.x) < (q.w + c.w) / 2 + 10);
       if (clash){ c.l.el.style.opacity = 0; continue; }
       placed.push(c);
-      c.l.el.style.opacity = Math.min(0.95, 0.35 + c.facing * 0.6).toFixed(2);
+      c.l.el.style.opacity = 0.92;
       c.l.el.style.left = c.x + 'px';
       c.l.el.style.top  = c.y + 'px';
     }
