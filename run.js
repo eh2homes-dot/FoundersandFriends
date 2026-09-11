@@ -1178,16 +1178,43 @@ const published = all.filter((j) => {
   return false;
 });
 
+/* The roster, published alongside the roles.
+
+   The feed carried jobs and nothing else, so anything downstream could only
+   know about a company by finding one of its roles — a company that is being
+   tracked but is not currently hiring simply did not exist as far as the board
+   was concerned. That is the wrong shape: "we watch this operator and it has
+   nothing open" is a different statement from silence, and the more useful one.
+
+   Every active company in scope goes in, with its live count. */
+const roster = targets
+  .filter((c) => c.active !== false)
+  .map((c) => ({
+    id: c.id,
+    name: c.name,
+    hub: c.hub,
+    segment: c.segment || null,
+    // Counted against the published set, so it matches what the board shows
+    // rather than what was collected before filtering.
+    open_roles: published.filter((j) => j.company_id === c.id).length,
+    // Null method means the company is configured but not yet scrapeable, which
+    // is a different thing from scraped-and-empty.
+    scrapeable: Boolean(c.method),
+  }))
+  .sort((a, b) => b.open_roles - a.open_roles || a.name.localeCompare(b.name));
+
 const feed = {
   generated_at: new Date().toISOString(),
   count: published.length,
   sources_ok: okResults.length,
   sources_failed: failed.length,
+  companies: roster,
   jobs: published.sort((a, b) => (b.posted_at || '').localeCompare(a.posted_at || '')),
 };
 
 await writeFile(OUT, JSON.stringify(feed, null, 2) + '\n');
-console.log(`\nwrote ${OUT} — ${published.length} roles`);
+console.log(`\nwrote ${OUT} — ${published.length} roles, ${roster.length} companies` +
+  ` (${roster.filter((c) => c.open_roles === 0).length} with nothing open)`);
 
 if (dropped.size) {
   const total = [...dropped.values()].reduce((a, b) => a + b, 0);
