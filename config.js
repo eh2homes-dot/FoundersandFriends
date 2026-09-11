@@ -1939,6 +1939,17 @@ export const COMPANIES = [
     state: "Texas", segment: "SFR Institutional Services",
     verified: false, method: null, atsSlug: null, active: true,
   },
+  {
+    id: "nutiliti", name: "Nutiliti", hub: "proptech",
+    // BuiltIn is an aggregator, not Nutiliti's own board. It is what was
+    // supplied, so it goes in as given — but see the note in the scrape log:
+    // aggregator pages send applicants to BuiltIn rather than the employer,
+    // and detection may resolve nothing if the listing grid is JS-rendered.
+    careersUrl: "https://builtin.com/company/nutiliti",
+    website: "https://www.nutiliti.com",
+    state: null, segment: "Utility Management for Property Operators",
+    verified: false, method: null, atsSlug: null, active: true,
+  },
 ];
 
 /** Companies pinned to the front of the board regardless of volume. */
