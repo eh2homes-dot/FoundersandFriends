@@ -233,9 +233,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    One sphere split down the axis: operators on the left, technology on the
    right. Roles sit inside their own half; the companies hiring them sit on the
    outer ring, and a thread runs from every role to its company. */
-.orbits{margin-top:28px}
+.orbits{margin-top:18px}
 .orbits[hidden]{display:none}
-#globe{display:block;width:100%;max-width:980px;height:auto;margin:0 auto;overflow:visible}
+#globe{display:block;width:100%;max-width:1180px;height:auto;margin:0 auto;overflow:visible}
 
 .g-hemi{cursor:pointer}
 .g-half{transition:opacity .4s}
@@ -616,6 +616,16 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   .rail-target{position:static;flex-direction:row;justify-content:center;gap:18px}
   .target-label{text-align:left;max-width:22ch}
 }
+/* Desktop: date over pay, anchor beside them, and the drag hint lifted out of
+   the flow. On one line these took 345px of a 540px card and squeezed the
+   title into a 93px column. Mobile keeps its own layout below. */
+@media(min-width:681px){
+  .job-side{display:grid;grid-template-columns:auto 34px;column-gap:14px;row-gap:5px;align-items:center;justify-items:end}
+  .job-stamp{grid-column:1;grid-row:1}
+  .job-comp{grid-column:1;grid-row:2}
+  .drag-anchor{grid-column:2;grid-row:1 / span 2}
+  .dot-hint{position:absolute;right:16px;bottom:9px}
+}
 @media(max-width:680px){
   .job-card{grid-template-columns:auto minmax(0,1fr);gap:14px;padding:16px 18px}
   .job-side{grid-column:1/-1;justify-content:flex-start;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
@@ -689,6 +699,15 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   color:#04120A;background:linear-gradient(135deg,var(--cyan),var(--green));
   box-shadow:0 0 20px rgba(59,232,255,.35);
 }
+
+/* ---------- orbit / list ---------- */
+.view-bar{display:flex;justify-content:center;margin-top:30px}
+#board-view[data-view="orbit"] .board,
+#board-view[data-view="orbit"] .roster,
+#board-view[data-view="list"] .orbits,
+#board-view[data-view="list"] .hub-cards{display:none}
+#board-view[data-view="list"] .board-hero .laser-rule{margin-top:34px}
+.board-hero > .data-status{margin:22px auto 0;max-width:980px}
 
 .stat-line{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -829,7 +848,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* deliberately in the flow rather than floating over the page — a promo that
    covers the content it is promoting is worse than no promo */
 .promo-row{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+  display:grid;grid-template-columns:1fr;gap:12px;
   margin-top:26px;
 }
 @media(max-width:760px){.promo-row{grid-template-columns:1fr}}
@@ -843,23 +862,19 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 }
 .promo-card:hover{transform:translateY(-2px)}
 .promo-card.news:hover{border-color:rgba(0,255,136,.45);box-shadow:0 0 0 1px rgba(0,255,136,.16),0 14px 34px rgba(4,2,10,.5)}
-.promo-card.pt:hover{border-color:rgba(59,232,255,.45);box-shadow:0 0 0 1px rgba(59,232,255,.16),0 14px 34px rgba(4,2,10,.5)}
 
 .pc-icon{
   width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:15px;
   border:1px solid var(--line);
 }
 .promo-card.news .pc-icon{color:var(--green);background:rgba(0,255,136,.09);border-color:rgba(0,255,136,.28)}
-.promo-card.pt .pc-icon{color:var(--cyan);background:rgba(59,232,255,.09);border-color:rgba(59,232,255,.28)}
 
 .pc-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pc-copy b{font-family:var(--head);font-size:14px;font-weight:600;color:var(--ink)}
 .pc-copy b i{font-style:normal;color:var(--green)}
-.promo-card.pt .pc-copy b i{color:var(--cyan)}
 .pc-copy small{font-size:12px;color:var(--ink-dim);line-height:1.45}
 .pc-go{margin-left:auto;flex:none;font-size:14px;color:var(--ink-dim);transition:color .22s,transform .22s}
 .promo-card.news:hover .pc-go{color:var(--green);transform:translate(2px,-2px)}
-.promo-card.pt:hover .pc-go{color:var(--cyan);transform:translate(2px,-2px)}
 
 
 
@@ -884,7 +899,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* Both header links share one pill. Only the accent colour differs, so they
    read as a matched pair rather than two unrelated buttons. */
 .promo-badge,
-.pt-btn,
 .news-btn{
   display:inline-flex;align-items:center;gap:10px;
   padding:10px 18px;border-radius:100px;
@@ -895,11 +909,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   transition:border-color .2s,background .2s,transform .2s,box-shadow .2s;
 }
 .promo-badge{--accent:var(--cyan)}
-.pt-btn{--accent:var(--purple-text)}
 .news-btn{--accent:var(--green)}
 
 .promo-badge:hover,
-.pt-btn:hover,
 .news-btn:hover{
   border-color:var(--accent);
   background:color-mix(in srgb, var(--accent) 14%, transparent);
@@ -1244,11 +1256,6 @@ a.foot-line:hover{color:var(--green)}
       <span class="pb-text">Syndeo</span>
       <span class="pb-go" aria-hidden="true">↗</span>
     </a>
-    <a class="pt-btn" href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="Property and Technology (opens in a new tab)">
-      <span class="pb-dot" aria-hidden="true"></span>
-      <span class="pb-text">Property and Technology</span>
-      <span class="pb-go" aria-hidden="true">↗</span>
-    </a>
     <a class="news-btn" href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer" aria-label="Newsletter (opens in a new tab)">
       <span class="nb-dot" aria-hidden="true"></span>
       <span class="nb-text">Newsletter</span>
@@ -1265,6 +1272,20 @@ a.foot-line:hover{color:var(--green)}
       <h1 id="hero-h1"></h1>
       <p class="hero-sub" id="hero-sub"></p>
     </div>
+
+    <!-- Two views, as before: the orbit is the main page, the list is its own
+         page for reading every role. Each has its own address (#/ and #/roles)
+         so the back button moves between them. -->
+    <div class="view-bar">
+      <div class="view-toggle" role="group" aria-label="View">
+        <button type="button" id="v-orbit" data-view="orbit">Orbit</button>
+        <button type="button" id="v-list" data-view="list">List</button>
+      </div>
+    </div>
+    <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
+      <span class="ds-dot" aria-hidden="true"></span>
+      <span class="ds-msg"></span>
+    </p>
 
     <!-- Two doors into the board. Each switches the hub and scrolls to the
            roles. To send visitors to a separate site instead, add an href to
@@ -1366,11 +1387,6 @@ a.foot-line:hover{color:var(--green)}
   </section>
 
   <main class="board">
-    <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
-      <span class="ds-dot" aria-hidden="true"></span>
-      <span class="ds-msg"></span>
-    </p>
-
     <div class="board-controls">
       <div class="controls-top">
         <p class="stat-line" id="stats-line" role="status"></p>
@@ -1418,14 +1434,6 @@ a.foot-line:hover{color:var(--green)}
         </span>
         <span class="pc-go" aria-hidden="true">↗</span>
       </a>
-      <a class="promo-card pt" href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer">
-        <span class="pc-icon" aria-hidden="true">◆</span>
-        <span class="pc-copy">
-          <b>Property and Technology</b>
-          <small>The feed behind this network — real estate, SFR operations, and the AI reshaping proptech.</small>
-        </span>
-        <span class="pc-go" aria-hidden="true">↗</span>
-      </a>
     </div>
   </main>
 
@@ -1454,7 +1462,7 @@ a.foot-line:hover{color:var(--green)}
       <div>
         <div class="fmark">Founders <span class="amp">&amp;</span> Friends</div>
         <p class="foot-blurb">
-          The talent network behind Property and Technology. Two hubs, one for scattered site
+          The scattered site talent network. Two hubs, one for scattered site
           operations and one for the technology that catalyzes them.
         </p>
       </div>
@@ -2546,7 +2554,7 @@ async function submitApply(){
 
 const web = $('web');
 const SVGNS = 'http://www.w3.org/2000/svg';
-let view = 'list';
+let view = /\/roles/.test(location.hash) ? 'list' : 'orbit';
 let graph = { roles: [], cos: [], links: [], w: 0, h: 0 };
 let focusKey = null;          // node or link currently traced
 let pointer = { x: -9999, y: -9999, inside: false };
@@ -2989,17 +2997,53 @@ function openMatch(key){
   drawer.querySelector('.drawer-close').focus();
 }
 
-/* ---------- graph / list toggle ---------- */
-/* The matching web was removed: the orbits above now carry the visual weight,
-   and two competing animated graphics on one page fought each other. setView
-   survives as a single entry point so every caller still works. */
-function setView(){
-  view = 'list';
-  $('rail').style.display = 'grid';
-  $('nav').style.display = '';
-  document.querySelector('.pill-row').style.display = 'flex';
-  renderCards();
+/* ---------- orbit / list ---------- */
+/* The orbit is the main page. The list is its own page for reading every
+   role — reached from the toggle, a hub card, or selecting a company on the
+   globe. Callers that pass nothing just redraw whichever view is showing. */
+const viewHash = () =>
+  (hub === 'proptech' ? '#/proptech-hub' : '#') + (view === 'list' ? '/roles' : '/');
+
+function setView(next, opts = {}){
+  const changed = next && next !== view;
+  if (next) view = next;
+  const listOn = view === 'list';
+  $('board-view').dataset.view = view;
+  document.querySelectorAll('.view-toggle [data-view]').forEach((b) => {
+    const on = b.dataset.view === view;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+
+  // A new view is a new page, so it gets a history entry: back returns to
+  // the globe rather than leaving the site.
+  if (changed && !opts.fromHistory){
+    try { history.pushState({ view }, '', viewHash()); } catch (_) {}
+  }
+
+  if (listOn){
+    globeStop();
+    $('rail').style.display = 'grid';
+    $('nav').style.display = '';
+    document.querySelector('.pill-row').style.display = 'flex';
+    renderCards();
+  } else {
+    globeStart();
+  }
 }
+
+/* Go to the list, at the top of the board. */
+function openList(){
+  setView('list');
+  document.querySelector('.board')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.querySelectorAll('.view-toggle [data-view]').forEach((b) =>
+  b.addEventListener('click', () => {
+    if (b.dataset.view === view) return;
+    setView(b.dataset.view);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }));
 
 function renderStats(){
   const list = visibleJobs();
@@ -3073,7 +3117,7 @@ function setHub(next){
 
   // Sandboxed preview frames have an opaque origin and reject replaceState,
   // so the deep link is best-effort rather than load-bearing.
-  try { history.replaceState(null, '', hub === 'proptech' ? '#/proptech-hub' : '#/'); }
+  try { history.replaceState(history.state, '', viewHash()); }
   catch { /* no deep link here — the hub still switches */ }
 
   query = ''; $('search').value = '';
@@ -3256,7 +3300,7 @@ function wireHubCards(){
       if (card.getAttribute('href')) return;   // a real link wins
       e.preventDefault();
       setHub(card.dataset.goto);
-      document.querySelector('.board').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      openList();
     };
     card.addEventListener('click', go);
     card.addEventListener('keydown', (e) => {
@@ -3533,7 +3577,7 @@ function globeStep(time, once){
 }
 
 function globeStart(){
-  if (globeState.raf || globeCalm()) return;
+  if (globeState.raf || globeCalm() || view !== 'orbit') return;
   globeState.raf = requestAnimationFrame((t) => globeStep(t));
 }
 function globeStop(){
@@ -3575,8 +3619,8 @@ function globeActivate(key){
     if (hub !== c.hub) setHub(c.hub);
     company = c.name;
     page = 0;
-    renderPills(); renderStats(); setView(view);
-    document.querySelector('.board')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    renderPills(); renderStats();
+    openList();
   } else if (key.startsWith('j:')){
     const r = globeState.roles.find(x => x.key === key);
     if (!r) return;
@@ -3661,7 +3705,7 @@ function paintOrbits(){
     ? ` · busiest ${GLOBE.MAX_COS} companies per side shown`
     : '';
   $('orbit-hint').textContent =
-    `${o} operator ${o === 1 ? 'role' : 'roles'} · ${pt} technology ${pt === 1 ? 'role' : 'roles'}${more}`;
+    `${o} operator ${o === 1 ? 'role' : 'roles'} · ${pt} technology ${pt === 1 ? 'role' : 'roles'}${more} · select a company to see its roles`;
   globeStart();
 }
 
@@ -3761,7 +3805,6 @@ document.addEventListener('click', (e) => {
    sends them back to it. Add any other entry point here. */
 const HOME_SITES = [
   { match: /the-source-flax\.vercel\.app/i, url: 'https://the-source-flax.vercel.app/', label: 'The Source' },
-  { match: /propertyandtechnology/i,        url: 'https://propertyandtechnology.pages.dev/', label: 'Property and Technology' },
   { match: /syndeo/i,                       url: 'https://syndeo-main-page.eh2homes.workers.dev/', label: 'Syndeo' },
 ];
 
@@ -3816,6 +3859,13 @@ window.addEventListener('popstate', () => {
   if (drawer || scrim) {
     drawerInHistory = false;    // the entry is already gone
     closeDrawer();
+    return;
+  }
+  // Otherwise back/forward moved between the orbit and the list.
+  const next = /\/roles/.test(location.hash) ? 'list' : 'orbit';
+  if (next !== view){
+    setView(next, { fromHistory: true });
+    window.scrollTo({ top: 0 });
   }
 });
 
@@ -3870,11 +3920,11 @@ document.addEventListener('click', (e) => {
   page = 0;
   renderPills();
   renderStats();
-  setView(view);
-  document.querySelector('.board').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  openList();
 });
 
 /* ---------- boot ---------- */
+$('board-view').dataset.view = view;
 initBackLink();
 wireHubCards();
 initData();
