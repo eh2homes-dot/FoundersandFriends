@@ -234,24 +234,27 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbits[hidden]{display:none}
 .orbits svg{width:100%;max-width:620px;margin:0 auto;height:auto;display:block;overflow:visible}
 
-.globe-rim{fill:none;stroke:var(--line-2);stroke-width:1}
+.globe-body{transition:opacity .3s}
+.globe-rim{fill:none;stroke:var(--line-2);stroke-width:1;transition:stroke .3s}
+.hemi.opco .globe-rim{stroke:rgba(0,255,136,.2)}
+.hemi.proptech .globe-rim{stroke:rgba(127,77,224,.26)}
+.hemi.opco:hover .globe-rim,.hemi.opco.is-current .globe-rim{stroke:rgba(0,255,136,.55)}
+.hemi.proptech:hover .globe-rim,.hemi.proptech.is-current .globe-rim{stroke:rgba(127,77,224,.65)}
 .globe-lat ellipse{fill:none;stroke:var(--line);stroke-width:1;opacity:.55}
 .globe-axis{stroke-width:1}
 
 /* Each half is its own hit area. The fill is transparent but clickable, so the
    whole hemisphere selects rather than only its dots. */
 .hemi{cursor:pointer}
-.hemi-fill{fill:transparent;transition:fill .3s}
-.hemi.opco:hover .hemi-fill{fill:rgba(0,255,136,.05)}
-.hemi.proptech:hover .hemi-fill{fill:rgba(127,77,224,.06)}
-.hemi.is-current.opco .hemi-fill{fill:rgba(0,255,136,.07)}
-.hemi.is-current.proptech .hemi-fill{fill:rgba(127,77,224,.09)}
+.hemi.is-current .globe-body{opacity:1}
+.hemi:not(.is-current) .globe-body{opacity:.55}
 
 /* Rotation about the globe's centre, so both halves share one axis and dots
    cross the divide as they travel — the point of drawing one sphere rather
    than two. Slow on purpose: a fast orbit reads as a loading spinner. */
-.orbit-ring{animation:orbit 96s linear infinite;transform-origin:280px 150px}
-.orbit-ring.reverse{animation-duration:132s;animation-direction:reverse}
+.orbit-ring{animation:orbit 110s linear infinite;transform-origin:170px 150px}
+.hemi.proptech .orbit-ring{transform-origin:470px 150px}
+.orbit-ring.reverse{animation-duration:150s;animation-direction:reverse}
 @keyframes orbit{to{transform:rotate(360deg)}}
 .orbits:hover .orbit-ring{animation-play-state:paused}
 
@@ -1226,54 +1229,50 @@ a.foot-line:hover{color:var(--green)}
            roles. To send visitors to a separate site instead, add an href to
            the <a> and remove data-goto — the click handler stands down when
            an href is present. -->
-      <!-- One globe, split. Left hemisphere is OpCo, right is PropTech. Each
-           dot is a company orbiting its own half, sized by how much it is
-           hiring. Built from the feed, so it cannot show a company that is not
-           really contributing roles. -->
+      <!-- Two globes, side by side. OpCo on the left, PropTech on the right.
+           Each dot is a company in orbit, sized by how much it is hiring, and
+           built from the feed — so it cannot show a company that is not really
+           contributing roles. -->
       <div class="orbits" id="orbits" hidden>
-        <svg viewBox="0 0 560 300" role="img" aria-label="Companies hiring, split by hub">
+        <svg viewBox="0 0 640 320" role="img" aria-label="Companies hiring, by hub">
           <defs>
-            <linearGradient id="orb-sphere" x1="0" y1="0" x2="1" y2="0">
+            <radialGradient id="orb-o" cx="50%" cy="42%" r="62%">
               <stop offset="0%"   stop-color="rgba(0,255,136,.16)"/>
-              <stop offset="48%"  stop-color="rgba(0,255,136,.03)"/>
-              <stop offset="52%"  stop-color="rgba(127,77,224,.05)"/>
-              <stop offset="100%" stop-color="rgba(127,77,224,.22)"/>
-            </linearGradient>
-            <linearGradient id="orb-axis" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stop-color="rgba(200,197,218,0)"/>
-              <stop offset="22%"  stop-color="rgba(200,197,218,.28)"/>
-              <stop offset="78%"  stop-color="rgba(200,197,218,.28)"/>
-              <stop offset="100%" stop-color="rgba(200,197,218,0)"/>
-            </linearGradient>
-            <clipPath id="clip-left"><rect x="0" y="0" width="280" height="300"/></clipPath>
-            <clipPath id="clip-right"><rect x="280" y="0" width="280" height="300"/></clipPath>
+              <stop offset="70%"  stop-color="rgba(0,255,136,.04)"/>
+              <stop offset="100%" stop-color="rgba(0,255,136,0)"/>
+            </radialGradient>
+            <radialGradient id="orb-p" cx="50%" cy="42%" r="62%">
+              <stop offset="0%"   stop-color="rgba(127,77,224,.20)"/>
+              <stop offset="70%"  stop-color="rgba(127,77,224,.05)"/>
+              <stop offset="100%" stop-color="rgba(127,77,224,0)"/>
+            </radialGradient>
           </defs>
 
-          <circle cx="280" cy="150" r="118" fill="url(#orb-sphere)"/>
-          <circle class="globe-rim" cx="280" cy="150" r="118"/>
-
-          <!-- latitudes, so it reads as a sphere and not a disc -->
-          <g class="globe-lat">
-            <ellipse cx="280" cy="150" rx="118" ry="34"/>
-            <ellipse cx="280" cy="150" rx="118" ry="72"/>
-            <ellipse cx="280" cy="150" rx="118" ry="106"/>
-          </g>
-
-          <line class="globe-axis" x1="280" y1="22" x2="280" y2="278" stroke="url(#orb-axis)"/>
-
-          <g class="hemi opco" data-goto="opco" clip-path="url(#clip-left)">
-            <circle class="hemi-fill" cx="280" cy="150" r="118"/>
+          <g class="hemi opco" data-goto="opco">
+            <circle class="globe-body" cx="170" cy="150" r="112" fill="url(#orb-o)"/>
+            <circle class="globe-rim"  cx="170" cy="150" r="112"/>
+            <g class="globe-lat">
+              <ellipse cx="170" cy="150" rx="112" ry="32"/>
+              <ellipse cx="170" cy="150" rx="112" ry="68"/>
+              <ellipse cx="170" cy="150" rx="112" ry="100"/>
+            </g>
             <g class="orbit-ring" id="orb-opco-outer"></g>
             <g class="orbit-ring reverse" id="orb-opco-inner"></g>
-          </g>
-          <g class="hemi proptech" data-goto="proptech" clip-path="url(#clip-right)">
-            <circle class="hemi-fill" cx="280" cy="150" r="118"/>
-            <g class="orbit-ring" id="orb-proptech-outer"></g>
-            <g class="orbit-ring reverse" id="orb-proptech-inner"></g>
+            <text class="hemi-label opco" x="170" y="300">OpCo · Operators</text>
           </g>
 
-          <text class="hemi-label opco"     x="152" y="292">OpCo</text>
-          <text class="hemi-label proptech" x="408" y="292">PropTech</text>
+          <g class="hemi proptech" data-goto="proptech">
+            <circle class="globe-body" cx="470" cy="150" r="112" fill="url(#orb-p)"/>
+            <circle class="globe-rim"  cx="470" cy="150" r="112"/>
+            <g class="globe-lat">
+              <ellipse cx="470" cy="150" rx="112" ry="32"/>
+              <ellipse cx="470" cy="150" rx="112" ry="68"/>
+              <ellipse cx="470" cy="150" rx="112" ry="100"/>
+            </g>
+            <g class="orbit-ring" id="orb-proptech-outer"></g>
+            <g class="orbit-ring reverse" id="orb-proptech-inner"></g>
+            <text class="hemi-label proptech" x="470" y="300">PropTech · Technology</text>
+          </g>
         </svg>
         <p class="orbit-hint" id="orbit-hint"></p>
       </div>
@@ -1328,10 +1327,6 @@ a.foot-line:hover{color:var(--green)}
           <button type="button" data-hub="opco">OpCo Hub</button>
           <button type="button" data-hub="proptech">PropTech Hub</button>
         </div>
-        <div class="view-toggle" role="group" aria-label="View">
-          <button type="button" id="v-graph" class="is-on" aria-pressed="true">Graph</button>
-          <button type="button" id="v-list" aria-pressed="false">List</button>
-        </div>
       </div>
       <div class="search-field">
         <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -1342,11 +1337,6 @@ a.foot-line:hover{color:var(--green)}
       </div>
       <div class="pill-row" id="pills" role="group" aria-label="Filter by company"></div>
       <p class="result-count" id="count" role="status"></p>
-    </div>
-
-    <div class="web-wrap" id="graph-view">
-      <svg id="web" role="img" aria-label="Matching web connecting role families to hiring companies"></svg>
-      <p class="web-hint"><span class="lg-dot job"></span> Open role &nbsp;·&nbsp; <span class="lg-dot co"></span> Company &nbsp;·&nbsp; hover to trace, click to open</p>
     </div>
 
     <div class="rail" id="rail">
@@ -2018,7 +2008,7 @@ function closeDrawer(keepFocus){
   scrim = drawer = null;
   document.body.style.overflow = '';
   cardsEl.querySelectorAll('.is-opened').forEach(el => el.classList.remove('is-opened'));
-  if (!keepFocus && view === 'graph') setFocus(null);
+  if (!keepFocus) setFocus(null);
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
 
@@ -2505,7 +2495,7 @@ async function submitApply(){
 
 const web = $('web');
 const SVGNS = 'http://www.w3.org/2000/svg';
-let view = 'graph';
+let view = 'list';
 let graph = { roles: [], cos: [], links: [], w: 0, h: 0 };
 let focusKey = null;          // node or link currently traced
 let pointer = { x: -9999, y: -9999, inside: false };
@@ -2544,6 +2534,7 @@ const PAD_TOP = 74;
 const PAD_BOTTOM = 54;
 
 function buildGraph(){
+  if (!web) return;
   const all = visibleJobs();
 
   const byCompany = new Map();
@@ -2772,7 +2763,7 @@ function linkPath(L, time){
 
 /* ---------- the frame loop ---------- */
 function stepWeb(time){
-  if (view !== 'graph' || !graph.links.length){ webRAF = null; return; }
+  if (!web || !graph.links.length){ webRAF = null; return; }
 
   for (const L of graph.links){
     // elastic: the thread is tugged toward the pointer when it is close, and
@@ -2837,6 +2828,7 @@ function relatedKeys(key){
 }
 
 function setFocus(key){
+  if (!web) { focusKey = key; return; }
   focusKey = key;
   const lit = key ? relatedKeys(key) : null;
   web.classList.toggle('is-focused', Boolean(key));
@@ -2850,6 +2842,10 @@ function setFocus(key){
   }
 }
 
+/* The matching web was removed, so these only bind if its SVG is present.
+   Without the guard, $('web') is null and the first listener throws — taking
+   the whole page down rather than just the graph. */
+if (web) {
 web.addEventListener('pointermove', (e) => {
   const box = web.getBoundingClientRect();
   pointer.inside = true;
@@ -2865,6 +2861,7 @@ web.addEventListener('click', (e) => {
   const key = e.target.closest?.('[data-key]')?.dataset.key;
   if (key) openMatch(key);
 });
+}
 
 
 /* ---------- the slide-over for a match ---------- */
@@ -2942,26 +2939,15 @@ function openMatch(key){
 }
 
 /* ---------- graph / list toggle ---------- */
-function setView(next){
-  view = next;
-  const graphOn = view === 'graph';
-  $('graph-view').style.display = graphOn ? 'block' : 'none';
-  $('rail').style.display = graphOn ? 'none' : 'grid';
-  $('nav').style.display = graphOn ? 'none' : '';
-  document.querySelector('.pill-row').style.display = graphOn ? 'none' : 'flex';
-  $('v-graph').classList.toggle('is-on', graphOn);
-  $('v-list').classList.toggle('is-on', !graphOn);
-  $('v-graph').setAttribute('aria-pressed', String(graphOn));
-  $('v-list').setAttribute('aria-pressed', String(!graphOn));
-
-  if (graphOn){
-    buildGraph();
-    if (!webRAF) webRAF = requestAnimationFrame(stepWeb);
-  } else {
-    if (webRAF) cancelAnimationFrame(webRAF);
-    webRAF = null;
-    renderCards();
-  }
+/* The matching web was removed: the orbits above now carry the visual weight,
+   and two competing animated graphics on one page fought each other. setView
+   survives as a single entry point so every caller still works. */
+function setView(){
+  view = 'list';
+  $('rail').style.display = 'grid';
+  $('nav').style.display = '';
+  document.querySelector('.pill-row').style.display = 'flex';
+  renderCards();
 }
 
 function renderStats(){
@@ -2972,8 +2958,6 @@ function renderStats(){
     `<b>${list.length}</b> Openings <span class="bullet">•</span> <b>${co}</b> Companies <span class="bullet">•</span> <b>${fam}</b> Role Families`;
 }
 
-$('v-graph').addEventListener('click', () => setView('graph'));
-$('v-list').addEventListener('click', () => setView('list'));
 
 /* ---------- controls ---------- */
 function goTo(next, dir){
@@ -2999,7 +2983,7 @@ document.addEventListener('keydown', (e) => {
 $('search').addEventListener('input', (e) => {
   query = e.target.value; page = 0; slideDir = 'right';
   renderStats();
-  if (view === 'graph') buildGraph(); else renderCards();
+  renderCards();
 });
 $('pills').addEventListener('click', (e) => {
   const pill = e.target.closest('.filter-pill');
@@ -3248,8 +3232,8 @@ function paintOrbits(){
   if (!all.length) { section.hidden = true; return; }
   section.hidden = false;
 
-  // One sphere: both halves share a centre, and each fills its own semicircle.
-  const CX = 280, CY = 150;
+  const CENTRES = { opco: 170, proptech: 470 };
+  const CY = 150;
 
   for (const h of ['opco', 'proptech']) {
     const counts = new Map();
@@ -3257,26 +3241,22 @@ function paintOrbits(){
 
     const list = [...counts.entries()].sort((a, b) => b[1] - a[1]);
     const most = list[0]?.[1] || 1;
-    const sign = h === 'opco' ? -1 : 1;
+    const cx = CENTRES[h];
 
     // The busiest dozen take the outer ring; the rest orbit inside. Beyond
     // about twenty the dots start colliding, so the tail is left off — the
     // roster below lists everyone.
     const rings = [
-      { el: $(`orb-${h}-outer`), items: list.slice(0, 10), r: 100 },
-      { el: $(`orb-${h}-inner`), items: list.slice(10, 16), r: 62 },
+      { el: $(`orb-${h}-outer`), items: list.slice(0, 12), r: 96 },
+      { el: $(`orb-${h}-inner`), items: list.slice(12, 20), r: 58 },
     ];
 
     for (const ring of rings) {
       if (!ring.el) continue;
       ring.el.innerHTML = ring.items.map(([name, n], i) => {
-        // Spread across this hemisphere's semicircle only, with a margin at
-        // each pole so nothing sits on the dividing axis.
-        const span = Math.PI * 0.82;
-        const f = ring.items.length === 1 ? 0.5 : i / (ring.items.length - 1);
-        const a = -Math.PI / 2 + sign * (Math.PI / 2 - span / 2 + f * span) * (sign < 0 ? -1 : 1)
-                  + (sign < 0 ? Math.PI : 0);
-        const x = CX + Math.cos(a) * ring.r;
+        // Evenly around the full circle, starting at the top.
+        const a = -Math.PI / 2 + (i / Math.max(1, ring.items.length)) * Math.PI * 2;
+        const x = cx + Math.cos(a) * ring.r;
         const y = CY + Math.sin(a) * ring.r;
         const r = 3.5 + Math.min(6, (n / most) * 6);
         return `<g class="orbit-co" data-orbit-co="${esc(name)}" data-orbit-hub="${h}">
