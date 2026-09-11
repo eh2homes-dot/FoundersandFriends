@@ -625,8 +625,17 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* height is set in JS to fit the rows — see buildGraph */
 
 
-.web-link{fill:none;stroke:url(#thread);stroke-width:1.2;opacity:.5;transition:stroke-width .25s,opacity .25s}
-.web-link.is-lit{stroke:url(#threadLit);stroke-width:2.6;opacity:1;filter:drop-shadow(0 0 6px rgba(0,255,136,.8))}
+.web-link{
+  fill:none;stroke:url(#thread);stroke-width:2;opacity:.78;
+  /* A faint glow does more for legibility on a dark background than raw
+     width — 1.2px at half opacity read as a smudge rather than a thread. */
+  filter:drop-shadow(0 0 3px rgba(0,255,136,.28));
+  transition:stroke-width .25s,opacity .25s,filter .25s;
+}
+.web-link.is-lit{
+  stroke:url(#threadLit);stroke-width:3.2;opacity:1;
+  filter:drop-shadow(0 0 8px rgba(0,255,136,.85));
+}
 
 .web-hit{fill:none;stroke:transparent;stroke-width:18;cursor:pointer}
 
@@ -681,7 +690,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 .web-node{cursor:pointer}
 /* anything not part of the hovered pathway recedes */
-#web.is-focused .web-link:not(.is-lit){opacity:.10}
+#web.is-focused .web-link:not(.is-lit){opacity:.18;filter:none}
 #web.is-focused .web-node:not(.is-lit){opacity:.24}
 #web.is-focused .web-particle:not(.lit){opacity:.12}
 .web-node,.web-link,.web-particle{transition:opacity .25s}
@@ -1171,6 +1180,55 @@ a.foot-line:hover{color:var(--green)}
            roles. To send visitors to a separate site instead, add an href to
            the <a> and remove data-goto — the click handler stands down when
            an href is present. -->
+      <!-- Two orbits, one per hub. Each dot is a company, sized by how much it
+           is hiring. Built from the feed, so it cannot show a company that is
+           not really there. Selecting an orbit switches hub; selecting a dot
+           filters the board to that company. -->
+      <div class="orbits" id="orbits" hidden>
+        <svg viewBox="0 0 640 360" role="img" aria-label="Companies hiring, by hub">
+          <defs>
+            <radialGradient id="orb-o" cx="50%" cy="45%" r="60%">
+              <stop offset="0%" stop-color="rgba(0,255,136,.22)"/>
+              <stop offset="100%" stop-color="rgba(0,255,136,0)"/>
+            </radialGradient>
+            <radialGradient id="orb-p" cx="50%" cy="45%" r="60%">
+              <stop offset="0%" stop-color="rgba(127,77,224,.26)"/>
+              <stop offset="100%" stop-color="rgba(127,77,224,0)"/>
+            </radialGradient>
+            <linearGradient id="orb-div" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(200,197,218,0)"/>
+              <stop offset="50%" stop-color="rgba(200,197,218,.22)"/>
+              <stop offset="100%" stop-color="rgba(200,197,218,0)"/>
+            </linearGradient>
+          </defs>
+
+          <line x1="320" y1="24" x2="320" y2="336" stroke="url(#orb-div)" stroke-width="1"/>
+
+          <g class="hemi opco" data-goto="opco">
+            <circle cx="168" cy="180" r="120" fill="url(#orb-o)"/>
+            <circle class="hemi-rim" cx="168" cy="180" r="104"/>
+            <ellipse class="orbit-path" cx="168" cy="180" rx="104" ry="38"/>
+            <ellipse class="orbit-path inner" cx="168" cy="180" rx="66" ry="24"/>
+            <g class="orbit-ring" id="orb-opco-outer"></g>
+            <g class="orbit-ring reverse" id="orb-opco-inner"></g>
+            <text class="hemi-label" x="168" y="330">OpCo</text>
+            <text class="hemi-sub" x="168" y="348">Operators</text>
+          </g>
+
+          <g class="hemi proptech" data-goto="proptech">
+            <circle cx="472" cy="180" r="120" fill="url(#orb-p)"/>
+            <circle class="hemi-rim" cx="472" cy="180" r="104"/>
+            <ellipse class="orbit-path" cx="472" cy="180" rx="104" ry="38"/>
+            <ellipse class="orbit-path inner" cx="472" cy="180" rx="66" ry="24"/>
+            <g class="orbit-ring" id="orb-proptech-outer"></g>
+            <g class="orbit-ring reverse" id="orb-proptech-inner"></g>
+            <text class="hemi-label" x="472" y="330">PropTech</text>
+            <text class="hemi-sub" x="472" y="348">Technology</text>
+          </g>
+        </svg>
+        <p class="orbit-hint" id="orbit-hint"></p>
+      </div>
+
       <div class="hub-cards">
         <a class="hub-card opco" data-goto="opco">
           <span class="hc-top">
@@ -1714,8 +1772,10 @@ function measure(){
       connected.add(id);
       const g = groups.get(id);
       g?.classList.remove('is-connected');
-      // stagger the three so they do not fire as one flash
-      const delay = Math.min(2, newlyConnected++) * 110;
+      // Stagger so the lines trace one after another rather than as a single
+      // flash. Wider than it was: with a 2.6s runner, 110ms apart still read as
+      // one event.
+      const delay = Math.min(2, newlyConnected++) * 380;
       setTimeout(() => g?.classList.add('is-connected'), delay);
     }
 
@@ -2624,16 +2684,41 @@ function drawGraph(){
 /* ---------- shape of a thread ---------- */
 function linkPath(L, time){
   const a = L.from, b = L.to;
-  const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
 
-  // a slow idle sway, plus whatever the pointer is currently dragging out of it
-  const sway = Math.sin(time * 0.00042 * L.speed + L.phase) * 12;
-  const cx = mx + L.pull.x;
-  const cy = my + sway + L.pull.y;
+  // Perpendicular to the run of the thread. Offsetting along this rather than
+  // straight down is what makes the wave follow the line instead of sagging.
+  const nx = -dy / len, ny = dx / len;
 
-  // two control points either side of the midpoint keep the curve smooth
-  return `M ${a.x} ${a.y} C ${a.x + (mx-a.x)*0.55} ${a.y}, ${cx - (b.x-mx)*0.28} ${cy}, ${cx} ${cy}`
-       + ` S ${b.x - (b.x-mx)*0.55} ${b.y}, ${b.x} ${b.y}`;
+  // Three waypoints rather than one. A single mid-point bend reads as a
+  // straight line with a kink in it; alternating the offset gives a thread
+  // that genuinely undulates along its length.
+  const amp = Math.min(26, len * 0.09);
+  const sway = Math.sin(time * 0.00042 * L.speed + L.phase);
+
+  const at = (f, dir) => {
+    const o = amp * dir * (0.6 + 0.4 * sway);
+    return {
+      x: a.x + dx * f + nx * o + L.pull.x * (1 - Math.abs(f - 0.5) * 1.4),
+      y: a.y + dy * f + ny * o + L.pull.y * (1 - Math.abs(f - 0.5) * 1.4),
+    };
+  };
+
+  const p1 = at(0.25,  1);
+  const p2 = at(0.50, -1);
+  const p3 = at(0.75,  1);
+
+  // Smooth cubics through each waypoint. S reuses the previous control point
+  // reflected, which is what keeps the joins from showing as corners.
+  return `M ${a.x.toFixed(1)} ${a.y.toFixed(1)}`
+       + ` C ${(a.x + dx*0.10 + nx*amp*0.7).toFixed(1)} ${(a.y + dy*0.10 + ny*amp*0.7).toFixed(1)},`
+       + ` ${(p1.x - dx*0.08).toFixed(1)} ${(p1.y - dy*0.08).toFixed(1)},`
+       + ` ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`
+       + ` S ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`
+       + ` S ${p3.x.toFixed(1)} ${p3.y.toFixed(1)}, ${p3.x.toFixed(1)} ${p3.y.toFixed(1)}`
+       + ` S ${(b.x - dx*0.10 + nx*amp*0.5).toFixed(1)} ${(b.y - dy*0.10 + ny*amp*0.5).toFixed(1)},`
+       + ` ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
 }
 
 /* ---------- the frame loop ---------- */
@@ -2916,6 +3001,7 @@ function setHub(next){
   renderPills();
   renderStats();
   paintHubCards();
+  paintOrbits();
   renderRoster();
   setView(view);
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3097,6 +3183,79 @@ function wireHubCards(){
 
 /* Counts come from whatever is loaded, so they stay honest when the feed is
    empty or still loading. */
+/**
+ * Paints the two orbits from the feed.
+ *
+ * Each dot is one company, sized by how much it is hiring, placed evenly around
+ * the ring. Companies with the most openings go on the outer orbit so they are
+ * easiest to see and to hit.
+ *
+ * Built from the data, so it can never show a company that is not contributing
+ * roles — the same rule the roster follows.
+ */
+function paintOrbits(){
+  const section = $('orbits');
+  const all = [...(HUBS.opco.jobs || []), ...(HUBS.proptech.jobs || [])];
+  if (!all.length) { section.hidden = true; return; }
+  section.hidden = false;
+
+  const CENTRES = { opco: 168, proptech: 472 };
+
+  for (const h of ['opco', 'proptech']) {
+    const counts = new Map();
+    for (const j of HUBS[h].jobs || []) counts.set(j.company, (counts.get(j.company) || 0) + 1);
+
+    const list = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const most = list[0]?.[1] || 1;
+    const cx = CENTRES[h];
+
+    // The busiest dozen take the outer ring; the rest orbit inside. Beyond
+    // about twenty the dots start colliding, so the tail is left off — the
+    // roster below lists everyone.
+    const rings = [
+      { el: $(`orb-${h}-outer`), items: list.slice(0, 12), rx: 104, ry: 38 },
+      { el: $(`orb-${h}-inner`), items: list.slice(12, 20), rx: 66, ry: 24 },
+    ];
+
+    for (const ring of rings) {
+      if (!ring.el) continue;
+      ring.el.innerHTML = ring.items.map(([name, n], i) => {
+        const a = (i / Math.max(1, ring.items.length)) * Math.PI * 2;
+        const x = cx + Math.cos(a) * ring.rx;
+        const y = 180 + Math.sin(a) * ring.ry;
+        const r = 3.5 + Math.min(6, (n / most) * 6);
+        return `<g class="orbit-co" data-orbit-co="${esc(name)}" data-orbit-hub="${h}">
+          <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>
+          <title>${esc(name)} — ${n} ${n === 1 ? 'role' : 'roles'}</title>
+        </g>`;
+      }).join('');
+    }
+  }
+
+  document.querySelectorAll('.hemi[data-goto]').forEach((g) =>
+    g.classList.toggle('is-current', g.dataset.goto === hub));
+
+  const o = (HUBS.opco.jobs || []).length, pt = (HUBS.proptech.jobs || []).length;
+  $('orbit-hint').textContent =
+    `${o} operator ${o === 1 ? 'role' : 'roles'} · ${pt} technology ${pt === 1 ? 'role' : 'roles'} — hover to pause, select a company to filter`;
+}
+
+/* Selecting a dot filters the board to that company; selecting the space
+   around it switches hub. */
+document.addEventListener('click', (e) => {
+  const dot = e.target.closest('[data-orbit-co]');
+  if (dot) {
+    if (hub !== dot.dataset.orbitHub) setHub(dot.dataset.orbitHub);
+    company = dot.dataset.orbitCo;
+    page = 0;
+    renderPills(); renderStats(); setView(view);
+    document.querySelector('.board')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  const hemi = e.target.closest('.hemi[data-goto]');
+  if (hemi && hemi.dataset.goto !== hub) setHub(hemi.dataset.goto);
+});
+
 function paintHubCards(){
   document.querySelectorAll('.hc-count').forEach((el) => {
     const n = (HUBS[el.dataset.count]?.jobs || []).length;
