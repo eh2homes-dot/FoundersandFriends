@@ -1389,7 +1389,7 @@ a.foot-line:hover{color:var(--green)}
           <!-- The halo sits outside the sphere, so it has to be drawn before
                anything that should appear in front of it. -->
           <circle class="g-atmo" cx="500" cy="290" r="207" fill="url(#g-atmo)"/>
-          <circle class="g-ring" cx="500" cy="290" r="266"/>
+          <circle class="g-ring" cx="500" cy="290" r="232"/>
 
           <g class="g-hemi opco" data-goto="opco">
             <circle class="g-half" cx="500" cy="290" r="190" clip-path="url(#g-clip-l)"/>
@@ -3443,7 +3443,9 @@ function wireHubCards(){
 const GLOBE = {
   CX: 500, CY: 290,
   R: 190,          // the sphere
-  RC: 266,         // the outer ring the companies ride on — clear of the sphere
+  RC: 232,         // the outer ring the companies ride on. Pulled in close to
+                   // the sphere: further out and the ring reads as a separate
+                   // circle floating around the globe rather than its edge.
   LATS: 9,         // wireframe density
   MERS: 22,
   MAX_COS: 12,     // per side — past this the labels collide
