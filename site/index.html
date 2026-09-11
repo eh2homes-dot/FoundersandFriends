@@ -245,9 +245,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-hemi:hover .g-half{opacity:1}
 
 .g-lat,.g-mer{fill:none;stroke:url(#g-mesh-grad);stroke-width:.9;vector-effect:non-scaling-stroke}
-.g-mer{opacity:.62}
-.g-lat{opacity:.5}
-.g-lat.equator{opacity:.9;stroke-width:1.2}
+.g-mer{opacity:.58}
+.g-lat-row{opacity:.72}
+.g-lat-fill{opacity:.34}
 .g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1.4;
   filter:drop-shadow(0 0 7px rgba(120,190,255,.3))}
 /* the jobs' orbit — a slow drift in the dashes gives it motion without
@@ -3562,6 +3562,7 @@ function globeBuild(){
   });
 
   Object.assign(globeState, { roles, cos, links, hiddenCos, focus: null });
+  globeMesh();                       // latitudes follow the job rows
   $('globe')?.classList.remove('is-focused');
   globeStep(performance.now(), true);
 }
@@ -3715,20 +3716,51 @@ function globeActivate(key){
 
 /* The wireframe. Latitudes are fixed rings; meridians are ellipses whose width
    is animated to give the turn. Built once — it does not depend on the feed. */
+/* The vertical half-axis of the latitude ellipse that passes exactly through a
+   point, given the ellipse spans the full width of the sphere. This is what
+   lets every job sit on a line rather than near one. */
+function globeLatFor(x, y){
+  const { CX, CY, R } = GLOBE;
+  const k = 1 - ((x - CX) / R) ** 2;
+  if (k <= 0.001) return null;
+  return Math.abs(y - CY) / Math.sqrt(k);
+}
+
+/* The wireframe. Latitudes run through the job rows, so each job sits where its
+   own horizontal line crosses the inner circle — an intersection of two drawn
+   lines rather than a dot floating on one. Fainter lines are added between
+   them for the web, and the meridians are animated to give the turn. */
 function globeMesh(){
   const g = $('g-mesh');
-  if (!g || globeState.mers.length) return;
-  const { CX, CY, R, LATS, MERS } = GLOBE;
-  const frag = [];
+  if (!g) return;
+  const { CX, CY, R, MERS } = GLOBE;
 
-  for (let i = 1; i < LATS; i++){
-    // Evenly spaced by angle, so the rings crowd near the poles the way they
-    // do on a real globe rather than being equally far apart on screen.
-    const a = (i / LATS) * Math.PI;
-    const ry = R * Math.cos(a - Math.PI / 2);
-    const equator = Math.abs(i - LATS / 2) < 0.5;
-    frag.push(`<ellipse class="g-lat${equator ? ' equator' : ''}" cx="${CX}" cy="${CY}" rx="${R}" ry="${Math.abs(ry).toFixed(1)}"/>`);
+  const rows = [...new Set(
+    globeState.roles
+      .map((n) => globeLatFor(n.x, n.y))
+      .filter((v) => v && v > 4)
+      .map((v) => +v.toFixed(1)),
+  )].sort((a, b) => a - b);
+
+  // Halfway between each pair, and one above the widest, so the mesh keeps its
+  // density even when few roles are showing.
+  // Only where there is room: the rows crowd towards the poles, and adding a
+  // line into a gap that is already a few pixels wide turns the mesh to mush.
+  const GAP = 13;
+  const fills = [];
+  for (let i = 0; i < rows.length - 1; i++){
+    if (rows[i + 1] - rows[i] > GAP * 2) fills.push((rows[i] + rows[i + 1]) / 2);
   }
+  if (rows.length && R - rows[rows.length - 1] > GAP * 2) fills.push((rows[rows.length - 1] + R) / 2);
+  if (rows.length && rows[0] > GAP * 2) fills.push(rows[0] / 2);
+
+  const lat = (ry, cls) =>
+    `<ellipse class="${cls}" cx="${CX}" cy="${CY}" rx="${R}" ry="${ry.toFixed(1)}"/>`;
+
+  const frag = [
+    ...fills.map((ry) => lat(ry, 'g-lat g-lat-fill')),
+    ...rows.map((ry) => lat(ry, 'g-lat g-lat-row')),
+  ];
   for (let i = 0; i < MERS; i++){
     frag.push(`<ellipse class="g-mer" cx="${CX}" cy="${CY}" rx="${(R * Math.abs(Math.sin(i * Math.PI / MERS))).toFixed(1)}" ry="${R}"/>`);
   }
@@ -3740,7 +3772,6 @@ function globeBind(){
   const svg = $('globe');
   if (!svg || globeState.bound) return;
   globeState.bound = true;
-  globeMesh();
 
   const toLocal = (e) => {
     const m = svg.getScreenCTM?.();
@@ -3802,7 +3833,6 @@ function paintOrbits(){
   if (!o && !pt){ section.hidden = true; globeStop(); return; }
   section.hidden = false;
   globeBind();
-  globeMesh();
 
   const sig = ['opco', 'proptech'].map(h => (HUBS[h].jobs || []).map(j => j.id).join(',')).join('|');
   if (sig !== globeState.sig){ globeState.sig = sig; globeBuild(); }
