@@ -649,8 +649,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   /* transform is set per frame in JS — labels align left, right or centre
      depending on which side of the globe they sit. */
   position:absolute;white-space:nowrap;
-  font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink);
-  text-shadow:0 1px 8px var(--void),0 0 16px var(--void);
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.05em;
+  color:var(--ink-bright,#fff);
+  text-shadow:0 1px 8px var(--void),0 0 16px var(--void),0 0 26px var(--void);
 }
 
 /* The rail keeps every company reachable without leaving the 3D view, which
@@ -3021,6 +3022,7 @@ const Orbit = (() => {
   let links = [], linkSegs = null, linkPos = null;
   let linkLit = null, litPos = null, litCap = 0, litLinks = [];
   let hiddenRoles = 0, coRadius = 1.9;
+  let pulses = [];
   let yaw = 0.6, pitch = 0.44, dist = 150;
   let dragging = false, px = 0, py = 0, moved = 0;
   let VW = 1, VH = 1;
@@ -3087,6 +3089,7 @@ const Orbit = (() => {
     world.clear();
     jobMeshes = []; coMeshes = []; labels = [];
     jobListRefs = []; listHot = null;
+    pulses = [];
     travelPoints = null; travelPos = null; travelCol = null;
     links = []; linkSegs = null; linkPos = null;
     linkLit = null; litPos = null; litCap = 0; litLinks = [];
@@ -3159,11 +3162,18 @@ const Orbit = (() => {
        with n nodes is exactly 2R·sin(π/n); half of that is the largest radius
        at which two nodes can never touch, and 0.4 leaves visible air between
        them rather than having them kiss. */
-    const ringRadius = CORE * 1.46;
+    const ringRadius = CORE * 1.24;
     const neighbourGap = companies.length > 1
       ? 2 * ringRadius * Math.sin(Math.PI / companies.length)
       : ringRadius;
-    const coR = Math.max(0.8, Math.min(2.6, neighbourGap * 0.40));
+    const coR = Math.max(0.7, Math.min(1.9, neighbourGap * 0.30));
+
+    /* How far a pulse may expand: far enough to read as a pulse, never far
+       enough to touch the ring next door. Derived from the same neighbour gap
+       that sized the nodes, so it tightens automatically as the perimeter
+       fills up rather than needing a second number kept in step by hand. */
+    const pulseGrow = Math.max(0.18, Math.min(1.3,
+      neighbourGap / (2 * coR * 1.34) - 1));
     coRadius = coR;
     const bodyGeo = new THREE.SphereGeometry(coR, 20, 16);
     /* Role positions are laid out before anything is drawn, so the orb radius
@@ -3180,12 +3190,13 @@ const Orbit = (() => {
        the outermost point to the surface stops the sphere being breached. Only
        honouring the first is what let orbs poke through the skin at small
        counts, where the points are far apart but sit near the edge. */
-    const byGap = rolePts.minGap * 0.17;
+    /* Half the closest gap on the disc, less a tenth so there is visible air
+       rather than orbs that merely fail to intersect. Because the disc faces
+       the camera, this is the separation on screen, not a 3D separation that
+       projection can undo. */
+    const byGap = rolePts.minGap * 0.45;
     const byEdge = Math.max(0.2, CORE - rolePts.maxRadius);
-    /* Small on purpose. At orbs this size the sphere is a field of points you
-       can count, rather than a wall of touching balls — the packing is what
-       made it unreadable, not the number of roles. */
-    const jobR = Math.max(0.26, Math.min(0.78, byGap, byEdge));
+    const jobR = Math.max(0.26, Math.min(1.1, byGap, byEdge));
     const jobGeo = new THREE.SphereGeometry(jobR, 14, 12);
     let roleAt = 0;
 
@@ -3218,6 +3229,25 @@ const Orbit = (() => {
       node.userData = { kind:'company', co };
       world.add(node); coMeshes.push(node);
 
+      /* A ring around the node, pulsing outward.
+
+         The threads all converge on this point, so it wants to look like a
+         connection being made rather than a dot that happens to sit there.
+         Each ring carries its own phase, seeded from the company's position on
+         the perimeter, so they breathe out of step — thirty-five pulsing in
+         unison would read as a fault rather than as activity. */
+      const halo = new THREE.Mesh(
+        new THREE.RingGeometry(coR * 1.18, coR * 1.34, 40),
+        new THREE.MeshBasicMaterial({
+          color: coColour, transparent: true, opacity: 0.5,
+          side: THREE.DoubleSide, depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        }),
+      );
+      halo.userData = { kind:'pulse', co, phase: ci / Math.max(companies.length, 1), grow: pulseGrow };
+      world.add(halo);
+      pulses.push(halo);
+
       const el = document.createElement('div');
       el.className = 'orbit-lab';
       el.textContent = co.name;
@@ -3230,7 +3260,8 @@ const Orbit = (() => {
          own side means the links stay short and the eye can follow one company
          inward without untangling anything. */
       co.shown.forEach((job) => {
-        const p = rolePts.points[roleAt++];
+        const pol = rolePts.points[roleAt++];
+        const p = new THREE.Vector3();   // set in the frame loop, in the view plane
 
         const m = new THREE.Mesh(jobGeo, new THREE.MeshPhongMaterial({
           color: roleColour, shininess: 52, specular: 0x9a8cc7,
@@ -3238,14 +3269,14 @@ const Orbit = (() => {
           transparent: true, opacity: 0.92,
         }));
         m.position.copy(p);
-        m.userData = { kind:'job', job, co };
+        m.userData = { kind:'job', job, co, pol };
         world.add(m); jobMeshes.push(m);
 
         /* Links are drawn as one LineSegments rather than a Line each: the
            company end moves every frame now, so every link needs rewriting per
            frame. One geometry means one buffer upload instead of a hundred and
            seventy. */
-        links.push({ co, job, to: p.clone(), ci });
+        links.push({ co, job, mesh: m, ci });
 
       });
     });
@@ -3359,77 +3390,51 @@ const Orbit = (() => {
      sphere, because a wireframe triangulates and the diagonals read as a
      geodesic mesh instead of a globe. */
 
-  /* Role positions, arranged so no two can overlap.
+  /* Role positions.
 
-     Points scattered through a volume by any golden-angle trick are evenly
-     distributed on average but say nothing about the closest pair, and it is
-     the closest pair that decides whether orbs touch. Nested shells fix the
-     radial spacing by construction, and a Fibonacci spread within each shell
-     fixes the angular spacing. The actual minimum is then measured rather than
-     assumed — with a few hundred points that is a few tens of thousands of
-     comparisons, once, at build time.
+     Laid out on a disc in the plane of the screen rather than through the
+     volume of the sphere. Spacing points in three dimensions guarantees they
+     never touch in space, which turns out not to be the question: two points
+     at different depths still land on top of each other when projected, and
+     projection is what anyone actually sees. A disc has no depth to collapse,
+     so a gap measured here is the gap on screen.
 
-     Returns the points and the closest gap between any two of them. */
+     The sphere remains around them, so the thing still reads as a globe — the
+     roles simply sit on its facing plane rather than scattered through it.
+
+     Vogel's spiral places the points: radius as the square root of the index
+     keeps the density even instead of crowding the middle, and the golden
+     angle keeps successive points from lining up into visible spokes. */
   function layoutRoles(cos, core){
     const total = cos.reduce((n, c) => n + c.shown.length, 0);
     if (!total) return { points: [], minGap: core, maxRadius: 0 };
 
-    // Shell count from the cube root of the population: the number that keeps
-    // radial and angular spacing roughly equal rather than one starving the
-    // other.
-    const shells = Math.max(1, Math.round(Math.cbrt(total / 2.2)));
-    const inner = core * 0.16;
-    const outer = core * 0.88;
-
-    // Points per shell scale with surface area, so density is even throughout
-    // instead of crowding the outer shells.
-    const weights = [];
-    for (let i = 0; i < shells; i++){
-      const r = shells === 1 ? outer : inner + (outer - inner) * (i / (shells - 1));
-      weights.push({ r, w: r * r });
-    }
-    const wSum = weights.reduce((a, b) => a + b.w, 0);
-
-    const counts = weights.map(x => Math.max(1, Math.round(total * x.w / wSum)));
-    // Rounding drifts; settle the difference on the outermost shell, which has
-    // the most room to absorb it.
-    let drift = total - counts.reduce((a, b) => a + b, 0);
-    counts[counts.length - 1] += drift;
-    if (counts[counts.length - 1] < 1){
-      counts[counts.length - 1] = 1;
-    }
-
+    const R = core * 0.86;
     const golden = Math.PI * (3 - Math.sqrt(5));
     const points = [];
-    weights.forEach((shell, si) => {
-      const n = counts[si];
-      for (let i = 0; i < n && points.length < total; i++){
-        const y = n === 1 ? 0 : 1 - (2 * (i + 0.5)) / n;
-        const rXY = Math.sqrt(Math.max(0, 1 - y * y));
-        // Offset each shell's spiral so shells do not line up radially.
-        const theta = golden * i + si * 1.1;
-        points.push(new THREE.Vector3(
-          Math.cos(theta) * rXY * shell.r,
-          y * shell.r,
-          Math.sin(theta) * rXY * shell.r,
-        ));
-      }
-    });
-    while (points.length < total) points.push(new THREE.Vector3(0, 0, 0));
 
-    // The measurement that makes the guarantee real.
+    for (let i = 0; i < total; i++){
+      const r = R * Math.sqrt((i + 0.5) / total);
+      const theta = golden * i;
+      points.push({ r, theta });
+    }
+
+    /* Nearest-neighbour distance on a Vogel spiral is smallest at the rim, so
+       the measurement only needs the outer band — but with a few hundred
+       points the full pass is cheap and leaves nothing to reason about. */
     let minGap = Infinity;
     for (let i = 0; i < points.length; i++){
       for (let j = i + 1; j < points.length; j++){
-        const d = points[i].distanceTo(points[j]);
+        const a = points[i], b = points[j];
+        const dx = a.r * Math.cos(a.theta) - b.r * Math.cos(b.theta);
+        const dy = a.r * Math.sin(a.theta) - b.r * Math.sin(b.theta);
+        const d = Math.hypot(dx, dy);
         if (d < minGap) minGap = d;
       }
     }
     if (!isFinite(minGap) || minGap === 0) minGap = core * 0.2;
 
-    const maxRadius = points.reduce((m, p) => Math.max(m, p.length()), 0);
-
-    return { points, minGap, maxRadius };
+    return { points, minGap, maxRadius: R };
   }
 
   function drawGlobe(){
@@ -3531,7 +3536,7 @@ const Orbit = (() => {
   function fitDistance(){
     const vFov = camera.fov * Math.PI / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return Math.max(70, Math.min(300, (CORE * 1.46 * 1.40) / Math.tan(Math.min(vFov, hFov) / 2)));
+    return Math.max(70, Math.min(300, (CORE * 1.24 * 1.46) / Math.tan(Math.min(vFov, hFov) / 2)));
   }
 
   /* Every role currently passing the filters, whichever side of the globe it
@@ -3742,7 +3747,7 @@ const Orbit = (() => {
        a sphere. */
     camRight.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
     camUp.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
-    const ringR = CORE * 1.46;   // matches ringRadius used when sizing nodes
+    const ringR = CORE * 1.24;   // matches ringRadius used when sizing nodes
 
     for (const node of coMeshes){
       const co = node.userData.co;
@@ -3750,12 +3755,35 @@ const Orbit = (() => {
         .addScaledVector(camUp, Math.sin(co.ringAngle) * ringR);
       node.position.copy(co.anchor);
     }
+    /* Roles sit on the same plane, so a gap measured in the layout is the gap
+       on screen — nothing can hide behind anything else. */
+    for (const m of jobMeshes){
+      const pol = m.userData.pol;
+      m.position.copy(camRight).multiplyScalar(Math.cos(pol.theta) * pol.r)
+        .addScaledVector(camUp, Math.sin(pol.theta) * pol.r);
+    }
+
+    /* The pulse rings. Billboarded to the camera so they always read as
+       circles rather than ellipses, and expanding on a loop that resets
+       sharply — a slow fade out and a quick return looks like a signal, an
+       even sine looks like breathing. */
+    if (pulses.length){
+      const now = performance.now() * 0.00035;
+      for (const ring of pulses){
+        ring.position.copy(ring.userData.co.anchor);
+        ring.quaternion.copy(camera.quaternion);
+        const k = (now + ring.userData.phase) % 1;
+        ring.scale.setScalar(1 + k * ring.userData.grow);
+        ring.material.opacity = 0.45 * (1 - k) * (1 - k);
+      }
+    }
+
     // The company end of every link moved, so rewrite the segments.
     if (linkSegs && links.length){
       for (let i = 0; i < links.length; i++){
-        const L = links[i], a = L.co.anchor;
+        const L = links[i], a = L.co.anchor, b = L.mesh.position;
         linkPos[i*6]   = a.x; linkPos[i*6+1] = a.y; linkPos[i*6+2] = a.z;
-        linkPos[i*6+3] = L.to.x; linkPos[i*6+4] = L.to.y; linkPos[i*6+5] = L.to.z;
+        linkPos[i*6+3] = b.x; linkPos[i*6+4] = b.y; linkPos[i*6+5] = b.z;
       }
       linkSegs.geometry.attributes.position.needsUpdate = true;
     }
@@ -3763,9 +3791,9 @@ const Orbit = (() => {
     // The traced threads, written from the same link data into the bright layer.
     if (linkLit && litLinks.length){
       for (let n = 0; n < litLinks.length; n++){
-        const L = links[litLinks[n]], a = L.co.anchor;
+        const L = links[litLinks[n]], a = L.co.anchor, b = L.mesh.position;
         litPos[n*6]   = a.x; litPos[n*6+1] = a.y; litPos[n*6+2] = a.z;
-        litPos[n*6+3] = L.to.x; litPos[n*6+4] = L.to.y; litPos[n*6+5] = L.to.z;
+        litPos[n*6+3] = b.x; litPos[n*6+4] = b.y; litPos[n*6+5] = b.z;
       }
       linkLit.geometry.attributes.position.needsUpdate = true;
       linkLit.visible = true;
@@ -3782,14 +3810,14 @@ const Orbit = (() => {
     if (travelPoints && links.length){
       const t = performance.now() * 0.00013;
       for (let i = 0; i < links.length; i++){
-        const L = links[i], a = L.co.anchor;
+        const L = links[i], a = L.co.anchor, b = L.mesh.position;
         // Phase from the index, so the dots sit spread along their threads
         // rather than setting off together.
         const k = (t + ((i * 37) % 100) / 100) % 1;
         const e = k * k * (3 - 2 * k);            // ease so they slow at each end
-        travelPos[i*3]   = a.x + (L.to.x - a.x) * e;
-        travelPos[i*3+1] = a.y + (L.to.y - a.y) * e;
-        travelPos[i*3+2] = a.z + (L.to.z - a.z) * e;
+        travelPos[i*3]   = a.x + (b.x - a.x) * e;
+        travelPos[i*3+1] = a.y + (b.y - a.y) * e;
+        travelPos[i*3+2] = a.z + (b.z - a.z) * e;
       }
       travelPoints.geometry.attributes.position.needsUpdate = true;
     }
