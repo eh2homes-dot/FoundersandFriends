@@ -247,6 +247,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-lat,.g-mer{fill:none;stroke:rgba(200,197,218,.11);stroke-width:1}
 .g-mer{stroke:rgba(200,197,218,.08)}
 .g-rim{fill:none;stroke:rgba(200,197,218,.18);stroke-width:1}
+/* the jobs' orbit — a slow drift in the dashes gives it motion without
+   moving the jobs themselves */
+.g-orbit{fill:none;stroke:rgba(200,197,218,.2);stroke-width:1;stroke-dasharray:1 5;
+  animation:g-orbit 70s linear infinite}
+@keyframes g-orbit{to{stroke-dashoffset:-120}}
 .g-axis{stroke-width:1}
 
 /* the outer circle the companies ride on */
@@ -1308,6 +1313,7 @@ a.foot-line:hover{color:var(--green)}
             <ellipse class="g-mer" id="g-mer-a" cx="500" cy="290" rx="120" ry="190"/>
             <ellipse class="g-mer" id="g-mer-b" cx="500" cy="290" rx="60"  ry="190"/>
             <circle class="g-rim" cx="500" cy="290" r="190"/>
+            <circle class="g-orbit" cx="500" cy="290" r="150"/>
             <line class="g-axis" x1="500" y1="92" x2="500" y2="488" stroke="url(#g-axis-grad)"/>
           </g>
 
@@ -3271,7 +3277,10 @@ const GLOBE = {
   R: 190,          // the sphere
   RC: 252,         // the outer ring the companies ride on
   MAX_COS: 12,     // per side — past this the labels collide
-  MAX_ROLES: 30,   // per side — past this the half turns into a smear
+  MAX_ROLES: 20,   // per side — keeps ~22px between jobs on the orbit
+  RO: 150,         // the orbit the jobs ride on, inside the sphere
+  ORBIT_SPAN: 82,  // degrees above and below the horizon each half uses —
+                   // the small gap at the poles keeps the axis readable
   ARC_MAX: 136,    // degrees of ring each side may use
   ARC_STEP: 16,    // degrees between companies when there are only a few
 };
@@ -3292,41 +3301,16 @@ function globeHash(i){
   return x - Math.floor(x);
 }
 
-/* Points spread evenly across one half of the sphere, clear of the axis.
-   Vogel's spiral over the whole disc, keeping only this side's points, with
-   the count grown until there are enough. */
-function globeHalfPoints(n, side){
+/* Jobs on the orbit: evenly spaced round this side's half of the circle,
+   top to bottom. Both halves together make one full ring. */
+function globeOrbitPoints(n, side){
   if (!n) return [];
-  const { CX, CY, R } = GLOBE;
-  const inner = R - 26, margin = 22;
-  let m = n * 2, pts = [];
-  for (let guard = 0; guard < 200; guard++){
-    pts = [];
-    for (let k = 0; k < m; k++){
-      const r = inner * Math.sqrt((k + 0.5) / m);
-      const a = k * 2.399963;
-      const x = CX + Math.cos(a) * r + (globeHash(k) - 0.5) * 8;
-      const y = CY + Math.sin(a) * r + (globeHash(k + 99) - 0.5) * 8;
-      if (side * (x - CX) > margin) pts.push({ x, y });
-    }
-    if (pts.length >= n) break;
-    m += 2;
-  }
-  if (pts.length > n){
-    const step = pts.length / n;
-    pts = Array.from({ length: n }, (_, i) => pts[Math.floor(i * step)]);
-  }
-  return pts;
-}
-
-/* Where a point sits top-to-bottom on its side, in degrees from the horizon.
-   Negative is up. Roles and companies are both sorted by this, so each
-   company's roles gather opposite it and the threads fan out instead of
-   crossing the sphere. */
-function globeRel(x, y, side){
-  const a = Math.atan2(y - GLOBE.CY, x - GLOBE.CX) * 180 / Math.PI;
-  if (side > 0) return a;
-  return a > 0 ? 180 - a : -180 - a;
+  const { CX, CY, RO, ORBIT_SPAN } = GLOBE;
+  return Array.from({ length: n }, (_, i) => {
+    const rel = n === 1 ? 0 : -ORBIT_SPAN + (i / (n - 1)) * ORBIT_SPAN * 2;
+    const rad = (side > 0 ? rel : 180 - rel) * Math.PI / 180;
+    return { x: CX + Math.cos(rad) * RO, y: CY + Math.sin(rad) * RO };
+  });
 }
 
 function globeBuild(){
@@ -3361,7 +3345,9 @@ function globeBuild(){
     // height rather than angle: equal angles bunch up near the top and bottom
     // of a circle, which is where the labels were colliding.
     const n = shown.length;
-    const span = n > 1 ? Math.min(GLOBE.ARC_MAX, (n - 1) * GLOBE.ARC_STEP) : 0;
+    // Five or more companies use the full stretch of ring, matching the jobs'
+    // orbit, so each company sits squarely opposite its own jobs.
+    const span = n >= 5 ? GLOBE.ARC_MAX : n > 1 ? (n - 1) * GLOBE.ARC_STEP * 1.6 : 0;
     const reach = RC * Math.sin(span / 2 * Math.PI / 180);
     const sideCos = shown.map(([name, list], i) => {
       const dy = n === 1 ? 0 : -reach + (i / (n - 1)) * reach * 2;
@@ -3401,9 +3387,9 @@ function globeBuild(){
     }
     sample.sort((a, b) => a.co.rank - b.co.rank);
 
-    const pts = globeHalfPoints(sample.length, side)
-      .map(p => ({ ...p, rel: globeRel(p.x, p.y, side) }))
-      .sort((a, b) => a.rel - b.rel);
+    // Sorted by company, so each company's jobs sit together on the orbit
+    // opposite it and the threads run out like spokes rather than crossing.
+    const pts = globeOrbitPoints(sample.length, side);
 
     sample.forEach((s, i) => {
       const p = pts[i];
@@ -3483,7 +3469,7 @@ function globeThread(L, time, still){
   const dx = b.x - a.x, dy = b.y - a.y;
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len, ny = dx / len;
-  const amp = Math.min(14, len * 0.07);
+  const amp = Math.min(9, len * 0.06);
   const sway = still ? 0.5 : Math.sin(time * 0.00022 * L.speed + L.phase);
   const at = (f, dir) => {
     const o = amp * dir * (0.55 + 0.45 * sway);
