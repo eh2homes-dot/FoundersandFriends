@@ -421,11 +421,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   content:"";position:absolute;inset:-7px;border-radius:50%;
   border:1px solid var(--green);opacity:.45;animation:pulse-ring 2.8s ease-out infinite;
 }
-.drag-dot.is-dragging{
+.drag-dot.is-active{
   cursor:grabbing;transform:translate(-50%,-50%) scale(1.12);
   box-shadow:0 0 0 10px rgba(0,255,136,.14),0 0 34px rgba(0,255,136,.8);
 }
-.drag-dot.is-dragging::after,.drag-dot.is-flying::after{opacity:0;animation:none}
+.drag-dot.is-active::after,.drag-dot.is-flying::after{opacity:0;animation:none}
 @keyframes pulse-ring{
   0%{transform:scale(.85);opacity:.6}
   80%{transform:scale(2);opacity:0}
@@ -476,33 +476,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 
 /* the View target */
-.rail-target{
-  position:relative;z-index:2;justify-self:center;align-self:start;width:176px;
-  /* pushed off centre toward the right edge of the channel */
-  margin-left:clamp(20px,7vw,110px);
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  padding:22px 14px;border-radius:16px;border:1px dashed rgba(200,197,218,.26);
-  background:linear-gradient(160deg,rgba(43,16,85,.4),rgba(11,6,24,.7));
-  backdrop-filter:blur(12px);
-  transition:border-color .25s,box-shadow .25s,background .25s,transform .25s;
-}
-.rail-target.is-armed{
-  border-style:solid;border-color:var(--green);
-  background:linear-gradient(160deg,rgba(0,255,136,.14),rgba(43,16,85,.62));
-  box-shadow:0 0 0 8px rgba(0,255,136,.1),0 0 46px rgba(0,255,136,.4);
-  transform:scale(1.04);
-}
-.target-ring{
-  width:64px;height:64px;border-radius:50%;border:2px solid rgba(200,197,218,.3);
-  display:grid;place-items:center;font-family:var(--head);font-weight:700;
-  font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);
-  transition:color .25s,border-color .25s,box-shadow .25s,background .25s;
-}
-.rail-target.is-armed .target-ring{
-  color:#04120A;border-color:var(--green);background:var(--green);
-  box-shadow:inset 0 0 18px rgba(255,255,255,.5);
-}
-.target-label{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim);text-align:center;line-height:1.5;max-width:15ch}
+
 
 .rail-empty{
   padding:44px 26px;text-align:center;border:1px dashed var(--line);
@@ -517,9 +491,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @media(max-width:900px){
   .rail{grid-template-columns:minmax(0,1fr);gap:30px}
   .rail-left{max-width:none}
-  .rail-target{justify-self:stretch;width:auto;margin-left:0;transform:none!important}
-  .rail-target{position:static;flex-direction:row;justify-content:center;gap:18px}
-  .target-label{text-align:left;max-width:22ch}
 }
 @media(max-width:680px){
   .job-card{grid-template-columns:auto minmax(0,1fr);gap:14px;padding:16px 18px}
@@ -1323,6 +1294,8 @@ a.foot-line:hover{color:var(--green)}
         <span><i class="orbit-dot" style="background:var(--green)"></i>OpCo role</span>
         <span><i class="orbit-dot" style="background:var(--cyan)"></i>PropTech role</span>
         <span><i class="orbit-dot" style="background:var(--purple-bright)"></i>Company</span>
+        <span><i class="orbit-dot" style="background:#5fd6c4;opacity:.55"></i>Operators globe</span>
+        <span><i class="orbit-dot" style="background:#8aa4ff;opacity:.55"></i>Technology globe</span>
       </div>
       <div class="orbit-card" id="orbit-card" role="status" aria-live="polite"></div>
     </div>
@@ -1340,10 +1313,6 @@ a.foot-line:hover{color:var(--green)}
         </div>
       </div>
       <div class="rail-dots" id="dots"></div>
-      <div class="rail-target" id="target">
-        <div class="target-ring">View</div>
-        <p class="target-label">Drag a node here to open the role</p>
-      </div>
     </div>
 
     <div class="promo-row">
@@ -1773,48 +1742,18 @@ function wavyPath(start, end){
   return d;
 }
 
-/** Line the target up with the middle of the three cards, ignoring the nav
- *  row beneath them. Reset first so the reading is not of our own transform. */
-function centreTarget(){
-  if (window.matchMedia('(max-width:900px)').matches){ target.style.transform = ''; return; }
-  target.style.transform = '';
-  const c = cardsEl.getBoundingClientRect();
-  const g = target.getBoundingClientRect();
-  const dy = (c.top + c.height/2) - (g.top + g.height/2);
-  target.style.transform = `translateY(${Math.round(dy)}px)`;
-}
+/* The drag-to-open mechanic and the View target it aimed at have been removed.
+   A node opens its role on click now, which is what everyone tried first
+   anyway. These two are kept as no-ops so the call sites — resize, scroll,
+   font load, paging — do not each need a guard. */
+function centreTarget(){ /* no target to centre */ }
 
+/* The threads that ran from each card to the View target went with it. What
+   measure() still has to do is keep the SVG's viewBox in step with the rail,
+   so nothing left over is drawn at the wrong scale. */
 function measure(){
-  centreTarget();
   const rr = rail.getBoundingClientRect();
-  const tr = target.getBoundingClientRect();
-  lines.setAttribute('viewBox', `0 0 ${rr.width||1} ${rr.height||1}`);
-
-  // The target is position:sticky, so this moves as the page scrolls — which
-  // is exactly why measure() has to run on scroll and not just on resize.
-  const end = { x: tr.left - rr.left + tr.width/2, y: tr.top - rr.top + tr.height/2 };
-
-  let newlyConnected = 0;
-
-  anchors.forEach((node, id) => {
-    const nr = node.getBoundingClientRect();
-    const start = { x: nr.left - rr.left + nr.width/2, y: nr.top - rr.top + nr.height/2 };
-    const d = wavyPath(start, end);
-    lines.querySelectorAll(`g[data-id="${id}"] path`).forEach(p => p.setAttribute('d', d));
-
-    // a line is undrawn until its card has landed — then a pulse races the
-    // length of the curve and the track draws in behind it
-    if (!connected.has(id)){
-      connected.add(id);
-      const g = groups.get(id);
-      g?.classList.remove('is-connected');
-      // stagger the three so they do not fire as one flash
-      const delay = Math.min(2, newlyConnected++) * 110;
-      setTimeout(() => g?.classList.add('is-connected'), delay);
-    }
-
-    place(id, progress[id] || 0);
-  });
+  lines.setAttribute('viewBox', `0 0 ${rr.width || 1} ${rr.height || 1}`);
 }
 
 /* Re-measure while scrolling so the lines stay pinned to the sticky target.
@@ -1869,7 +1808,6 @@ function place(id, t){
     glow.setAttribute('stroke-dashoffset', 1 - t);
     glow.style.opacity = t > 0.001 ? 0.95 : 0;
   }
-  target.classList.toggle('is-armed', Object.values(progress).some(v => v >= RELEASE));
 }
 
 /** ease home rather than snapping — a failed attempt should still feel alive */
@@ -1890,52 +1828,22 @@ function complete(id){
   setTimeout(() => settle(id, 1), 520);
 }
 
-/* ---------- drag ---------- */
-dotsEl.addEventListener('pointerdown', (e) => {
+/* ---------- opening a role ----------
+   A node used to be dragged along a curve to a View target before it would
+   open. The target is gone, and with it the drag: it was a lot of mechanism
+   between someone and a job posting, and every person who met it tried
+   clicking first. */
+dotsEl.addEventListener('click', (e) => {
   const dot = e.target.closest('.drag-dot');
-  if (!dot) return;
-  e.preventDefault();
-  const id = dot.dataset.id;
-  if (raf) cancelAnimationFrame(raf);
-  dot.setPointerCapture(e.pointerId);
-  dot.classList.add('is-dragging');
-  dragging = id;
-  cardsEl.querySelector(`[data-id="${id}"]`)?.classList.add('is-active');
-
-  const rr = rail.getBoundingClientRect();
-  const move = (ev) => place(id, project(id, ev.clientX-rr.left, ev.clientY-rr.top));
-  const end = (ev) => {
-    dot.releasePointerCapture?.(ev.pointerId);
-    dot.removeEventListener('pointermove', move);
-    dot.removeEventListener('pointerup', end);
-    dot.removeEventListener('pointercancel', end);
-    dot.classList.remove('is-dragging');
-    cardsEl.querySelector(`[data-id="${id}"]`)?.classList.remove('is-active');
-    dragging = null;
-    const t = project(id, ev.clientX-rr.left, ev.clientY-rr.top);
-    if (t >= RELEASE) complete(id); else settle(id, t);
-  };
-  dot.addEventListener('pointermove', move);
-  dot.addEventListener('pointerup', end);
-  dot.addEventListener('pointercancel', end);
+  if (dot) complete(dot.dataset.id);
 });
 
-/* keyboard equivalent, so the board is not mouse-only */
 dotsEl.addEventListener('keydown', (e) => {
   const dot = e.target.closest('.drag-dot');
   if (!dot) return;
-  const id = dot.dataset.id, cur = progress[id] || 0, step = e.shiftKey ? 0.25 : 0.1;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowUp'){
+  if (e.key === 'Enter' || e.key === ' '){
     e.preventDefault();
-    const next = Math.min(1, cur+step);
-    place(id, next);
-    if (next >= RELEASE) complete(id);
-  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown'){
-    e.preventDefault(); place(id, Math.max(0, cur-step));
-  } else if (e.key === 'Enter' || e.key === ' ' || e.key === 'End'){
-    e.preventDefault(); complete(id);
-  } else if (e.key === 'Home'){
-    e.preventDefault(); place(id, 0);
+    complete(dot.dataset.id);
   }
 });
 
@@ -3374,14 +3282,26 @@ const Orbit = (() => {
     return g;
   }
 
+  /* Each globe gets its own colour, and neither is the purple of the company
+     nodes — with all three the same family the body, the perimeter and the
+     roles blurred into one mass. Deep ocean for the operators, deep indigo for
+     the vendors: dark enough that the bright role dots sit clearly on top, and
+     different enough that the two sides are told apart at a glance even before
+     the captions are read. */
+  const SKIN = {
+    opco:     { body: 0x0d3a4e, emissive: 0x0a2b3d, grid: 0x5fd6c4, rim: 0x2fbfae },
+    proptech: { body: 0x1c2b63, emissive: 0x131d47, grid: 0x8aa4ff, rim: 0x5a74e0 },
+  };
+
   function drawGlobeBody(g){
     const C = g.core;
+    const skin = SKIN[g.hub] || SKIN.proptech;
 
     const body = new THREE.Mesh(
       new THREE.SphereGeometry(C, 40, 30),
       new THREE.MeshPhongMaterial({
-        color: 0x4a2d8f, emissive: 0x2a1560, emissiveIntensity: 0.7,
-        shininess: 18, transparent: true, opacity: 0.20, depthWrite: false,
+        color: skin.body, emissive: skin.emissive, emissiveIntensity: 1.15,
+        shininess: 22, transparent: true, opacity: 0.26, depthWrite: false,
       }),
     );
     body.userData = { kind:'globe', g };
@@ -3391,9 +3311,12 @@ const Orbit = (() => {
        triangulates, and the diagonals read as a net laid over the roles rather
        than a surface behind them. */
     const ring = (o) => new THREE.LineBasicMaterial({
-      color: 0xa898e8, transparent: true, opacity: o, depthWrite: false,
+      color: skin.grid, transparent: true, opacity: o, depthWrite: false,
     });
-    const LATS = 7, MERIDIANS = 14, SEG = 84;
+    /* More rings and brighter than before. At seven faint lats it read as a
+       haze with a shape; a proper graticule is what makes a sphere look like a
+       globe rather than a ball of fog. */
+    const LATS = 11, MERIDIANS = 18, SEG = 96;
 
     for (let i = 1; i <= LATS; i++){
       const phi = (i / (LATS + 1)) * Math.PI;
@@ -3404,7 +3327,7 @@ const Orbit = (() => {
         pts.push(new THREE.Vector3(Math.cos(t) * r, y, Math.sin(t) * r));
       }
       const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
-        ring(Math.abs(y) < 0.001 ? 0.16 : 0.075));
+        ring(Math.abs(y) < 0.001 ? 0.42 : 0.15));
       l.userData = { kind:'globe', g };
       stage.add(l); g.rings = g.rings || []; g.rings.push(l);
     }
@@ -3416,27 +3339,23 @@ const Orbit = (() => {
         pts.push(new THREE.Vector3(
           Math.cos(th) * Math.sin(phi) * C, Math.cos(phi) * C, Math.sin(th) * Math.sin(phi) * C));
       }
-      const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ring(0.06));
+      const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ring(0.12));
       l.userData = { kind:'globe', g };
       stage.add(l); g.rings.push(l);
     }
 
-    for (const [r, o] of [[C * 0.34, 0.07], [C * 0.62, 0.04]]){
-      const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(r, 22, 16),
-        new THREE.MeshBasicMaterial({
-          color: 0xb9a4ff, transparent: true, opacity: o,
-          blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide,
-        }),
-      );
-      glow.userData = { kind:'globe', g };
-      stage.add(glow); g.rings.push(glow);
-    }
+    /* The inner glow shells are gone.
+
+       They were meant to read as light falling off through the volume, but a
+       sphere has an edge whatever its opacity — at this size they drew two
+       hard rims inside the globe and the thing looked like nested balls. The
+       body's own emissive carries the interior light instead, with no
+       silhouette to give itself away. */
 
     const rim = new THREE.Mesh(
       new THREE.SphereGeometry(C * 1.06, 40, 28),
       new THREE.MeshBasicMaterial({
-        color: 0x8f6bff, transparent: true, opacity: 0.16,
+        color: skin.rim, transparent: true, opacity: 0.20,
         side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
       }),
     );
@@ -3464,10 +3383,62 @@ const Orbit = (() => {
   /* Two link layers, because a LineSegments has one material and therefore one
      opacity: it cannot hold dim and bright threads at once. The base layer
      says a web exists; the lit layer carries the threads actually guiding. */
+  /* Segments per thread. Ten is enough for the curve to read as a curve at
+     any zoom the camera allows, and cheap enough that every thread can be
+     rebuilt each frame — which it must be, since both ends move. */
+  const CURVE_SEGS = 10;
+
+  /* A thread bows outward from the straight line between its ends.
+
+     Straight threads through a sphere all converge on the same few directions
+     and read as a starburst; a bow gives each one its own path and lets the
+     eye follow one out of a crowd, which is the whole point of drawing them.
+
+     The control point sits off the midpoint, perpendicular to the chord and in
+     the plane of the screen — anywhere else and the bow flattens to nothing as
+     the camera turns. */
+  const _c = new THREE.Vector3(), _p = new THREE.Vector3(), _q = new THREE.Vector3();
+
+  function control(a, b, out){
+    out.copy(a).add(b).multiplyScalar(0.5);
+    // Perpendicular to the chord, within the view plane.
+    _q.copy(b).sub(a);
+    const px = -_q.dot(camUp), py = _q.dot(camRight);
+    const len = Math.hypot(px, py) || 1;
+    const bow = _q.length() * 0.16;
+    out.addScaledVector(camRight, (px / len) * bow)
+       .addScaledVector(camUp, (py / len) * bow);
+    return out;
+  }
+
+  /** Quadratic bezier, written into `out`. */
+  function bezier(a, c, b, t, out){
+    const u = 1 - t;
+    return out.set(
+      u*u*a.x + 2*u*t*c.x + t*t*b.x,
+      u*u*a.y + 2*u*t*c.y + t*t*b.y,
+      u*u*a.z + 2*u*t*c.z + t*t*b.z,
+    );
+  }
+
+  /** Writes one curved thread as CURVE_SEGS line segments. Returns the next
+   *  write offset, so callers can pack threads back to back. */
+  function writeCurve(buf, at, a, b){
+    control(a, b, _c);
+    bezier(a, _c, b, 0, _p);
+    for (let k = 1; k <= CURVE_SEGS; k++){
+      bezier(a, _c, b, k / CURVE_SEGS, _q);
+      buf[at++] = _p.x; buf[at++] = _p.y; buf[at++] = _p.z;
+      buf[at++] = _q.x; buf[at++] = _q.y; buf[at++] = _q.z;
+      _p.copy(_q);
+    }
+    return at;
+  }
+
   function buildLinks(g){
     if (!g.links.length) return;
 
-    g.linkPos = new Float32Array(g.links.length * 6);
+    g.linkPos = new Float32Array(g.links.length * CURVE_SEGS * 6);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(g.linkPos, 3));
     g.linkSegs = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
@@ -3477,7 +3448,7 @@ const Orbit = (() => {
     g.linkSegs.userData = { kind:'globe', g };
     stage.add(g.linkSegs);
 
-    g.litPos = new Float32Array(g.links.length * 6);
+    g.litPos = new Float32Array(g.links.length * CURVE_SEGS * 6);
     const lgeo = new THREE.BufferGeometry();
     lgeo.setAttribute('position', new THREE.BufferAttribute(g.litPos, 3));
     lgeo.setDrawRange(0, 0);
@@ -3761,11 +3732,12 @@ const Orbit = (() => {
       if (!g.links.length) continue;
 
       // Base layer: every thread, at a whisper.
+      let at = 0;
       for (let i = 0; i < g.links.length; i++){
-        const L = g.links[i], a = L.co.anchor, b = L.mesh.position;
-        g.linkPos[i*6]   = a.x; g.linkPos[i*6+1] = a.y; g.linkPos[i*6+2] = a.z;
-        g.linkPos[i*6+3] = b.x; g.linkPos[i*6+4] = b.y; g.linkPos[i*6+5] = b.z;
+        const L = g.links[i];
+        at = writeCurve(g.linkPos, at, L.co.anchor, L.mesh.position);
       }
+      g.linkSegs.geometry.setDrawRange(0, g.links.length * CURVE_SEGS * 2);
       g.linkSegs.geometry.attributes.position.needsUpdate = true;
 
       /* Which threads are guiding right now.
@@ -3776,7 +3748,7 @@ const Orbit = (() => {
          length to the role at the end, and it fades. Only the hub in focus
          guides — two sets of animation at once would compete. */
       const active = g.hub === hub;
-      let litN = 0;
+      let litN = 0, litAt = 0;
       if (active){
         const hoverJob = hot && hot.userData.g === g ? hot.userData.job : null;
         for (let i = 0; i < g.links.length; i++){
@@ -3786,19 +3758,22 @@ const Orbit = (() => {
           if (!forced && cycle >= WINDOW) continue;
 
           const a = L.co.anchor, b = L.mesh.position;
-          g.litPos[litN*6]   = a.x; g.litPos[litN*6+1] = a.y; g.litPos[litN*6+2] = a.z;
-          g.litPos[litN*6+3] = b.x; g.litPos[litN*6+4] = b.y; g.litPos[litN*6+5] = b.z;
+          litAt = writeCurve(g.litPos, litAt, a, b);
 
+          // The dot rides the same curve, not the chord — otherwise it cuts
+          // the corner and visibly leaves its own thread.
           const k = forced ? (T * 6) % 1 : cycle / WINDOW;
           const e = k * k * (3 - 2 * k);        // slow at each end, quick between
-          g.travelPos[litN*3]   = a.x + (b.x - a.x) * e;
-          g.travelPos[litN*3+1] = a.y + (b.y - a.y) * e;
-          g.travelPos[litN*3+2] = a.z + (b.z - a.z) * e;
+          control(a, b, _c);
+          bezier(a, _c, b, e, _q);
+          g.travelPos[litN*3]   = _q.x;
+          g.travelPos[litN*3+1] = _q.y;
+          g.travelPos[litN*3+2] = _q.z;
           litN++;
         }
       }
 
-      g.linkLit.geometry.setDrawRange(0, litN * 2);
+      g.linkLit.geometry.setDrawRange(0, litN * CURVE_SEGS * 2);
       g.linkLit.geometry.attributes.position.needsUpdate = true;
       g.linkLit.visible = litN > 0;
 
