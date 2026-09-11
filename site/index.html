@@ -3148,7 +3148,10 @@ const Orbit = (() => {
     const drawn = companies.reduce((n, c) => n + c.shown.length, 0);
     const totalDrawn = drawn;
     let seedIndex = 0;
-    CORE  = SHELL * (0.40 + Math.min(0.14, drawn / 1800));
+    /* The body takes most of the frame now. It was sized at 40% of the shell
+       back when the company orbs were elaborate and needed room of their own;
+       they are plain nodes now, so the globe can have the space. */
+    CORE  = SHELL * (0.62 + Math.min(0.14, drawn / 1800));
     drawGlobe();
 
     /* Node radius comes from the ring's own geometry, not from a formula in
@@ -3156,7 +3159,7 @@ const Orbit = (() => {
        with n nodes is exactly 2R·sin(π/n); half of that is the largest radius
        at which two nodes can never touch, and 0.4 leaves visible air between
        them rather than having them kiss. */
-    const ringRadius = CORE * 1.78;
+    const ringRadius = CORE * 1.46;
     const neighbourGap = companies.length > 1
       ? 2 * ringRadius * Math.sin(Math.PI / companies.length)
       : ringRadius;
@@ -3179,7 +3182,7 @@ const Orbit = (() => {
        counts, where the points are far apart but sit near the edge. */
     const byGap = rolePts.minGap * 0.44;
     const byEdge = Math.max(0.2, CORE - rolePts.maxRadius);
-    const jobR = Math.max(0.34, Math.min(1.5, byGap, byEdge));
+    const jobR = Math.max(0.34, Math.min(2.3, byGap, byEdge));
     const jobGeo = new THREE.SphereGeometry(jobR, 14, 12);
     let roleAt = 0;
 
@@ -3488,7 +3491,7 @@ const Orbit = (() => {
   function fitDistance(){
     const vFov = camera.fov * Math.PI / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return Math.max(70, Math.min(300, (CORE * 1.78 * 1.46) / Math.tan(Math.min(vFov, hFov) / 2)));
+    return Math.max(70, Math.min(300, (CORE * 1.46 * 1.40) / Math.tan(Math.min(vFov, hFov) / 2)));
   }
 
   /* Every role currently passing the filters, whichever side of the globe it
@@ -3521,13 +3524,13 @@ const Orbit = (() => {
     tally();
   }
 
+  /* The count line said "169 roles across 7 companies", which is the count of
+     companies currently showing roles rather than the number on the board —
+     accurate but misleading, and the stat line above the globe already carries
+     the real figures. Only the empty case still needs saying. */
   function tally(){
     const shown = jobMeshes.filter(m => m.material.opacity > LIT);
-    const cos = new Set(shown.map(m => m.userData.co.name)).size;
-    $('count').textContent = shown.length
-      ? `${shown.length} role${shown.length === 1 ? '' : 's'} across ${cos} compan${cos === 1 ? 'y' : 'ies'}` +
-        (hiddenRoles ? ` · ${hiddenRoles} more in the list` : '')
-      : 'No roles match those filters.';
+    $('count').textContent = shown.length ? '' : 'No roles match those filters.';
   }
 
   function place(){
@@ -3699,7 +3702,7 @@ const Orbit = (() => {
        a sphere. */
     camRight.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
     camUp.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
-    const ringR = CORE * 1.78;   // matches ringRadius used when sizing nodes
+    const ringR = CORE * 1.46;   // matches ringRadius used when sizing nodes
 
     for (const node of coMeshes){
       const co = node.userData.co;
