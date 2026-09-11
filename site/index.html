@@ -1307,7 +1307,8 @@ a.foot-line:hover{color:var(--green)}
       <canvas id="orbit-canvas" aria-label="Every open role arranged around its company"></canvas>
       <div class="orbit-labels" id="orbit-labels" aria-hidden="true"></div>
       <div class="orbit-key" aria-hidden="true">
-        <span><i class="orbit-dot" style="background:var(--green)"></i>Open role</span>
+        <span><i class="orbit-dot" style="background:var(--green)"></i>OpCo role</span>
+        <span><i class="orbit-dot" style="background:var(--cyan)"></i>PropTech role</span>
         <span><i class="orbit-dot" style="background:var(--purple-bright)"></i>Company</span>
       </div>
       <div class="orbit-card" id="orbit-card" role="status" aria-live="polite"></div>
@@ -1616,14 +1617,19 @@ function fireBeam(){
 }
 
 /* ---------- filtering ---------- */
-function visibleJobs(){
+/* The same filter, against whichever hub is asked for. Orbit draws both at
+   once and needs each side separately; everything else still asks for the hub
+   currently selected. */
+function filteredJobs(which){
   const q = query.trim().toLowerCase();
-  return hubJobs().filter(j => {
+  return (HUBS[which]?.jobs || []).filter(j => {
     if (company !== 'All' && j.company !== company) return false;
     if (!q) return true;
     return [j.title,j.company,j.location,j.category,j.summary].join(' ').toLowerCase().includes(q);
   });
 }
+
+function visibleJobs(){ return filteredJobs(hub); }
 
 /* pills come from the data, so a new operator surfaces its own filter */
 function renderPills(){
@@ -2471,6 +2477,11 @@ async function submitApply(){
 
 let view = 'orbit';
 
+/* Every company being tracked, whether or not it currently has anything open.
+   Empty until the feed carries a roster; Orbit falls back to the companies it
+   can see in the jobs when that happens. */
+let ROSTER = [];
+
 /* ---------- graph / list toggle ---------- */
 function setView(next){
   view = next;
@@ -2590,7 +2601,10 @@ function setHub(next){
   renderStats();
   paintHubCards();
   renderRoster();
-  setView(view);
+  /* Orbit draws both hubs at once, so switching only shifts emphasis — a
+     rebuild would discard the camera position for nothing. The List view still
+     needs its cards redrawn against the new hub. */
+  if (view === 'orbit') Orbit.refocus(); else setView(view);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2671,7 +2685,16 @@ async function fetchJobs() {
   const rows = Array.isArray(data) ? data : data.jobs;
   if (!Array.isArray(rows)) throw new Error('Expected an array of jobs');
 
-  return { jobs: rows.map(mapRow), generatedAt: Array.isArray(data) ? null : data.generated_at };
+  /* The roster is optional: a feed written before run.js started publishing it
+     simply has no companies key, and everything downstream falls back to the
+     companies it can find in the jobs. */
+  const roster = (!Array.isArray(data) && Array.isArray(data.companies)) ? data.companies : [];
+
+  return {
+    jobs: rows.map(mapRow),
+    companies: roster,
+    generatedAt: Array.isArray(data) ? null : data.generated_at,
+  };
 }
 
 function setStatus(state, html, retry) {
@@ -2708,10 +2731,11 @@ async function initData() {
   setStatus('loading', 'Loading roles…');
 
   try {
-    const { jobs: all, generatedAt } = await fetchJobs();
+    const { jobs: all, companies: roster, generatedAt } = await fetchJobs();
 
     HUBS.opco.jobs = all.filter(j => j.hub === 'opco');
     HUBS.proptech.jobs = all.filter(j => j.hub === 'proptech');
+    ROSTER = roster;
     renderAdmin();
     setHub(startHub);
 
@@ -2994,53 +3018,30 @@ document.addEventListener('click', (e) => {
    cards do — one way into a posting, not two.
    ========================================================================== */
 const Orbit = (() => {
-  /* Colour separates roles from companies, not one hub from the other.
-     Within a hub page every node is the same hub, so hub-colouring made the
-     whole globe one shade — which is exactly why it read as a single mass.
-     This is the pairing the old matching web used: green role, purple company. */
-  const ROLE_COLOUR = 0x00FF88;
-  const CO_COLOUR   = 0x7F4DE0;
-  /* Shell radius scales with the roster. A radius fixed for 35 companies
-     leaves four of them stranded on a mostly empty sphere — which is exactly
-     what a filtered view produces. Spacing between neighbours stays roughly
-     constant instead, so the composition holds at any count. */
-  const MIN_SHELL = 24, MAX_SHELL = 64;
-  let SHELL = 46;          // company ring radius
-  let RING = 46;           // alias used at placement time
-  let CORE = 28;           // the globe body the roles sit inside
+  const ROLE_COLOUR = 0x00FF88;   // OpCo roles
+  const CO_COLOUR   = 0x7F4DE0;   // company nodes, both sides
+  const PT_COLOUR   = 0x3BE8FF;   // PropTech roles
 
-  function shellRadius(n){
-    return Math.max(MIN_SHELL, Math.min(MAX_SHELL, 11.5 * Math.sqrt(Math.max(n, 1))));
-  }
-  const LIT = 0.5;             // opacity above this counts as visible
+  const LIT = 0.5;
 
-  let renderer, scene, camera, world, raf = null, ready = false;
-  let jobMeshes = [], coMeshes = [], labels = [], companies = [];
-  let focus = null, spinning = false;
-  let jobListRefs = [], listHot = null;
-  let travelPoints = null, travelPos = null, travelCol = null;
-  let links = [], linkSegs = null, linkPos = null;
-  let linkLit = null, litPos = null, litCap = 0, litLinks = [];
-  let hiddenRoles = 0, coRadius = 1.9;
-  let pulses = [];
-  let pinPoints = null, pinPos = null, jobRadius = 1;
-  let yaw = 0.6, pitch = 0.44, dist = 150;
+  let renderer, scene, camera, stage, raf = null, ready = false;
+  let globes = [];                // one per hub
+  let spinning = false;
+  let yaw = 0.6, pitch = 0.30, dist = 180;
   let dragging = false, px = 0, py = 0, moved = 0;
-  let VW = 1, VH = 1;
-  let hot = null;
+  let VW = 1, VH = 1, hot = null;
 
-  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const v = new THREE.Vector3();
-  const camDir = new THREE.Vector3();
   const camRight = new THREE.Vector3(), camUp = new THREE.Vector3();
   const ndc = new THREE.Vector2();
   const ray = new THREE.Raycaster();
 
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function canvas(){ return $('orbit-canvas'); }
 
-  /* Measure the canvas, never the window. Inside this page the canvas is one
-     panel among several, so window.innerWidth would put the labels somewhere
-     the nodes are not. */
+  /* Measure the canvas, never the window — inside this page they are different
+     boxes, and using the window puts the labels where the nodes are not. */
   function viewport(){
     const r = canvas().getBoundingClientRect();
     VW = Math.max(1, r.width); VH = Math.max(1, r.height);
@@ -3048,443 +3049,63 @@ const Orbit = (() => {
   }
 
   function init(){
-    if (ready) return;
-    if (typeof THREE === 'undefined') return;      // CDN blocked; caller handles it
+    if (ready || typeof THREE === 'undefined') return;
 
     renderer = new THREE.WebGLRenderer({ canvas: canvas(), antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
-    world = new THREE.Group();
-    scene.add(world);
+    camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2400);
+    stage = new THREE.Group();
+    scene.add(stage);
 
-    /* Unlit spheres render as flat discs — round outline, no volume. A key
-       light gives the highlight, a violet fill keeps the dark side alive. */
-    scene.add(new THREE.AmbientLight(0xffffff, 0.34));
-    const key = new THREE.DirectionalLight(0xffffff, 0.95);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.36));
+    const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(60, 80, 90); scene.add(key);
     const fill = new THREE.DirectionalLight(0x8b7bd8, 0.5);
     fill.position.set(-80, -30, -60); scene.add(fill);
 
     spinning = false;
-
     wire();
     ready = true;
   }
 
-  /* Even spacing on a sphere. Naive lat/long bunches everything at the poles;
-     the golden angle does not. */
-  function shellPoint(i, total, radius){
-    const y = 1 - (i / Math.max(total - 1, 1)) * 2;
-    const r = Math.sqrt(Math.max(0, 1 - y * y));
-    const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-    return new THREE.Vector3(Math.cos(theta) * r, y, Math.sin(theta) * r).multiplyScalar(radius);
-  }
+  /* ------------------------------------------------------------------ *
+     Layout
+   * ------------------------------------------------------------------ */
 
-  function clear(){
-    world.traverse(o => {
-      if (o.geometry) o.geometry.dispose();
-      if (o.material) o.material.dispose();
-    });
-    world.clear();
-    jobMeshes = []; coMeshes = []; labels = [];
-    jobListRefs = []; listHot = null;
-    pulses = [];
-    pinPoints = null; pinPos = null;
-    travelPoints = null; travelPos = null; travelCol = null;
-    links = []; linkSegs = null; linkPos = null;
-    linkLit = null; litPos = null; litCap = 0; litLinks = [];
-    $('orbit-labels').innerHTML = '';
-  }
+  /* Role positions on a disc facing the camera.
 
-  function build(){
-    if (!ready) init();
-    if (!ready) return;
-    clear();
+     Spacing points through a volume guarantees they never touch in space,
+     which is not the question — two points at different depths still land on
+     top of each other once projected, and projection is all anyone sees. A
+     disc has no depth to collapse, so a gap measured here is the gap on
+     screen.
 
-    const data = visibleJobs();
-    if (!data.length){ drawRail(); tally(); return; }
-
-    const byCo = new Map();
-    data.forEach(j => {
-      if (!byCo.has(j.company)) byCo.set(j.company, []);
-      byCo.get(j.company).push(j);
-    });
-    companies = [...byCo.entries()]
-      .map(([name, jobs]) => ({ name, hub: jobs[0].hub, jobs }))
-      .sort((a, b) => b.jobs.length - a.jobs.length);
-
-    /* A cap on drawn nodes.
-
-       Five hundred orbs inside one sphere is not a visualisation, it is a
-       texture — you cannot pick out a single role, which is the one thing the
-       view is for. The old matching web capped its rows for the same reason.
-       Every role stays in the list on the right; the globe shows a readable
-       sample and says how many it is holding back. */
-    const totalRoles = data.length;
-    const CAP = 260;
-
-    if (totalRoles > CAP){
-      // Proportional, but every company keeps at least one node — otherwise a
-      // company with two openings vanishes entirely and its ring node points
-      // at nothing.
-      const keep = Math.max(1, Math.floor(CAP / companies.length));
-      const spare = CAP - keep * companies.length;
-      let given = 0;
-      companies.forEach((co, i) => {
-        const bonus = Math.round(spare * (co.jobs.length / totalRoles));
-        const n = Math.min(co.jobs.length, keep + (given < spare ? bonus : 0));
-        given += bonus;
-        co.shown = co.jobs.slice(0, Math.max(1, n));
-      });
-    } else {
-      companies.forEach(co => { co.shown = co.jobs; });
-    }
-
-    hiddenRoles = totalRoles - companies.reduce((n, c) => n + c.shown.length, 0);
-
-    SHELL = shellRadius(companies.length);
-    RING  = SHELL;
-    // The gap matters: too close and the ring reads as part of the surface,
-    // too far and the companies stop looking attached to anything. The body
-    // also grows with how many roles it has to hold, so density stays even
-    // rather than packing tighter as the board fills up.
-    const drawn = companies.reduce((n, c) => n + c.shown.length, 0);
-    const totalDrawn = drawn;
-    let seedIndex = 0;
-    /* The body takes most of the frame now. It was sized at 40% of the shell
-       back when the company orbs were elaborate and needed room of their own;
-       they are plain nodes now, so the globe can have the space. */
-    CORE  = SHELL * (0.62 + Math.min(0.14, drawn / 1800));
-    drawGlobe();
-
-    /* Node radius comes from the ring's own geometry, not from a formula in
-       the company count. The gap between neighbours on a circle of radius R
-       with n nodes is exactly 2R·sin(π/n); half of that is the largest radius
-       at which two nodes can never touch, and 0.4 leaves visible air between
-       them rather than having them kiss. */
-    const ringRadius = CORE * 1.24;
-    const neighbourGap = companies.length > 1
-      ? 2 * ringRadius * Math.sin(Math.PI / companies.length)
-      : ringRadius;
-    const coR = Math.max(0.7, Math.min(1.9, neighbourGap * 0.30));
-
-    /* How far a pulse may expand: far enough to read as a pulse, never far
-       enough to touch the ring next door. Derived from the same neighbour gap
-       that sized the nodes, so it tightens automatically as the perimeter
-       fills up rather than needing a second number kept in step by hand. */
-    const pulseGrow = Math.max(0.18, Math.min(1.3,
-      neighbourGap / (2 * coR * 1.34) - 1));
-    coRadius = coR;
-    const bodyGeo = new THREE.SphereGeometry(coR, 20, 16);
-    /* Role positions are laid out before anything is drawn, so the orb radius
-       can be derived from the layout instead of guessed at.
-
-       Guessing is what produced overlapping orbs: a formula in the count alone
-       cannot know that two particular points happened to land close together.
-       Measuring the closest pair and halving it guarantees no two orbs touch,
-       whatever the distribution does. */
-    const rolePts = layoutRoles(companies, CORE);
-    /* Two ceilings, and the orb takes the lower.
-
-       Half the closest gap stops any two orbs from touching. The distance from
-       the outermost point to the surface stops the sphere being breached. Only
-       honouring the first is what let orbs poke through the skin at small
-       counts, where the points are far apart but sit near the edge. */
-    /* Half the closest gap on the disc, less a tenth so there is visible air
-       rather than orbs that merely fail to intersect. Because the disc faces
-       the camera, this is the separation on screen, not a 3D separation that
-       projection can undo. */
-    const byGap = rolePts.minGap * 0.45;
-    const byEdge = Math.max(0.2, CORE - rolePts.maxRadius);
-    const jobR = Math.max(0.26, Math.min(1.1, byGap, byEdge));
-    const jobGeo = new THREE.SphereGeometry(jobR, 14, 12);
-    let roleAt = 0;
-
-    companies.forEach((co, ci) => {
-      /* Companies ring the globe rather than sitting on its surface. Evenly
-         spaced around one circle, they read as a perimeter from any angle the
-         camera settles at, and the interior is left clear for the roles. */
-      /* The angle this company holds on the ring. Its world position is set
-         every frame in the render loop, not here: the ring is locked to the
-         view plane so it stays a clean circle outside the globe however the
-         globe is turned. On a 3D ring the companies swung behind the sphere
-         and the perimeter stopped being a perimeter. */
-      const ringAngle = (ci / companies.length) * Math.PI * 2 - Math.PI / 2;
-      co.ringAngle = ringAngle;
-      const anchor = new THREE.Vector3(Math.cos(ringAngle) * RING, Math.sin(ringAngle) * RING, 0);
-      co.anchor = anchor;
-      const coColour = new THREE.Color(CO_COLOUR);
-      const roleColour = new THREE.Color(ROLE_COLOUR);
-
-      /* Three meshes make a company read as a small globe: a shaded body, a
-         coarse wireframe for meridians, and a back-face halo that sits like
-         atmosphere at the rim instead of a disc in front of it. */
-      /* A plain node. The globe treatment moved to the sphere itself, so the
-         companies are back to what they are — anchor points on a perimeter.
-         Anything more here and two things on screen compete to be the globe. */
-      const node = new THREE.Mesh(bodyGeo, new THREE.MeshBasicMaterial({
-        color: coColour,
-      }));
-      node.position.copy(anchor);
-      node.userData = { kind:'company', co };
-      world.add(node); coMeshes.push(node);
-
-      /* A ring around the node, pulsing outward.
-
-         The threads all converge on this point, so it wants to look like a
-         connection being made rather than a dot that happens to sit there.
-         Each ring carries its own phase, seeded from the company's position on
-         the perimeter, so they breathe out of step — thirty-five pulsing in
-         unison would read as a fault rather than as activity. */
-      const halo = new THREE.Mesh(
-        new THREE.RingGeometry(coR * 1.18, coR * 1.34, 40),
-        new THREE.MeshBasicMaterial({
-          color: coColour, transparent: true, opacity: 0.5,
-          side: THREE.DoubleSide, depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        }),
-      );
-      halo.userData = { kind:'pulse', co, phase: ci / Math.max(companies.length, 1), grow: pulseGrow };
-      world.add(halo);
-      pulses.push(halo);
-
-      const el = document.createElement('div');
-      el.className = 'orbit-lab';
-      el.textContent = co.name;
-      $('orbit-labels').appendChild(el);
-      labels.push({ el, node, co, visible: true });
-
-      /* Roles fill the globe's interior, seeded in the wedge nearest their own
-         company. Scattering them uniformly would look the same but make every
-         connecting line cross the middle; keeping each company's roles on its
-         own side means the links stay short and the eye can follow one company
-         inward without untangling anything. */
-      co.shown.forEach((job) => {
-        const pol = rolePts.points[roleAt++];
-        const p = new THREE.Vector3();   // set in the frame loop, in the view plane
-
-        /* The ring around it carries the size, so the sphere only has to mark
-           the centre — bright and flat reads as a plotted point, where a
-           shaded ball would read as an object sitting there. */
-        const m = new THREE.Mesh(jobGeo, new THREE.MeshBasicMaterial({
-          color: roleColour, transparent: true, opacity: 0.95,
-        }));
-        m.position.copy(p);
-        m.userData = { kind:'job', job, co, pol };
-        world.add(m); jobMeshes.push(m);
-
-        /* Links are drawn as one LineSegments rather than a Line each: the
-           company end moves every frame now, so every link needs rewriting per
-           frame. One geometry means one buffer upload instead of a hundred and
-           seventy. */
-        links.push({ co, job, mesh: m, ci });
-
-      });
-    });
-
-    jobRadius = jobR;
-    buildPins();
-    buildLinks();
-    buildTravellers();
-
-    resize();
-    dist = fitDistance();
-    drawRail();
-    emphasise();
-  }
-
-  /* One Points object carrying every travelling dot. Five hundred separate
-     meshes would cost more draw calls than the rest of the scene put together;
-     this is one, with positions rewritten each frame. */
-  /* Two link layers.
-
-     The old matching web dimmed every thread and lit the one under the cursor,
-     which is what made a dense picture readable — you could follow a single
-     connection without the other five hundred arguing with it. One geometry
-     cannot do that: a LineSegments has one material and therefore one opacity.
-     So there are two, sharing the same data. The base layer holds every thread
-     at a whisper; the lit layer holds only the traced ones, bright, and is
-     rewritten whenever the cursor moves to something new. */
-  function buildLinks(){
-    if (!links.length) return;
-
-    linkPos = new Float32Array(links.length * 6);       // two ends per link
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(linkPos, 3));
-    /* linewidth is ignored by WebGL on nearly every platform — setting it to 3
-       silently does nothing. Weight has to come from opacity and colour, so
-       these are pushed up rather than thickened. */
-    linkSegs = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
-      /* Barely there. Every thread drawn at a readable weight is a ball of
-         string; these only need to say that a web exists. The ones actually
-         being followed are drawn by the lit layer above. */
-      color: 0x6ee7a8, transparent: true, opacity: 0.035, depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }));
-    linkSegs.userData = { kind:'globe' };
-    world.add(linkSegs);
-
-    // Sized for the busiest single company, since that is the most that can
-    // ever be lit at once.
-    /* Sized for every thread, because the lit set is now a rolling window over
-         all of them rather than one company's worth. The buffer is a few
-         kilobytes; guessing a smaller cap and silently dropping threads is the
-         kind of bug that only shows up on the busiest board. */
-    litCap = Math.max(1, links.length);
-    litPos = new Float32Array(litCap * 6);
-    const lgeo = new THREE.BufferGeometry();
-    lgeo.setAttribute('position', new THREE.BufferAttribute(litPos, 3));
-    lgeo.setDrawRange(0, 0);
-    linkLit = new THREE.LineSegments(lgeo, new THREE.LineBasicMaterial({
-      color: 0xbcffdc, transparent: true, opacity: 0.85, depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }));
-    linkLit.userData = { kind:'globe' };
-    world.add(linkLit);
-  }
-
-  /* The pin ring drawn over every role.
-
-     A sphere says "an object is here"; a ring around a point says "this spot,
-     specifically". Since the whole view is meant to read as roles located on a
-     map, every role gets the second treatment. Built as one Points system with
-     a ring texture — as meshes it would be two hundred and sixty extra draw
-     calls for what is, in the end, a decal. */
-  let PIN_TEX = null;
-  function pinTexture(){
-    if (PIN_TEX) return PIN_TEX;
-    const c = document.createElement('canvas');
-    c.width = c.height = 64;
-    const ctx = c.getContext('2d');
-    ctx.clearRect(0, 0, 64, 64);
-    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-    ctx.lineWidth = 3.2;
-    ctx.beginPath(); ctx.arc(32, 32, 23, 0, Math.PI * 2); ctx.stroke();
-    // Four ticks at the compass points, which is what turns a circle into a
-    // crosshair and a crosshair into a location.
-    ctx.lineWidth = 2.6;
-    for (const [x1,y1,x2,y2] of [[32,2,32,11],[32,53,32,62],[2,32,11,32],[53,32,62,32]]){
-      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-    }
-    PIN_TEX = new THREE.CanvasTexture(c);
-    return PIN_TEX;
-  }
-
-  function buildPins(){
-    if (!jobMeshes.length) return;
-    pinPos = new Float32Array(jobMeshes.length * 3);
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pinPos, 3));
-    pinPoints = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: jobRadius * 4.4, color: 0x9dffc8, map: pinTexture(),
-      transparent: true, opacity: 0.5, sizeAttenuation: true,
-      depthWrite: false, blending: THREE.AdditiveBlending,
-    }));
-    pinPoints.userData = { kind:'globe' };
-    world.add(pinPoints);
-  }
-
-  let DOT_TEX = null;
-  function dotTexture(){
-    if (DOT_TEX) return DOT_TEX;
-    const c = document.createElement('canvas');
-    c.width = c.height = 64;
-    const g = c.getContext('2d').createRadialGradient(32, 32, 0, 32, 32, 32);
-    g.addColorStop(0, 'rgba(255,255,255,1)');
-    g.addColorStop(0.4, 'rgba(255,255,255,.65)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
-    DOT_TEX = new THREE.CanvasTexture(c);
-    return DOT_TEX;
-  }
-
-  /* One dot per thread, running all the time. Scoping them to the traced
-     threads made the globe static until you hovered something; the motion is
-     what tells you the board is live. Colour carries the emphasis instead —
-     traced threads run white, the rest a dim green. */
-  function buildTravellers(){
-    if (!links.length) return;
-    travelPos = new Float32Array(links.length * 3);
-    travelCol = new Float32Array(links.length * 3);
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(travelPos, 3));
-    geo.setAttribute('color', new THREE.BufferAttribute(travelCol, 3));
-    /* PointsMaterial draws squares by default, which at this size look like
-       specks of grit rather than lights. A tiny radial-gradient sprite costs
-       one texture and makes them round. */
-    travelPoints = new THREE.Points(geo, new THREE.PointsMaterial({
-      // Kept just under the role orbs, so a dot arriving at a role does not
-      // look bigger than the thing it arrives at.
-      size: 2.0, vertexColors: true, transparent: true, opacity: 1,
-      sizeAttenuation: true, depthWrite: false, map: dotTexture(),
-      blending: THREE.AdditiveBlending,
-    }));
-    travelPoints.visible = true;
-    paintTravellers();
-    travelPoints.userData = { kind:'globe' };
-    world.add(travelPoints);
-  }
-
-
-  /* The sphere itself.
-     Companies were being placed on an invisible shell, which with a handful of
-     them just reads as dots adrift — there was no globe, only points that
-     happened to sit on one. Drawing the shell makes the structure legible at
-     any roster size: you can see where the surface is, which side you are
-     looking at, and that the roles hang inside it.
-
-     Built from real latitude rings and meridians rather than a wireframe
-     sphere, because a wireframe triangulates and the diagonals read as a
-     geodesic mesh instead of a globe. */
-
-  /* Role positions.
-
-     Laid out on a disc in the plane of the screen rather than through the
-     volume of the sphere. Spacing points in three dimensions guarantees they
-     never touch in space, which turns out not to be the question: two points
-     at different depths still land on top of each other when projected, and
-     projection is what anyone actually sees. A disc has no depth to collapse,
-     so a gap measured here is the gap on screen.
-
-     The sphere remains around them, so the thing still reads as a globe — the
-     roles simply sit on its facing plane rather than scattered through it.
-
-     Vogel's spiral places the points: radius as the square root of the index
-     keeps the density even instead of crowding the middle, and the golden
-     angle keeps successive points from lining up into visible spokes. */
-  function layoutRoles(cos, core){
-    const total = cos.reduce((n, c) => n + c.shown.length, 0);
+     Vogel's spiral places them, then each is nudged off its lattice position:
+     a pure spiral is too orderly and reads as a pattern rather than as plotted
+     locations. The gap is measured after the nudge, so whatever it does is
+     accounted for. */
+  function layoutRoles(total, core){
     if (!total) return { points: [], minGap: core, maxRadius: 0 };
 
     const R = core * 0.86;
     const golden = Math.PI * (3 - Math.sqrt(5));
+    const spacing = R / Math.sqrt(total);
     const points = [];
 
-    /* A pure spiral is too orderly — the eye reads the pattern instead of the
-       points, and it looks like a lattice rather than plotted locations. Each
-       point is nudged off its lattice position by a deterministic amount, far
-       enough to break the regularity, never far enough to bring two together:
-       the gap is measured after the nudge, not before, so whatever it does is
-       accounted for. */
-    const spacing = R / Math.sqrt(total);
     for (let i = 0; i < total; i++){
       const r0 = R * Math.sqrt((i + 0.5) / total);
       const t0 = golden * i;
-
-      // Deterministic offsets, so the same board always draws the same map.
+      // Deterministic, so the same board always draws the same map.
       const jr = (((i * 0.7548776662) % 1) - 0.5) * spacing * 0.62;
       const jt = (((i * 0.5698402909) % 1) - 0.5) * (spacing * 0.62) / Math.max(r0, spacing);
-
-      const r = Math.min(R, Math.max(spacing * 0.35, r0 + jr));
-      points.push({ r, theta: t0 + jt });
+      points.push({
+        r: Math.min(R, Math.max(spacing * 0.35, r0 + jr)),
+        theta: t0 + jt,
+      });
     }
 
-    /* Nearest-neighbour distance on a Vogel spiral is smallest at the rim, so
-       the measurement only needs the outer band — but with a few hundred
-       points the full pass is cheap and leaves nothing to reason about. */
     let minGap = Infinity;
     for (let i = 0; i < points.length; i++){
       for (let j = i + 1; j < points.length; j++){
@@ -3500,145 +3121,440 @@ const Orbit = (() => {
     return { points, minGap, maxRadius: R };
   }
 
-  function drawGlobe(){
-    /* The globe itself, given the treatment the company orbs used to carry: a
-       translucent body, a wireframe skin over it, and a light at the core.
+  /* ------------------------------------------------------------------ *
+     Textures, shared between both globes
+   * ------------------------------------------------------------------ */
 
-       Two things on screen cannot both be the globe. The wireframe reads as a
-       surface you are looking through, which is what the roles inside need —
-       a filled sphere alone hides them, and bare lat/long rings never read as
-       a body at all. */
+  let PIN_TEX = null, DOT_TEX = null;
 
-    // Body. Low opacity and no depth write, so every role inside stays visible
-    // through it rather than being swallowed by it.
+  /* A ring with compass ticks. A sphere says "an object is here"; this says
+     "this spot, specifically", which is what a located role should read as. */
+  function pinTexture(){
+    if (PIN_TEX) return PIN_TEX;
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = 3.2;
+    ctx.beginPath(); ctx.arc(32, 32, 23, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 2.6;
+    for (const [x1,y1,x2,y2] of [[32,2,32,11],[32,53,32,62],[2,32,11,32],[53,32,62,32]]){
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    }
+    PIN_TEX = new THREE.CanvasTexture(c);
+    return PIN_TEX;
+  }
+
+  /* PointsMaterial draws squares by default, which at this size look like grit
+     rather than lights. */
+  function dotTexture(){
+    if (DOT_TEX) return DOT_TEX;
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.4, 'rgba(255,255,255,.65)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+    DOT_TEX = new THREE.CanvasTexture(c);
+    return DOT_TEX;
+  }
+
+  /* ------------------------------------------------------------------ *
+     Building one globe
+   * ------------------------------------------------------------------ */
+
+  function clearAll(){
+    stage.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) o.material.dispose();
+    });
+    stage.clear();
+    globes.forEach(g => g.labels.forEach(l => l.el.remove()));
+    globes = [];
+    hot = null;
+  }
+
+  /* One hub's globe. Everything it owns is kept on the returned object rather
+     than in module state, because there are two of them now and shared
+     mutable state across two globes is how the wrong ring ends up being
+     redrawn. */
+  function buildGlobe(hubKey, jobs, centre){
+    const roleColour = hubKey === 'opco' ? ROLE_COLOUR : PT_COLOUR;
+
+    const g = {
+      hub: hubKey,
+      centre,
+      roleColour,
+      companies: [],
+      jobMeshes: [],
+      coMeshes: [],
+      labels: [],
+      links: [],
+      pulses: [],
+      hidden: 0,
+      core: 20,
+      ringR: 30,
+      coRadius: 1.5,
+      jobRadius: 1,
+      linkSegs: null, linkPos: null,
+      linkLit: null, litPos: null,
+      travelPoints: null, travelPos: null,
+      pinPoints: null, pinPos: null,
+    };
+
+    const byCo = new Map();
+    jobs.forEach(j => {
+      if (!byCo.has(j.company)) byCo.set(j.company, []);
+      byCo.get(j.company).push(j);
+    });
+
+    /* Every tracked company on the perimeter, not only the ones hiring today.
+       A company with nothing open still gets its node — "we follow them and
+       they have nothing open" is a different claim from silence. */
+    const named = new Set();
+    for (const r of ROSTER){
+      if (r.hub !== hubKey) continue;
+      const list = byCo.get(r.name) || [];
+      g.companies.push({ name: r.name, hub: hubKey, jobs: list, quiet: list.length === 0 });
+      named.add(r.name);
+    }
+    for (const [name, list] of byCo){
+      if (!named.has(name)) g.companies.push({ name, hub: hubKey, jobs: list, quiet: false });
+    }
+    g.companies.sort((a, b) => b.jobs.length - a.jobs.length || a.name.localeCompare(b.name));
+
+    if (!g.companies.length) return g;
+
+    /* A cap on drawn role nodes. Five hundred orbs in one sphere is a texture,
+       not a visualisation — you cannot pick out a single role, which is the
+       one thing the view is for. */
+    const totalRoles = jobs.length;
+    /* Down with the globe. The disc lost about two thirds of its area, and
+         holding the old count would have meant orbs too small to see. */
+    const CAP = 90;
+    if (totalRoles > CAP){
+      const keep = Math.max(1, Math.floor(CAP / g.companies.length));
+      const spare = Math.max(0, CAP - keep * g.companies.length);
+      let given = 0;
+      g.companies.forEach(co => {
+        if (!co.jobs.length){ co.shown = []; return; }
+        const bonus = Math.round(spare * (co.jobs.length / totalRoles));
+        const n = Math.min(co.jobs.length, keep + (given < spare ? bonus : 0));
+        given += bonus;
+        co.shown = co.jobs.slice(0, Math.max(1, n));
+      });
+    } else {
+      g.companies.forEach(co => { co.shown = co.jobs; });
+    }
+
+    const drawn = g.companies.reduce((n, c) => n + c.shown.length, 0);
+    g.hidden = totalRoles - drawn;
+
+    // Sized to the roster so two globes of different size still read as a pair.
+    /* The body shrinks, the ring does not.
+
+       Scaling both together changes nothing on screen — the camera simply
+       zooms in and the picture is identical. What matters is the ratio, so the
+       core drops to roughly half of what it was while the ring is pinned to
+       the same fraction of the shell it always had. */
+    const shell = Math.max(22, Math.min(58, 10.5 * Math.sqrt(g.companies.length)));
+    g.core = shell * (0.34 + Math.min(0.09, drawn / 2600));
+    g.ringR = shell * 0.78;
+
+    drawGlobeBody(g);
+
+    const rolePts = layoutRoles(drawn, g.core);
+    const byGap = rolePts.minGap * 0.45;
+    const byEdge = Math.max(0.2, g.core - rolePts.maxRadius);
+    g.jobRadius = Math.max(0.26, Math.min(1.1, byGap, byEdge));
+
+    const neighbourGap = g.companies.length > 1
+      ? 2 * g.ringR * Math.sin(Math.PI / g.companies.length)
+      : g.ringR;
+    g.coRadius = Math.max(0.7, Math.min(1.9, neighbourGap * 0.30));
+
+    /* How far a pulse may expand before it would touch the ring next door.
+       Derived from the same gap that sized the nodes, so it tightens as the
+       perimeter fills rather than needing a second number kept in step. */
+    const pulseGrow = Math.max(0.18, Math.min(1.3,
+      neighbourGap / (2 * g.coRadius * 1.34) - 1));
+
+    const bodyGeo = new THREE.SphereGeometry(g.coRadius, 20, 16);
+    const jobGeo  = new THREE.SphereGeometry(g.jobRadius, 14, 12);
+    let roleAt = 0;
+
+    g.companies.forEach((co, ci) => {
+      co.ringAngle = (ci / g.companies.length) * Math.PI * 2 - Math.PI / 2;
+      co.anchor = new THREE.Vector3();       // set per frame, in the view plane
+
+      // A company with nothing open is dimmed, not hidden.
+      const node = new THREE.Mesh(bodyGeo, new THREE.MeshBasicMaterial({
+        color: CO_COLOUR, transparent: true, opacity: co.quiet ? 0.28 : 1,
+      }));
+      node.userData = { kind:'company', co, g };
+      stage.add(node); g.coMeshes.push(node);
+
+      const halo = new THREE.Mesh(
+        new THREE.RingGeometry(g.coRadius * 1.18, g.coRadius * 1.34, 40),
+        new THREE.MeshBasicMaterial({
+          /* The role colour, not the company colour: the pulse is about what
+             is flowing out of the node, and it lands on the same green the
+             threads and the roles are drawn in. */
+          color: roleColour, transparent: true, opacity: 0.55,
+          side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending,
+        }),
+      );
+      halo.userData = { kind:'pulse', co, phase: ci / g.companies.length, grow: pulseGrow };
+      if (co.quiet) halo.visible = false;
+      stage.add(halo); g.pulses.push(halo);
+
+      const el = document.createElement('div');
+      el.className = 'orbit-lab';
+      el.textContent = co.name;
+      if (co.quiet) el.style.color = 'var(--ink-dim)';
+      $('orbit-labels').appendChild(el);
+      g.labels.push({ el, node, co, visible: true });
+
+      co.shown.forEach((job) => {
+        const pol = rolePts.points[roleAt++];
+        if (!pol) return;
+
+        /* The ring around it carries the size, so the sphere only marks the
+           centre — flat and bright reads as a plotted point, where a shaded
+           ball reads as an object sitting there. */
+        const m = new THREE.Mesh(jobGeo, new THREE.MeshBasicMaterial({
+          color: roleColour, transparent: true, opacity: 0.95,
+        }));
+        m.userData = { kind:'job', job, co, pol, g };
+        stage.add(m); g.jobMeshes.push(m);
+
+        g.links.push({ co, job, mesh: m });
+      });
+    });
+
+    buildPins(g);
+    buildLinks(g);
+    return g;
+  }
+
+  function drawGlobeBody(g){
+    const C = g.core;
+
     const body = new THREE.Mesh(
-      new THREE.SphereGeometry(CORE, 48, 36),
+      new THREE.SphereGeometry(C, 40, 30),
       new THREE.MeshPhongMaterial({
-        color: 0x4a2d8f, emissive: 0x2a1560, emissiveIntensity: 0.75,
+        color: 0x4a2d8f, emissive: 0x2a1560, emissiveIntensity: 0.7,
         shininess: 18, transparent: true, opacity: 0.20, depthWrite: false,
       }),
     );
-    body.userData = { kind:'globe' };
-    world.add(body);
+    body.userData = { kind:'globe', g };
+    stage.add(body); g.body = body;
 
-    /* The skin, as latitude and longitude rings.
-
-       A wireframe sphere was the obvious thing and the wrong one: it
-       triangulates, and the diagonals read as a tangled net laid over the
-       roles rather than as a surface behind them. Real rings have no
-       diagonals, so the eye reads curvature and then stops looking at them. */
-    const ring = (opacity) => new THREE.LineBasicMaterial({
-      color: 0xa898e8, transparent: true, opacity, depthWrite: false,
+    /* Latitude and longitude rings rather than a wireframe sphere: wireframe
+       triangulates, and the diagonals read as a net laid over the roles rather
+       than a surface behind them. */
+    const ring = (o) => new THREE.LineBasicMaterial({
+      color: 0xa898e8, transparent: true, opacity: o, depthWrite: false,
     });
-
-    const LATS = 7, MERIDIANS = 14, SEG = 96;
+    const LATS = 7, MERIDIANS = 14, SEG = 84;
 
     for (let i = 1; i <= LATS; i++){
       const phi = (i / (LATS + 1)) * Math.PI;
-      const y = Math.cos(phi) * CORE, r = Math.sin(phi) * CORE;
+      const y = Math.cos(phi) * C, r = Math.sin(phi) * C;
       const pts = [];
       for (let k = 0; k <= SEG; k++){
         const t = (k / SEG) * Math.PI * 2;
         pts.push(new THREE.Vector3(Math.cos(t) * r, y, Math.sin(t) * r));
       }
-      const line = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(pts),
-        ring(Math.abs(y) < 0.001 ? 0.16 : 0.075),
-      );
-      line.userData = { kind:'globe' };
-      world.add(line);
+      const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+        ring(Math.abs(y) < 0.001 ? 0.16 : 0.075));
+      l.userData = { kind:'globe', g };
+      stage.add(l); g.rings = g.rings || []; g.rings.push(l);
     }
-
     for (let m = 0; m < MERIDIANS; m++){
-      const theta = (m / MERIDIANS) * Math.PI * 2;
+      const th = (m / MERIDIANS) * Math.PI * 2;
       const pts = [];
       for (let k = 0; k <= SEG; k++){
         const phi = (k / SEG) * Math.PI;
         pts.push(new THREE.Vector3(
-          Math.cos(theta) * Math.sin(phi) * CORE,
-          Math.cos(phi) * CORE,
-          Math.sin(theta) * Math.sin(phi) * CORE,
-        ));
+          Math.cos(th) * Math.sin(phi) * C, Math.cos(phi) * C, Math.sin(th) * Math.sin(phi) * C));
       }
-      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ring(0.06));
-      line.userData = { kind:'globe' };
-      world.add(line);
+      const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ring(0.06));
+      l.userData = { kind:'globe', g };
+      stage.add(l); g.rings.push(l);
     }
 
-    /* Light at the core, falling off through the volume. Additive and
-       back-faced so it glows from within rather than masking what sits in
-       front of it. */
-    for (const [r, o] of [[CORE * 0.34, 0.07], [CORE * 0.62, 0.04]]){
-      const g = new THREE.Mesh(
-        new THREE.SphereGeometry(r, 24, 18),
+    for (const [r, o] of [[C * 0.34, 0.07], [C * 0.62, 0.04]]){
+      const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(r, 22, 16),
         new THREE.MeshBasicMaterial({
           color: 0xb9a4ff, transparent: true, opacity: o,
           blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide,
         }),
       );
-      g.userData = { kind:'globe' };
-      world.add(g);
+      glow.userData = { kind:'globe', g };
+      stage.add(glow); g.rings.push(glow);
     }
 
-    // Rim. Back-face only, so the sphere has an edge without a disc sitting in
-    // front of its contents.
     const rim = new THREE.Mesh(
-      new THREE.SphereGeometry(CORE * 1.06, 48, 32),
+      new THREE.SphereGeometry(C * 1.06, 40, 28),
       new THREE.MeshBasicMaterial({
         color: 0x8f6bff, transparent: true, opacity: 0.16,
         side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
       }),
     );
-    rim.userData = { kind:'globe' };
-    world.add(rim);
+    rim.userData = { kind:'globe', g };
+    stage.add(rim); g.rings.push(rim);
+
+    // Everything static sits at the globe's own centre.
+    [body, rim, ...g.rings].forEach(o => o.position.copy(g.centre));
   }
 
-  /* Distance that frames the shell at whatever shape the panel is. A fixed
-     number fits one screen and clips every other: a narrow panel is limited by
-     width, a wide one by height, so both are checked. */
+  function buildPins(g){
+    if (!g.jobMeshes.length) return;
+    g.pinPos = new Float32Array(g.jobMeshes.length * 3);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(g.pinPos, 3));
+    g.pinPoints = new THREE.Points(geo, new THREE.PointsMaterial({
+      size: g.jobRadius * 4.4, color: g.roleColour, map: pinTexture(),
+      transparent: true, opacity: 0.5, sizeAttenuation: true,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    g.pinPoints.userData = { kind:'globe', g };
+    stage.add(g.pinPoints);
+  }
+
+  /* Two link layers, because a LineSegments has one material and therefore one
+     opacity: it cannot hold dim and bright threads at once. The base layer
+     says a web exists; the lit layer carries the threads actually guiding. */
+  function buildLinks(g){
+    if (!g.links.length) return;
+
+    g.linkPos = new Float32Array(g.links.length * 6);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(g.linkPos, 3));
+    g.linkSegs = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
+      color: g.roleColour, transparent: true, opacity: 0.035, depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }));
+    g.linkSegs.userData = { kind:'globe', g };
+    stage.add(g.linkSegs);
+
+    g.litPos = new Float32Array(g.links.length * 6);
+    const lgeo = new THREE.BufferGeometry();
+    lgeo.setAttribute('position', new THREE.BufferAttribute(g.litPos, 3));
+    lgeo.setDrawRange(0, 0);
+    g.linkLit = new THREE.LineSegments(lgeo, new THREE.LineBasicMaterial({
+      color: 0xffffff, transparent: true, opacity: 0.8, depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }));
+    g.linkLit.userData = { kind:'globe', g };
+    stage.add(g.linkLit);
+
+    g.travelPos = new Float32Array(g.links.length * 3);
+    const tgeo = new THREE.BufferGeometry();
+    tgeo.setAttribute('position', new THREE.BufferAttribute(g.travelPos, 3));
+    tgeo.setDrawRange(0, 0);
+    g.travelPoints = new THREE.Points(tgeo, new THREE.PointsMaterial({
+      size: 2.0, color: 0xffffff, map: dotTexture(),
+      transparent: true, opacity: 1, sizeAttenuation: true,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    g.travelPoints.userData = { kind:'globe', g };
+    stage.add(g.travelPoints);
+  }
+
+  /* ------------------------------------------------------------------ *
+     Build both
+   * ------------------------------------------------------------------ */
+
+  function build(){
+    if (!ready) init();
+    if (!ready) return;
+    clearAll();
+
+    const opco = filteredJobs('opco');
+    const prop = filteredJobs('proptech');
+
+    // Provisional sizes, so the two can be placed before either is built.
+    const sizeOf = (jobs) => {
+      const names = new Set(jobs.map(j => j.company));
+      ROSTER.forEach(r => { if (r.hub === (jobs === opco ? 'opco' : 'proptech')) names.add(r.name); });
+      return Math.max(22, Math.min(58, 10.5 * Math.sqrt(Math.max(names.size, 1))));
+    };
+    const rOpco = sizeOf(opco) * 0.78;
+    const rProp = sizeOf(prop) * 0.78;
+
+    /* Separation measured from the two rings rather than fixed, so the gap
+       between them stays the same whether one side has seven companies and the
+       other thirty. A constant offset has them overlapping on one board and
+       marooned on another. */
+    /* Centres are placed so the two rings clear each other by `gap`, which is
+       the distance between centres minus both radii — not the total width.
+       Splitting the total width instead puts the centres too close and the
+       rings intersect, which is exactly what it did. */
+    const gap = Math.max(rOpco, rProp) * 0.42;
+    const between = rOpco + gap + rProp;      // centre to centre
+    const xOpco = -between / 2;
+    const xProp =  between / 2;
+    const span = between + rOpco + rProp;     // outer edge to outer edge
+
+    globes.push(buildGlobe('opco', opco, new THREE.Vector3(xOpco, 0, 0)));
+    globes.push(buildGlobe('proptech', prop, new THREE.Vector3(xProp, 0, 0)));
+
+    worldSpan = span;
+
+    resize();
+    dist = fitDistance();
+    emphasise();
+  }
+
+  let worldSpan = 120;
+
+  /* Frames both globes side by side. Width is what binds here, not height, so
+     the horizontal field of view is the one that matters — using the vertical
+     one crops the outer edges on any wide panel. */
   function fitDistance(){
     const vFov = camera.fov * Math.PI / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return Math.max(70, Math.min(300, (CORE * 1.24 * 1.46) / Math.tan(Math.min(vFov, hFov) / 2)));
+    const byWidth  = (worldSpan * 0.62) / Math.tan(hFov / 2);
+    const byHeight = (Math.max(...globes.map(g => g.ringR), 20) * 1.5) / Math.tan(vFov / 2);
+    /* Capped high enough for the widest pair on the narrowest screen. A
+       tighter cap looks harmless on a desktop and quietly crops both globes on
+       a phone, which is the kind of thing nobody reports because it looks
+       deliberate. */
+    return Math.max(80, Math.min(1100, Math.max(byWidth, byHeight)));
   }
 
-  /* Every role currently passing the filters, whichever side of the globe it
-     happens to be on. Hovering one lifts its node so the list and the globe
-     stay tied together; clicking opens the same drawer the node does. */
-  /* The side rails were removed to give the globe the full width. Both
-     functions stay as no-ops so every existing call site keeps working; the
-     List view remains the place to read roles as text. */
-  function drawJobList(){
-    jobListRefs = jobMeshes.filter(m => m.material.opacity > LIT);
-  }
+  /* ------------------------------------------------------------------ *
+     Emphasis, hover, trace
+   * ------------------------------------------------------------------ */
 
-  function drawRail(){ /* rails removed — companies are selected on the globe */ }
-
-  /* Dim rather than hide: the shape of the whole network stays readable while
-     one company is being looked at. */
+  /* The hub toggle no longer switches datasets here — both are always drawn —
+     so it dims the other side instead. Hiding it would defeat the point of
+     showing them together. */
   function emphasise(){
-    const lit = co => !focus || co.name === focus;
-    world.children.forEach(o => {
-      const co = o.userData?.co;
-      if (!co) return;
-      const on = lit(co);
-      const k = o.userData.kind;
-      if (k === 'job')        o.material.opacity = on ? 0.92 : 0.06;
-      else if (k === 'arm')   o.material.opacity = on ? (focus ? 0.4 : o.userData.base) : 0.015;
-      else                    o.material.opacity = on ? 1 : 0.12;
-    });
-    labels.forEach(l => { l.visible = lit(l.co); });
-    drawJobList();
+    for (const g of globes){
+      const on = g.hub === hub;
+      for (const m of g.jobMeshes) m.material.opacity = on ? 0.95 : 0.16;
+      for (const n of g.coMeshes){
+        n.material.opacity = on ? (n.userData.co.quiet ? 0.28 : 1) : 0.14;
+      }
+      for (const p of g.pulses) p.visible = on && !p.userData.co.quiet;
+      if (g.pinPoints) g.pinPoints.material.opacity = on ? 0.5 : 0.08;
+      if (g.linkSegs) g.linkSegs.material.opacity = on ? 0.035 : 0.012;
+      if (g.body) g.body.material.opacity = on ? 0.20 : 0.09;
+      for (const l of g.labels) l.visible = true;      // both sides stay labelled
+      for (const r of (g.rings || [])) r.material.opacity *= 1;   // left as built
+    }
     tally();
   }
 
-  /* The count line said "169 roles across 7 companies", which is the count of
-     companies currently showing roles rather than the number on the board —
-     accurate but misleading, and the stat line above the globe already carries
-     the real figures. Only the empty case still needs saying. */
   function tally(){
-    const shown = jobMeshes.filter(m => m.material.opacity > LIT);
-    $('count').textContent = shown.length ? '' : 'No roles match those filters.';
+    const shown = globes.reduce((n, g) => n + g.jobMeshes.length, 0);
+    $('count').textContent = shown ? '' : 'No roles match those filters.';
   }
 
   function place(){
@@ -3657,50 +3573,20 @@ const Orbit = (() => {
     camera.updateProjectionMatrix();
   }
 
+  function pickables(){
+    // Roles only, and only on the hub in focus: the other globe is context.
+    const out = [];
+    for (const g of globes) if (g.hub === hub) out.push(...g.jobMeshes);
+    return out;
+  }
+
   function pick(e){
     const r = viewport();
     ndc.x = ((e.clientX - r.left) / VW) * 2 - 1;
     ndc.y = -((e.clientY - r.top) / VH) * 2 + 1;
     ray.setFromCamera(ndc, camera);
-    /* Roles only. The companies are the fixed base the roles hang off — they
-       hold still and take no input, so they are not offered to the raycaster
-       at all rather than being hit and then ignored. */
-    const hits = ray.intersectObjects(jobMeshes, false);
+    const hits = ray.intersectObjects(pickables(), false);
     return hits.find(h => h.object.material.opacity > LIT)?.object || null;
-  }
-
-  /* Which threads are traced right now. Hovering a company lights every thread
-     it owns; hovering a role lights the one thread it sits on. Falls back to
-     the isolated company so the trace survives after a click. */
-  function setTrace(){
-    litLinks.length = 0;
-    /* Only a role can be hovered now, and it traces its own thread back to its
-       company. Nothing lights the whole company at once, because nothing can
-       be hovered that means "this company". */
-    let co = null, job = null;
-    if (hot && hot.userData.kind === 'job'){ co = hot.userData.co; job = hot.userData.job; }
-
-    if (co){
-      for (let i = 0; i < links.length; i++){
-        if (links[i].co !== co) continue;
-        if (job && links[i].job !== job) continue;
-        litLinks.push(i);
-        if (litLinks.length >= litCap) break;
-      }
-    }
-    if (linkLit) linkLit.geometry.setDrawRange(0, litLinks.length * 2);
-    paintTravellers();
-  }
-
-  /* Every dot on screen is on a thread that is currently guiding, so they are
-     all the same colour — the emphasis is carried by which threads are lit at
-     all, not by shading the dots against each other. */
-  function paintTravellers(){
-    if (!travelCol) return;
-    for (let i = 0; i < travelCol.length; i += 3){
-      travelCol[i] = 1; travelCol[i+1] = 1; travelCol[i+2] = 1;
-    }
-    if (travelPoints) travelPoints.geometry.attributes.color.needsUpdate = true;
   }
 
   function hover(e){
@@ -3708,12 +3594,11 @@ const Orbit = (() => {
     if (obj === hot){ if (hot) placeCard(e); return; }
     if (hot) hot.scale.setScalar(1);
     hot = obj;
-    setTrace();
 
     const card = $('orbit-card');
     if (!hot){ card.classList.remove('is-on'); canvas().style.cursor = 'grab'; return; }
 
-    hot.scale.setScalar(1.7);
+    hot.scale.setScalar(1.8);
     canvas().style.cursor = 'pointer';
     const d = hot.userData;
     card.innerHTML =
@@ -3727,10 +3612,8 @@ const Orbit = (() => {
   function placeCard(e){
     const card = $('orbit-card');
     const box = $('orbit-view').getBoundingClientRect();
-    const x = e.clientX - box.left + 14;
-    const y = e.clientY - box.top + 14;
-    card.style.left = Math.min(x, box.width - card.offsetWidth - 12) + 'px';
-    card.style.top  = Math.min(y, box.height - card.offsetHeight - 12) + 'px';
+    card.style.left = Math.min(e.clientX - box.left + 14, box.width - card.offsetWidth - 12) + 'px';
+    card.style.top  = Math.min(e.clientY - box.top + 14, box.height - card.offsetHeight - 12) + 'px';
   }
 
   function wire(){
@@ -3749,7 +3632,7 @@ const Orbit = (() => {
         const dx = e.clientX - px, dy = e.clientY - py;
         moved += Math.abs(dx) + Math.abs(dy);
         yaw -= dx * 0.005;
-        pitch = Math.max(-1.35, Math.min(1.35, pitch + dy * 0.005));
+        pitch = Math.max(-1.2, Math.min(1.2, pitch + dy * 0.005));
         px = e.clientX; py = e.clientY;
       }
       hover(e);
@@ -3760,215 +3643,169 @@ const Orbit = (() => {
     });
     c.addEventListener('wheel', e => {
       e.preventDefault();
-      dist = Math.max(58, Math.min(280, dist + e.deltaY * 0.09));
+      dist = Math.max(70, Math.min(1100, dist + e.deltaY * 0.12));
     }, { passive:false });
 
     c.addEventListener('click', e => {
-      if (moved > 6) return;                    // that was a drag
+      if (moved > 6) return;                 // that was a drag
       const obj = pick(e);
-      if (!obj) return;
-      if (obj.userData.kind === 'job') openDrawer(obj.userData.job.id);
+      if (obj) openDrawer(obj.userData.job.id);
     });
 
-    /* Hovering a row lifts its node, so it is obvious which speck on the globe
-       the row refers to — otherwise the list is just a list sitting next to an
-       unrelated picture. */
-    /* The hint bar that used to carry a pause and a recentre button is gone,
-       so the keyboard is the only way to reach them: R recentres, space stops
-       and starts the drift. Both are conveniences rather than requirements —
-       dragging already recentres in practice, and the globe is still by
-       default. */
-    canvas().setAttribute('tabindex', '0');
-    canvas().addEventListener('keydown', (e) => {
+    c.setAttribute('tabindex', '0');
+    c.addEventListener('keydown', (e) => {
       if (e.key === 'r' || e.key === 'R'){
-        yaw = 0.6; pitch = 0.44; dist = fitDistance(); focus = null;
-        drawRail(); emphasise(); setTrace();
-        e.preventDefault();
+        yaw = 0.6; pitch = 0.30; dist = fitDistance(); e.preventDefault();
       }
       if (e.key === ' '){ spinning = !spinning; e.preventDefault(); }
     });
 
-    // A panel can change size without the window doing so.
     if (window.ResizeObserver) new ResizeObserver(() => { if (raf) resize(); }).observe(c);
   }
+
+  /* ------------------------------------------------------------------ *
+     Frame
+   * ------------------------------------------------------------------ */
 
   function frame(){
     raf = requestAnimationFrame(frame);
     if (spinning && !dragging) yaw += 0.0013;
     place();
 
-    /* Hold the company ring in the plane of the screen.
-
-       Built from the camera's own right and up vectors, so the circle is
-       always face-on: the companies keep their positions on screen however the
-       globe is turned, and none of them ever swings behind it. That is what
-       makes the ring read as a perimeter rather than as a band wrapped around
-       a sphere. */
+    const r = viewport();
     camRight.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
     camUp.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
-    const ringR = CORE * 1.24;   // matches ringRadius used when sizing nodes
 
-    for (const node of coMeshes){
-      const co = node.userData.co;
-      co.anchor.copy(camRight).multiplyScalar(Math.cos(co.ringAngle) * ringR)
-        .addScaledVector(camUp, Math.sin(co.ringAngle) * ringR);
-      node.position.copy(co.anchor);
-    }
-    /* Roles sit on the same plane, so a gap measured in the layout is the gap
-       on screen — nothing can hide behind anything else. */
-    for (const m of jobMeshes){
-      const pol = m.userData.pol;
-      m.position.copy(camRight).multiplyScalar(Math.cos(pol.theta) * pol.r)
-        .addScaledVector(camUp, Math.sin(pol.theta) * pol.r);
-    }
+    const T = performance.now() * 0.00009;
+    const WINDOW = 0.16;
 
-    if (pinPoints && pinPos){
-      for (let i = 0; i < jobMeshes.length; i++){
-        const q = jobMeshes[i].position;
-        pinPos[i*3] = q.x; pinPos[i*3+1] = q.y; pinPos[i*3+2] = q.z;
-      }
-      pinPoints.geometry.attributes.position.needsUpdate = true;
-    }
-
-    /* The pulse rings. Billboarded to the camera so they always read as
-       circles rather than ellipses, and expanding on a loop that resets
-       sharply — a slow fade out and a quick return looks like a signal, an
-       even sine looks like breathing. */
-    if (pulses.length){
-      const now = performance.now() * 0.00035;
-      for (const ring of pulses){
-        ring.position.copy(ring.userData.co.anchor);
-        ring.quaternion.copy(camera.quaternion);
-        const k = (now + ring.userData.phase) % 1;
-        ring.scale.setScalar(1 + k * ring.userData.grow);
-        ring.material.opacity = 0.45 * (1 - k) * (1 - k);
-      }
-    }
-
-    // The company end of every link moved, so rewrite the segments.
-    if (linkSegs && links.length){
-      for (let i = 0; i < links.length; i++){
-        const L = links[i], a = L.co.anchor, b = L.mesh.position;
-        linkPos[i*6]   = a.x; linkPos[i*6+1] = a.y; linkPos[i*6+2] = a.z;
-        linkPos[i*6+3] = b.x; linkPos[i*6+4] = b.y; linkPos[i*6+5] = b.z;
-      }
-      linkSegs.geometry.attributes.position.needsUpdate = true;
-    }
-
-
-
-    /* Which threads are guiding right now.
-
-       The lines exist to point at a role, and a pointer nobody can follow is
-       not a pointer. Drawing all two hundred and sixty at a readable weight
-       gives a ball of string; drawing them all faintly gives wallpaper. So
-       each thread takes a turn: it brightens, a dot runs its length to the
-       role at the end, and it fades again, with phases spread so a couple of
-       dozen are live at any moment and the whole set cycles through.
-
-       Hovering overrides the rota — a thread being traced deliberately stays
-       lit for as long as the cursor is on it. */
-    if (linkLit && links.length){
-      const T = performance.now() * 0.00009;
-      const WINDOW = 0.16;                 // fraction of the cycle a thread is live
-      const forced = new Set(litLinks);    // whatever the cursor is tracing
-      let litN = 0, dotN = 0;
-
-      for (let i = 0; i < links.length; i++){
-        const L = links[i], a = L.co.anchor, b = L.mesh.position;
-
-        // Where this thread sits in its own cycle.
-        const cycle = (T + (i * 0.6180339887) % 1) % 1;
-        const live = forced.has(i) || cycle < WINDOW;
-        if (!live) continue;
-
-        litPos[litN*6]   = a.x; litPos[litN*6+1] = a.y; litPos[litN*6+2] = a.z;
-        litPos[litN*6+3] = b.x; litPos[litN*6+4] = b.y; litPos[litN*6+5] = b.z;
-        litN++;
-
-        /* The dot runs the thread across the window and stops at the role.
-           A traced thread loops instead, so the pointer keeps repeating for
-           as long as someone is looking at it. */
-        let k = forced.has(i) ? (T * 6) % 1 : cycle / WINDOW;
-        const e = k * k * (3 - 2 * k);     // slow at each end, quick between
-        travelPos[dotN*3]   = a.x + (b.x - a.x) * e;
-        travelPos[dotN*3+1] = a.y + (b.y - a.y) * e;
-        travelPos[dotN*3+2] = a.z + (b.z - a.z) * e;
-        dotN++;
+    for (const g of globes){
+      /* The company ring, held in the plane of the screen around this globe's
+         own centre. On a 3D ring the companies swing behind the sphere and the
+         perimeter stops being a perimeter. */
+      for (const node of g.coMeshes){
+        const co = node.userData.co;
+        co.anchor.copy(g.centre)
+          .addScaledVector(camRight, Math.cos(co.ringAngle) * g.ringR)
+          .addScaledVector(camUp, Math.sin(co.ringAngle) * g.ringR);
+        node.position.copy(co.anchor);
       }
 
-      linkLit.geometry.setDrawRange(0, litN * 2);
-      linkLit.geometry.attributes.position.needsUpdate = true;
-      linkLit.visible = litN > 0;
-
-      if (travelPoints){
-        travelPoints.geometry.setDrawRange(0, dotN);
-        travelPoints.geometry.attributes.position.needsUpdate = true;
-        travelPoints.visible = dotN > 0;
+      // Roles on the same plane, so a measured gap is the gap on screen.
+      for (const m of g.jobMeshes){
+        const pol = m.userData.pol;
+        m.position.copy(g.centre)
+          .addScaledVector(camRight, Math.cos(pol.theta) * pol.r)
+          .addScaledVector(camUp, Math.sin(pol.theta) * pol.r);
       }
+
+      if (g.pinPoints && g.pinPos){
+        for (let i = 0; i < g.jobMeshes.length; i++){
+          const q = g.jobMeshes[i].position;
+          g.pinPos[i*3] = q.x; g.pinPos[i*3+1] = q.y; g.pinPos[i*3+2] = q.z;
+        }
+        g.pinPoints.geometry.attributes.position.needsUpdate = true;
+      }
+
+      // Pulse rings, billboarded so they read as circles rather than ellipses.
+      for (const p of g.pulses){
+        if (!p.visible) continue;
+        p.position.copy(p.userData.co.anchor);
+        p.quaternion.copy(camera.quaternion);
+        const k = (T * 4 + p.userData.phase) % 1;
+        p.scale.setScalar(1 + k * p.userData.grow);
+        p.material.opacity = 0.45 * (1 - k) * (1 - k);
+      }
+
+      if (!g.links.length) continue;
+
+      // Base layer: every thread, at a whisper.
+      for (let i = 0; i < g.links.length; i++){
+        const L = g.links[i], a = L.co.anchor, b = L.mesh.position;
+        g.linkPos[i*6]   = a.x; g.linkPos[i*6+1] = a.y; g.linkPos[i*6+2] = a.z;
+        g.linkPos[i*6+3] = b.x; g.linkPos[i*6+4] = b.y; g.linkPos[i*6+5] = b.z;
+      }
+      g.linkSegs.geometry.attributes.position.needsUpdate = true;
+
+      /* Which threads are guiding right now.
+
+         The lines exist to point at a role, and a pointer nobody can follow is
+         not a pointer. All of them bright is a ball of string; all of them
+         faint is wallpaper. So each takes a turn: it brightens, a dot runs its
+         length to the role at the end, and it fades. Only the hub in focus
+         guides — two sets of animation at once would compete. */
+      const active = g.hub === hub;
+      let litN = 0;
+      if (active){
+        const hoverJob = hot && hot.userData.g === g ? hot.userData.job : null;
+        for (let i = 0; i < g.links.length; i++){
+          const L = g.links[i];
+          const cycle = (T + (i * 0.6180339887) % 1) % 1;
+          const forced = hoverJob && L.job === hoverJob;
+          if (!forced && cycle >= WINDOW) continue;
+
+          const a = L.co.anchor, b = L.mesh.position;
+          g.litPos[litN*6]   = a.x; g.litPos[litN*6+1] = a.y; g.litPos[litN*6+2] = a.z;
+          g.litPos[litN*6+3] = b.x; g.litPos[litN*6+4] = b.y; g.litPos[litN*6+5] = b.z;
+
+          const k = forced ? (T * 6) % 1 : cycle / WINDOW;
+          const e = k * k * (3 - 2 * k);        // slow at each end, quick between
+          g.travelPos[litN*3]   = a.x + (b.x - a.x) * e;
+          g.travelPos[litN*3+1] = a.y + (b.y - a.y) * e;
+          g.travelPos[litN*3+2] = a.z + (b.z - a.z) * e;
+          litN++;
+        }
+      }
+
+      g.linkLit.geometry.setDrawRange(0, litN * 2);
+      g.linkLit.geometry.attributes.position.needsUpdate = true;
+      g.linkLit.visible = litN > 0;
+
+      g.travelPoints.geometry.setDrawRange(0, litN);
+      g.travelPoints.geometry.attributes.position.needsUpdate = true;
+      g.travelPoints.visible = litN > 0;
     }
 
-    const r = viewport();
-    camera.getWorldDirection(camDir);
-
-    /* Name only the companies on the near face when the roster is large —
-       thirty-five labels at once is a wall of text. With a handful there is
-       nothing to crowd, so hiding any of them just looks broken. */
-    /* Companies sit on a ring, so most of them face the camera at once and the
-       names pile up — "CompTheGuarantors" is two labels on top of each other,
-       not a company. Project them all, sort near to far, and drop any that
-       would land on a name already placed. The nearest wins, which is the one
-       the eye is drawn to anyway. */
-    /* Labels sit outside the ring, pushed away from the globe along the line
-       from its centre through their node.
-
-       Centring a label on its node put the text straight over the orb, and on
-       a ring of thirty-five it also put neighbouring names on top of each
-       other. Offsetting radially fixes both at once: the names splay outward
-       like numbers on a clock face, so they gain room as they go and nothing
-       covers the node it belongs to. */
+    /* Labels, placed outside each ring along the line from its own globe's
+       centre, so names splay outward like numbers on a clock face and nothing
+       covers the node it belongs to. Collisions are resolved across both
+       globes at once, since a label from one can land on a label from the
+       other. */
     const placed = [];
     const candidates = [];
 
-    // Where the globe's centre lands on screen, to measure "outward" from.
-    v.set(0, 0, 0).project(camera);
-    const cx = (v.x * 0.5 + 0.5) * VW;
-    const cy = (-v.y * 0.5 + 0.5) * VH;
+    for (const g of globes){
+      v.copy(g.centre).project(camera);
+      const cx = (v.x * 0.5 + 0.5) * VW, cy = (-v.y * 0.5 + 0.5) * VH;
 
-    for (const l of labels){
-      if (!l.visible){ l.el.style.opacity = 0; continue; }
-      v.copy(l.node.position).project(camera);
-      if (v.z > 1){ l.el.style.opacity = 0; continue; }
+      for (const l of g.labels){
+        v.copy(l.node.position).project(camera);
+        if (v.z > 1){ l.el.style.opacity = 0; continue; }
+        const nx = (v.x * 0.5 + 0.5) * VW, ny = (-v.y * 0.5 + 0.5) * VH;
 
-      const nx = (v.x * 0.5 + 0.5) * VW;
-      const ny = (-v.y * 0.5 + 0.5) * VH;
+        let dx = nx - cx, dy = ny - cy;
+        const len = Math.hypot(dx, dy) || 1;
+        dx /= len; dy /= len;
 
-      let dx = nx - cx, dy = ny - cy;
-      const len = Math.hypot(dx, dy) || 1;
-      dx /= len; dy /= len;
-
-      // Clear of the orb: its on-screen radius plus a little air.
-      const gap = (coRadius / len) * 0 + 18 + coRadius * 3.2;
-      const w = l.el.offsetWidth || l.co.name.length * 6.2;
-
-      candidates.push({
-        l,
-        x: nx + dx * gap,
-        y: ny + dy * gap,
-        // Text grows away from the globe rather than back across it.
-        align: dx < -0.25 ? 'right' : dx > 0.25 ? 'left' : 'centre',
-        depth: camera.position.distanceTo(l.node.position),
-        w,
-      });
+        candidates.push({
+          l, g,
+          x: nx + dx * (16 + g.coRadius * 3),
+          y: ny + dy * (16 + g.coRadius * 3),
+          align: dx < -0.25 ? 'right' : dx > 0.25 ? 'left' : 'centre',
+          depth: camera.position.distanceTo(l.node.position),
+          w: l.el.offsetWidth || l.co.name.length * 6.4,
+          dim: g.hub !== hub,
+        });
+      }
     }
-    candidates.sort((a, b) => a.depth - b.depth);
+    candidates.sort((a, b) => (a.dim - b.dim) || (a.depth - b.depth));
 
     for (const c of candidates){
       const clash = placed.some(q =>
         Math.abs(q.y - c.y) < 14 && Math.abs(q.x - c.x) < (q.w + c.w) / 2 + 8);
       if (clash){ c.l.el.style.opacity = 0; continue; }
       placed.push(c);
-      c.l.el.style.opacity = 0.92;
+      c.l.el.style.opacity = c.dim ? 0.3 : 0.92;
       c.l.el.style.left = c.x + 'px';
       c.l.el.style.top  = c.y + 'px';
       c.l.el.style.transform =
@@ -3982,9 +3819,12 @@ const Orbit = (() => {
 
   return {
     build,
+    /* The hub toggle only changes emphasis now, so a rebuild is wasted work
+       and would throw away the camera position with it. */
+    refocus(){ if (globes.length) emphasise(); },
     show(){
       if (typeof THREE === 'undefined'){
-        $('count').textContent = 'The 3D view needs WebGL, which did not load. Graph and List still work.';
+        $('count').textContent = 'The 3D view needs WebGL, which did not load. The List view still works.';
         return;
       }
       init();
