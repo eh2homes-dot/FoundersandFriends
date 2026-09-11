@@ -257,7 +257,7 @@ export const COMPANIES = [
     id: "appfolio",
     name: "AppFolio",
     hub: "proptech",
-    careersUrl: "https://www.appfolio.com/company/careers",
+    careersUrl: "https://www.appfolio.com/open-roles",
     website: "https://www.appfolio.com",
     state: "California",
     segment: "Property Management Software",
@@ -366,8 +366,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Title Insurance / Mortgage Tech",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "doma",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -691,8 +691,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Real Estate Agent Marketing Platform",
     verified: false,
-    method: "lever",   // greenhouse | lever | workday | dom
-    atsSlug: "luxurypresence",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -847,8 +847,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "CRE Comparable Data Platform",
     verified: true,
-    method: "lever",   // greenhouse | lever | workday | dom
-    atsSlug: "compstak",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -977,8 +977,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Multifamily Leasing CRM",
     verified: false,
-    method: "workable",   // greenhouse | lever | workday | dom
-    atsSlug: "funnel-leasing",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1045,8 +1045,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Digital Mortgage Platform",
     verified: false,
-    method: "ashby",   // greenhouse | lever | workday | dom
-    atsSlug: "better-mortgage",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
   },
   {
@@ -1266,7 +1266,7 @@ export const COMPANIES = [
     state: "Arizona",
     segment: "iBuying / Real Estate Transactions",
     verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -1707,8 +1707,8 @@ export const COMPANIES = [
     state: "North Carolina",
     segment: "Office REIT",
     verified: false,
-    method: "ukg",   // greenhouse | lever | workday | dom
-    atsSlug: "HIG1001HIW/cf2a3a89-ceb7-4bb7-aa13-3167c6417621",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: false,
     // PARKED — Office REIT. Kept for reference; set active:true to include.
   },
