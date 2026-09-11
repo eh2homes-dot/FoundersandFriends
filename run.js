@@ -762,7 +762,24 @@ async function ukg(company) {
           Skip: skip,
           QueryString: '',
           OrderBy: [{ Value: 'postedDateDesc', PropertyName: 'PostedDate', Ascending: false }],
-          Filters: [],
+          // These three filter stubs look pointless and are not. A minimal body
+          // returns HTTP 200 with an empty opportunities array on some tenants,
+          // which reads as "not hiring" rather than as a malformed request —
+          // exactly how VineBrook failed on the first attempt. This mirrors what
+          // the board's own frontend sends.
+          Filters: [
+            { t: 'TermsSearchFilterDto', fieldName: 4, extra: null, values: [] },
+            { t: 'TermsSearchFilterDto', fieldName: 5, extra: null, values: [] },
+            { t: 'TermsSearchFilterDto', fieldName: 6, extra: null, values: [] },
+          ],
+        },
+        matchCriteria: {
+          PreferredJobs: [],
+          Educations: [],
+          LicenseAndCertifications: [],
+          Skills: [],
+          hasNoLicenses: false,
+          SkippedSkills: [],
         },
       }),
     });
@@ -778,6 +795,12 @@ async function ukg(company) {
     all.push(...page);
 
     const total = body.totalCount ?? all.length;
+    if (!all.length && total === 0 && skip === 0) {
+      // Distinguish "this board is genuinely empty" from "the request was
+      // shaped wrong and the board ignored it". Both return 200 with an empty
+      // array, so the count it claims to hold is the only signal available.
+      throw new Error('ukg board reports 0 total openings — check the board id, or the company really is not hiring');
+    }
     if (page.length < PAGE || all.length >= total) break;
     await sleep(250);
   }
@@ -1009,6 +1032,66 @@ const purged = carriedRaw.length - carried.length;
 const outOfScope = carried.filter((j) => !failedIds0.has(j.company_id)).length;
 const fromFailed = carried.length - outOfScope;
 
+/* --------------------------------------------------------------------------
+   Role targeting
+   --------------------------------------------------------------------------
+   The board exists to serve senior operators and the people who hire them, and
+   the business runs on placement fees. A maintenance technician posting is a
+   real job, but it is not a role anyone pays a placement fee on and it is not
+   what an executive audience comes here to read. Volume that does not convert
+   is noise, and at 50-odd postings per large operator it drowns everything
+   else on the page.
+
+   Two rules, in order:
+
+   1. Seniority wins. A Director of Maintenance is a leadership hire worth a
+      fee; a Maintenance Technician II is not. The same word appears in both,
+      so matching on the word alone would throw away the wrong half. Seniority
+      is checked first and overrides every exclusion below it.
+
+   2. Then exclude the individual-contributor operational families.
+
+   Compensation is deliberately NOT a gate. Most postings publish no salary at
+   all — Workday and DOM sources return titles only — so a $100k floor applied
+   literally would delete nearly every operator role including the senior ones
+   this filter exists to protect. It is used as a sort signal instead.
+
+   Nothing here touches what gets collected. job_history still records every
+   role from every scrape, because maintenance hiring volume across SFR
+   operators is a genuine market signal and the data layer is the long-term
+   asset. This filters the published feed only.
+   -------------------------------------------------------------------------- */
+
+/** Manager and above. Checked before any exclusion, and beats all of them. */
+const SENIOR = /\b(chief|c[ftoi]o\b|president|founder|partner|principal|head of|vice president|\bvp\b|\bsvp\b|\bevp\b|director|senior director|managing director|general manager|regional manager|regional director|area manager|portfolio manager|division manager|controller|counsel|senior manager)\b/i;
+
+/** Individual-contributor operational roles the board no longer publishes. */
+const EXCLUDED = [
+  [/\b(maintenance|service|construction|field|turnover|make[- ]ready|facilit(y|ies))\s+(tech|technician|associate|specialist|worker|assistant|helper)/i, 'field technician'],
+  [/\b(tech|technician)\s+(i{1,3}|[123])\b/i, 'technician'],
+  [/\b(technician|electrician|plumber|hvac|handyman|handyperson|groundskeeper|porter|janitor|janitorial|housekeep|custodian|landscap|painter|carpenter)\b/i, 'trades'],
+  [/\bquality assurance\s+(specialist|analyst|associate|inspector)\b/i, 'QA specialist'],
+  [/\bqa\s+(specialist|inspector)\b/i, 'QA specialist'],
+  [/\b(leasing|sales)\s+(agent|consultant|associate|professional)\b/i, 'leasing agent'],
+  [/\b(administrative|admin|office)\s+(assistant|coordinator|associate|support|specialist)\b/i, 'admin support'],
+  [/\b(receptionist|data entry|file clerk|mail\s?room)\b/i, 'admin support'],
+  [/\bcustomer (service|support)\s+(representative|rep|associate|agent)\b/i, 'support rep'],
+  [/\b(intern|internship|apprentice)\b/i, 'intern'],
+];
+
+/**
+ * Should this role appear on the board?
+ * Returns null to publish, or a short reason string to drop.
+ */
+function excludeReason(job) {
+  const title = String(job.title || '');
+  if (SENIOR.test(title)) return null;       // rule 1: seniority overrides
+  for (const [re, reason] of EXCLUDED) {
+    if (re.test(title)) return reason;
+  }
+  return null;
+}
+
 const all = [...fresh, ...carried];
 
 console.log('\n' + '-'.repeat(60));
@@ -1054,18 +1137,24 @@ if (priorityFailed.length) {
 }
 
 // Per-hub totals, so "no OpCo roles" is visible in the log rather than only
-// on the live site.
+// on the live site. Counted on the published set, because that is what the
+// board shows — reporting the collected figure here would overstate it.
 for (const h of ['opco', 'proptech']) {
-  const n = all.filter((j) => j.hub === h).length;
-  const src = new Set(all.filter((j) => j.hub === h).map((j) => j.company)).size;
-  console.log(`${h.padEnd(9)} ${String(n).padStart(4)} roles from ${src} companies`);
+  const n = published.filter((j) => j.hub === h).length;
+  const src = new Set(published.filter((j) => j.hub === h).map((j) => j.company)).size;
+  const held = all.filter((j) => j.hub === h).length - n;
+  console.log(`${h.padEnd(9)} ${String(n).padStart(4)} roles from ${src} companies` +
+    (held ? `  (${held} held back)` : ''));
   if (n === 0) console.log(`          ^ nothing for the ${h} hub — check the failures above`);
 }
 
 // Refuse to publish an empty feed. Better to leave yesterday's file in place
-// than to replace a working board with nothing.
-if (!all.length) {
-  console.error('\nNo jobs collected — refusing to write an empty feed.');
+// than to replace a working board with nothing. Checked on the published set:
+// a filter tuned too aggressively would empty the board while the collection
+// looked healthy, and that should stop the run just as a failed scrape does.
+if (!published.length) {
+  console.error(`\nNo publishable jobs — refusing to write an empty feed.` +
+    (all.length ? `  (${all.length} collected, all held back by the role filter)` : ''));
   process.exit(1);
 }
 
@@ -1079,16 +1168,34 @@ if (args.dry) {
 // so GitHub emails you instead of the problem going unnoticed for weeks.
 const totalFailure = ready.length > 0 && okResults.length === 0;
 
+// Applied to the published feed only. `fresh` is what goes to job_history a
+// few lines below, and it stays whole.
+const dropped = new Map();
+const published = all.filter((j) => {
+  const reason = excludeReason(j);
+  if (!reason) return true;
+  dropped.set(reason, (dropped.get(reason) || 0) + 1);
+  return false;
+});
+
 const feed = {
   generated_at: new Date().toISOString(),
-  count: all.length,
+  count: published.length,
   sources_ok: okResults.length,
   sources_failed: failed.length,
-  jobs: all.sort((a, b) => (b.posted_at || '').localeCompare(a.posted_at || '')),
+  jobs: published.sort((a, b) => (b.posted_at || '').localeCompare(a.posted_at || '')),
 };
 
 await writeFile(OUT, JSON.stringify(feed, null, 2) + '\n');
-console.log(`\nwrote ${OUT} — ${all.length} roles`);
+console.log(`\nwrote ${OUT} — ${published.length} roles`);
+
+if (dropped.size) {
+  const total = [...dropped.values()].reduce((a, b) => a + b, 0);
+  console.log(`\nheld back ${total} of ${all.length} roles from the board ` +
+    `(still recorded in history):`);
+  [...dropped].sort((a, b) => b[1] - a[1])
+    .forEach(([reason, n]) => console.log(`  ${String(n).padStart(4)}  ${reason}`));
+}
 
 /* --------------------------------------------------------------------------
    Send the snapshot to the history table.
