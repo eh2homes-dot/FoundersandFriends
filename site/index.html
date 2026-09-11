@@ -261,13 +261,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-axis{stroke-width:1}
 
 /* the outer circle the companies ride on */
-/* One unbroken circle the whole way round. */
-.g-ring{fill:none;stroke:rgba(200,197,218,.17);stroke-width:1}
-/* The lit stretch where each side's companies sit, drawn over the ring so the
-   circle stays continuous and only its brightness changes. */
-.g-arc{fill:none;stroke-width:1.3;stroke-linecap:round}
-.g-arc.opco{stroke:rgba(0,255,136,.32)}
-.g-arc.proptech{stroke:rgba(169,143,236,.4)}
+/* One unbroken circle the whole way round, at one weight and one colour ramp.
+   It used to be a faint grey ring with a brighter arc laid over each side,
+   which made the same line change colour and thickness mid-sweep. */
+.g-ring{fill:none;stroke:url(#g-ring-grad);stroke-width:1.2}
 
 /* threads */
 .g-thread{fill:none;stroke-width:1;opacity:.2;transition:opacity .3s,stroke-width .3s}
@@ -325,7 +322,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #globe.is-handoff .g-co:not(.is-lit),
 #globe.is-handoff .g-lat,#globe.is-handoff .g-mer,#globe.is-handoff .g-band,
 #globe.is-handoff .g-shade,#globe.is-handoff .g-atmo,
-#globe.is-handoff .g-ring,#globe.is-handoff .g-arc{opacity:.05;transition:opacity .3s}
+#globe.is-handoff .g-ring{opacity:.05;transition:opacity .3s}
 #globe.is-handoff .g-thread.is-lit{stroke-width:2.8}
 #globe.is-handoff .g-role.is-lit .halo{animation:handoff-ping .52s ease-out both}
 @keyframes handoff-ping{from{opacity:.9}to{opacity:0;stroke-width:5}}
@@ -1376,6 +1373,12 @@ a.foot-line:hover{color:var(--green)}
               <stop offset="94%"  stop-color="rgba(100,195,230,.16)"/>
               <stop offset="100%" stop-color="rgba(100,195,230,0)"/>
             </radialGradient>
+            <linearGradient id="g-ring-grad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"   stop-color="rgba(0,255,136,.34)"/>
+              <stop offset="46%"  stop-color="rgba(120,225,205,.26)"/>
+              <stop offset="54%"  stop-color="rgba(150,130,235,.28)"/>
+              <stop offset="100%" stop-color="rgba(169,143,236,.4)"/>
+            </linearGradient>
             <linearGradient id="g-rim-grad" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(46,242,196,.9)"/>
               <stop offset="50%"  stop-color="rgba(200,195,230,.55)"/>
@@ -1387,7 +1390,6 @@ a.foot-line:hover{color:var(--green)}
                anything that should appear in front of it. -->
           <circle class="g-atmo" cx="500" cy="290" r="207" fill="url(#g-atmo)"/>
           <circle class="g-ring" cx="500" cy="290" r="266"/>
-          <g id="g-arcs"></g>
 
           <g class="g-hemi opco" data-goto="opco">
             <circle class="g-half" cx="500" cy="290" r="190" clip-path="url(#g-clip-l)"/>
@@ -3527,9 +3529,9 @@ function globeRel(x, y, side){
 
 function globeBuild(){
   const { CX, CY, RC } = GLOBE;
-  const layers = ['g-arcs', 'g-threads', 'g-sparks', 'g-roles', 'g-cos'].map($);
+  const layers = ['g-threads', 'g-sparks', 'g-roles', 'g-cos'].map($);
   if (layers.some(l => !l)) return;
-  const [gArcs, gThreads, gSparks, gRoles, gCos] = layers;
+  const [gThreads, gSparks, gRoles, gCos] = layers;
   layers.forEach(l => { l.innerHTML = ''; });
 
   const roles = [], cos = [], links = [];
@@ -3571,17 +3573,6 @@ function globeBuild(){
       };
     });
     cos.push(...sideCos);
-
-    // The lit stretch of ring where this side's companies sit.
-    const pad = 7;
-    const a0 = (side > 0 ? -span / 2 - pad : 180 + span / 2 + pad) * Math.PI / 180;
-    const a1 = (side > 0 ?  span / 2 + pad : 180 - span / 2 - pad) * Math.PI / 180;
-    const p0 = { x: CX + Math.cos(a0) * RC, y: CY + Math.sin(a0) * RC };
-    const p1 = { x: CX + Math.cos(a1) * RC, y: CY + Math.sin(a1) * RC };
-    gArcs.append(el('path', {
-      class: 'g-arc ' + h,
-      d: `M ${p0.x.toFixed(1)} ${p0.y.toFixed(1)} A ${RC} ${RC} 0 0 ${side > 0 ? 1 : 0} ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`,
-    }));
 
     // One role from each company in turn, so a single busy company cannot
     // fill the whole half.
