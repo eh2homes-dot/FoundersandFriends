@@ -3054,6 +3054,7 @@ const Orbit = (() => {
   let focus = null, spinning = false;
   let jobListRefs = [], listHot = null;
   let travellers = [], travelPoints = null, travelPos = null, travelCol = null;
+  let hiddenRoles = 0;
   let yaw = 0.6, pitch = 0.44, dist = 150;
   let dragging = false, px = 0, py = 0, moved = 0;
   let VW = 1, VH = 1;
@@ -3141,17 +3142,52 @@ const Orbit = (() => {
       .map(([name, jobs]) => ({ name, hub: jobs[0].hub, jobs }))
       .sort((a, b) => b.jobs.length - a.jobs.length);
 
+    /* A cap on drawn nodes.
+
+       Five hundred orbs inside one sphere is not a visualisation, it is a
+       texture — you cannot pick out a single role, which is the one thing the
+       view is for. The old matching web capped its rows for the same reason.
+       Every role stays in the list on the right; the globe shows a readable
+       sample and says how many it is holding back. */
+    const totalRoles = data.length;
+    const CAP = 170;
+
+    if (totalRoles > CAP){
+      // Proportional, but every company keeps at least one node — otherwise a
+      // company with two openings vanishes entirely and its ring node points
+      // at nothing.
+      const keep = Math.max(1, Math.floor(CAP / companies.length));
+      const spare = CAP - keep * companies.length;
+      let given = 0;
+      companies.forEach((co, i) => {
+        const bonus = Math.round(spare * (co.jobs.length / totalRoles));
+        const n = Math.min(co.jobs.length, keep + (given < spare ? bonus : 0));
+        given += bonus;
+        co.shown = co.jobs.slice(0, Math.max(1, n));
+      });
+    } else {
+      companies.forEach(co => { co.shown = co.jobs; });
+    }
+
+    hiddenRoles = totalRoles - companies.reduce((n, c) => n + c.shown.length, 0);
+
     SHELL = shellRadius(companies.length);
     RING  = SHELL;
     // The gap matters: too close and the ring reads as part of the surface,
-    // too far and the companies stop looking attached to anything.
-    CORE  = SHELL * 0.62;
+    // too far and the companies stop looking attached to anything. The body
+    // also grows with how many roles it has to hold, so density stays even
+    // rather than packing tighter as the board fills up.
+    const drawn = companies.reduce((n, c) => n + c.shown.length, 0);
+    CORE  = SHELL * (0.52 + Math.min(0.18, drawn / 1400));
     drawGlobe();
 
     const bodyGeo = new THREE.SphereGeometry(2.3, 28, 22);
     const gridGeo = new THREE.SphereGeometry(2.39, 14, 9);     // coarse = meridians
     const haloGeo = new THREE.SphereGeometry(3.7, 22, 18);
-    const jobGeo  = new THREE.SphereGeometry(1.15, 16, 14);
+    // Big enough to pick out at twenty roles, small enough not to merge into
+    // a single mass at a hundred and seventy.
+    const jobR = Math.max(0.62, Math.min(1.5, 26 / Math.sqrt(Math.max(drawn, 1))));
+    const jobGeo  = new THREE.SphereGeometry(jobR, 14, 12);
 
     companies.forEach((co, ci) => {
       /* Companies ring the globe rather than sitting on its surface. Evenly
@@ -3203,8 +3239,8 @@ const Orbit = (() => {
          own side means the links stay short and the eye can follow one company
          inward without untangling anything. */
       const wedge = (Math.PI * 2) / companies.length;
-      co.jobs.forEach((job, ji) => {
-        const n = co.jobs.length;
+      co.shown.forEach((job, ji) => {
+        const n = co.shown.length;
         // Golden-ratio sequences fill a volume evenly without clumping, which
         // Math.random does not at these counts.
         const a = ringAngle + (((ji * 0.6180339887) % 1) - 0.5) * wedge * 1.5;
@@ -3230,9 +3266,9 @@ const Orbit = (() => {
         // rather than clutter at three hundred of them.
         const link = new THREE.Line(
           new THREE.BufferGeometry().setFromPoints([anchor, p]),
-          new THREE.LineBasicMaterial({ color: colour, transparent:true, opacity:0.1 }),
+          new THREE.LineBasicMaterial({ color: colour, transparent:true, opacity:0.05 }),
         );
-        link.userData = { kind:'arm', co, base: 0.1 };
+        link.userData = { kind:'arm', co, base: 0.05 };
         world.add(link);
 
         // Recorded for the travelling dot that runs this thread. Phase is
@@ -3253,6 +3289,21 @@ const Orbit = (() => {
   /* One Points object carrying every travelling dot. Five hundred separate
      meshes would cost more draw calls than the rest of the scene put together;
      this is one, with positions rewritten each frame. */
+  let DOT_TEX = null;
+  function dotTexture(){
+    if (DOT_TEX) return DOT_TEX;
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d').createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.4, 'rgba(255,255,255,.65)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+    DOT_TEX = new THREE.CanvasTexture(c);
+    return DOT_TEX;
+  }
+
   function buildTravellers(){
     if (!travellers.length) return;
     travelPos = new Float32Array(travellers.length * 3);
@@ -3265,10 +3316,15 @@ const Orbit = (() => {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(travelPos, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(travelCol, 3));
+    /* PointsMaterial draws squares by default, which at this size look like
+       specks of grit rather than lights. A tiny radial-gradient sprite costs
+       one texture and makes them round. */
     travelPoints = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 1.9, vertexColors: true, transparent: true, opacity: 0.9,
-      sizeAttenuation: true, depthWrite: false,
+      size: 2.2, vertexColors: true, transparent: true, opacity: 0.95,
+      sizeAttenuation: true, depthWrite: false, map: dotTexture(),
+      blending: THREE.AdditiveBlending,
     }));
+    travelPoints.visible = false;
     travelPoints.userData = { kind:'globe' };
     world.add(travelPoints);
   }
@@ -3419,7 +3475,7 @@ const Orbit = (() => {
       const on = lit(co);
       const k = o.userData.kind;
       if (k === 'job')        o.material.opacity = on ? 0.92 : 0.06;
-      else if (k === 'arm')   o.material.opacity = on ? o.userData.base : 0.02;
+      else if (k === 'arm')   o.material.opacity = on ? (focus ? 0.4 : o.userData.base) : 0.015;
       else if (k === 'decor') o.material.opacity = on ? o.userData.base : 0.015;
       else                    o.material.opacity = on ? 1 : 0.12;
     });
@@ -3432,7 +3488,8 @@ const Orbit = (() => {
     const shown = jobMeshes.filter(m => m.material.opacity > LIT);
     const cos = new Set(shown.map(m => m.userData.co.name)).size;
     $('count').textContent = shown.length
-      ? `${shown.length} role${shown.length === 1 ? '' : 's'} across ${cos} compan${cos === 1 ? 'y' : 'ies'}`
+      ? `${shown.length} role${shown.length === 1 ? '' : 's'} across ${cos} compan${cos === 1 ? 'y' : 'ies'}` +
+        (hiddenRoles ? ` · ${hiddenRoles} more in the list` : '')
       : 'No roles match those filters.';
   }
 
@@ -3587,7 +3644,12 @@ const Orbit = (() => {
     /* The travelling dots. The globe itself is still now, so this is the only
        motion on screen — it reads as the threads being live rather than as the
        whole picture drifting. */
-    if (travelPoints && travellers.length){
+    /* Only while a company is isolated. Running on all five hundred threads at
+       once they read as specks of litter rather than as signal — the old web
+       had two dozen threads, not five hundred. On one company's threads the
+       effect survives intact. */
+    if (travelPoints && travellers.length && focus){
+      travelPoints.visible = true;
       const t = performance.now() * 0.00009;
       for (let i = 0; i < travellers.length; i++){
         const tr = travellers[i];
@@ -3598,6 +3660,8 @@ const Orbit = (() => {
         travelPos[i*3+2] = tr.from.z + (tr.to.z - tr.from.z) * e;
       }
       travelPoints.geometry.attributes.position.needsUpdate = true;
+    } else if (travelPoints){
+      travelPoints.visible = false;
     }
 
     const r = viewport();
