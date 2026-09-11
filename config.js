@@ -1,1909 +1,1257 @@
+#!/usr/bin/env node
 /**
- * config.js — scrape targets for run.js
+ * run.js — job scraper
  * ---------------------------------------------------------------------------
- * Generated from the verified-leads sheet (123 companies).
+ * Pulls open roles from company career pages and writes site/jobs.json beside
+ * site/index.html, which the page reads directly. No database.
  *
- * `method` is null on every entry. It cannot be known without fetching each
- * careers page, and a guessed adapter is worse than no adapter — it produces
- * silent zero-result runs that look like "no openings". Run:
+ *   node run.js                          # every company with a known method
+ *   node run.js --hub=opco               # one hub
+ *   node run.js --only=entrata           # one company
+ *   node run.js --dry                    # scrape, print, write nothing
+ *   node run.js --out=site/jobs.json     # default
  *
- *     node scripts/detect-ats.js
- *
- * which probes each careers URL and writes `method` and `atsSlug` back into
- * this file, printing the ones it could not resolve.
- *
- * Until a company has a method, run.js skips it and logs it as skipped rather
- * than failed. That is why the board shows no live roles on a fresh install:
- * nothing is scrapeable yet.
- *
- * To set one by hand, find the company below and fill in both fields:
- *     method: "greenhouse",   atsSlug: "their-board-token"
+ * THE RULE, INHERITED FROM THE ORIGINAL SCRAPER: a source that fails is logged
+ * as an error. It never contributes invented or stale rows. If a source fails
+ * mid-run, its previously-seen jobs are carried over from the existing feed
+ * rather than silently disappearing — a scrape failure is not evidence that a
+ * company stopped hiring.
  */
 
-/* ---------------------------------------------------------------------------
-   ATS methods available, and how to spot each one. When a company fails, open
-   its careers page, click through to the listings, and match the URL:
-   
-     boards.greenhouse.io/SLUG          → greenhouse
-     jobs.lever.co/SLUG                 → lever
-     TENANT.wdN.myworkdayjobs.com/SITE  → workday   (needs atsSlug AND atsSite)
-     SLUG.breezy.hr                     → breezy
-     jobs.ashbyhq.com/SLUG              → ashby
-     apply.workable.com/SLUG            → workable
-     anything else, server-rendered     → dom
-     JavaScript-rendered, no links      → cannot be scraped this way
-   
-   Slugs are frequently NOT the company name — Belong is "belong-6" on Workable
-   because the plain name was taken, and Second Nature is "second-nature" on
-   Ashby while "secondnaturecomputing" is a different company. Always confirm
-   against the live board before adding.
-   --------------------------------------------------------------------------- */
+import { readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { COMPANIES } from './config.js';
 
-export const COMPANIES = [
-  // ---------------------------------------------------------------------------
-  // SCATTERED-SITE OPERATORS
-  // The institutional SFR landlords. AMH was missing entirely despite being one
-  // of the three public SFR REITs alongside Invitation Homes and Tricon.
+/* ---- options -------------------------------------------------------------- */
+const args = Object.fromEntries(process.argv.slice(2).map((a) => {
+  const [k, v] = a.replace(/^--/, '').split('=');
+  return [k, v ?? true];
+}));
+
+const OUT = args.out || 'site/jobs.json';
+
+/* The Worker's address and admin key. Used twice: to pull companies approved
+   through the discovery queue before scraping, and to post the run to job
+   history afterwards. Declared here because the first use is near the top —
+   both features degrade quietly to nothing when these are unset. */
+const HISTORY_URL = process.env.HISTORY_URL;
+const HISTORY_KEY = process.env.HISTORY_KEY;
+
+const TIMEOUT_MS = 20000;
+const CONCURRENCY = 4;          // polite: four career sites at a time, not 123
+const DELAY_MS = 350;           // between batches
+const UA = 'FoundersAndFriendsBot/1.0 (+https://propertyandtechnology.com)';
+
+/* ---- helpers -------------------------------------------------------------- */
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function get(url, opts = {}) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+  return fetch(url, {
+    headers: { 'User-Agent': UA, Accept: 'application/json, text/html', ...opts.headers },
+    redirect: 'follow',
+    signal: ctl.signal,
+  }).finally(() => clearTimeout(timer));
+}
+
+/** Strip HTML to readable text — descriptions arrive as markup from every ATS. */
+/**
+ * HTML to readable text.
+ *
+ * Greenhouse and some Workday tenants return content that is HTML-ESCAPED —
+ * `&lt;p&gt;` rather than `<p>`. Stripping tags before decoding entities would
+ * leave those escaped tags behind as visible text, which is exactly what
+ * happened. So: decode first, strip second, and repeat while the string keeps
+ * changing to catch double-escaping.
+ */
+function decodeEntities(s) {
+  return String(s)
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;|&#34;/gi, '"')
+    .replace(/&#39;|&apos;|&rsquo;|&#8217;/gi, "'")
+    .replace(/&ldquo;|&rdquo;|&#8220;|&#8221;/gi, '"')
+    .replace(/&ndash;|&#8211;/gi, '–')
+    .replace(/&mdash;|&#8212;/gi, '—')
+    .replace(/&hellip;|&#8230;/gi, '…')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
+    .replace(/&amp;/gi, '&');          // last, or it re-creates other entities
+}
+
+function stripTags(s) {
+  return String(s)
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<[^>]+>/g, '');
+}
+
+function toText(html) {
+  if (!html) return '';
+  let s = String(html);
+
+  // Alternate decode/strip until it settles. Two passes handles the normal
+  // double-escaped case; the cap stops a pathological input looping.
+  for (let i = 0; i < 4; i++) {
+    const before = s;
+    s = stripTags(decodeEntities(s));
+    if (s === before) break;
+  }
+
+  return s
+    .replace(/\r/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+/** First couple of sentences, for the card. */
+function summarise(text, max = 180) {
+  const clean = String(text || '').replace(/\s+/g, ' ').trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  const stop = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '));
+  return (stop > 80 ? cut.slice(0, stop + 1) : cut.trimEnd() + '…');
+}
+
+/**
+ * Compensation, when a posting states it. Deliberately conservative: a wrong
+ * salary is worse than none, so anything ambiguous returns nulls.
+ */
+function parseComp(text) {
+  if (!text) return { min: null, max: null };
+  const t = String(text);
+
+  // Capture the WHOLE digit run, then decide the scale. An earlier version let
+  // \d{2,3} match greedily, so "$70,000" came through as 700 with no suffix and
+  // was scaled to $700,000 — a tenfold error on a salary is worse than showing
+  // nothing at all.
+  const m = t.match(/\$\s*(\d[\d,]*(?:\.\d+)?)\s*([kK])?\s*(?:-|–|—|to|through)\s*\$?\s*(\d[\d,]*(?:\.\d+)?)\s*([kK])?/);
+  if (!m) return { min: null, max: null };
+
+  const scale = (digits, suffix) => {
+    const n = parseFloat(String(digits).replace(/,/g, ''));
+    if (!Number.isFinite(n)) return null;
+    if (suffix) return Math.round(n * 1000);          // "$145k"
+    if (n < 1000) return Math.round(n * 1000);        // "$145" meaning 145k
+    return Math.round(n);                             // "$145,000"
+  };
+
+  const min = scale(m[1], m[2]);
+  const max = scale(m[3], m[4]);
+
+  // Sanity: real annual salaries, the right way round. Hourly rates and
+  // typos are rejected rather than guessed at.
+  if (min == null || max == null) return { min: null, max: null };
+  if (min < 20000 || max > 1000000 || min > max) return { min: null, max: null };
+  return { min, max };
+}
+
+/**
+ * Which role family a posting belongs to. These become the left-hand nodes in
+ * the matching web, so the buckets have to be few and stable.
+ */
+function categorise(title = '') {
+  const t = title.toLowerCase();
+  if (/\b(ceo|coo|cto|cfo|chief|president|vp|vice president|head of|director)\b/.test(t)) return 'Leadership';
+  if (/\b(leasing|leasing agent|leasing consultant|lease)\b/.test(t)) return 'Leasing';
+  if (/\b(maintenance|technician|tech|hvac|plumb|electric|turn|make.?ready|facilit)\b/.test(t)) return 'Maintenance';
+  if (/\b(asset manage|portfolio|acquisition|underwrit|analyst|revenue|pricing|valuation)\b/.test(t)) return 'Asset Management';
+  if (/\b(construct|renovat|project manager|capex|rehab)\b/.test(t)) return 'Construction';
+  if (/\b(engineer|developer|software|product|data|ai|ml|devops|security|design|qa)\b/.test(t)) return 'Technology';
+  return 'General';
+}
+
+/** Best-effort seniority, used only as a chip in the drawer. */
+function levelOf(title = '') {
+  const t = title.toLowerCase();
+  if (/\b(chief|ceo|coo|cto|cfo|president|founder)\b/.test(t)) return 'C-Suite';
+  if (/\b(vp|vice president|head of)\b/.test(t)) return 'VP';
+  if (/\bdirector\b/.test(t)) return 'Director';
+  if (/\b(manager|lead|supervisor|superintendent|principal|senior|sr\.?)\b/.test(t)) return 'Manager';
+  if (/\b(technician|associate|coordinator|assistant|specialist|representative|agent|intern|junior|jr\.?)\b/.test(t)) return 'Field';
+  return 'Manager';
+}
+
+const segmentOf = (company) => (company.hub === 'proptech' ? 'PropTech' : 'Single-Family');
+
+/* ==========================================================================
+   US-ONLY FILTER
+   --------------------------------------------------------------------------
+   Several companies on the list hire outside the US — Tricon posts in Toronto,
+   Guesty in Tel Aviv, others in London and Manila. A board for US single-family
+   operators should not surface those.
+   ========================================================================== */
+
+// Two-letter postal codes, matched as a standalone token (", TX" or "TX,").
+const US_ABBR = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND',
+  'OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC','PR']);
+
+const US_STATE_NAMES = ['alabama','alaska','arizona','arkansas','california','colorado','connecticut',
+  'delaware','florida','georgia','hawaii','idaho','illinois','indiana','iowa','kansas','kentucky',
+  'louisiana','maine','maryland','massachusetts','michigan','minnesota','mississippi','missouri',
+  'montana','nebraska','nevada','new hampshire','new jersey','new mexico','new york','north carolina',
+  'north dakota','ohio','oklahoma','oregon','pennsylvania','rhode island','south carolina',
+  'south dakota','tennessee','texas','utah','vermont','virginia','washington','west virginia',
+  'wisconsin','wyoming','district of columbia','puerto rico'];
+
+// Countries and cities that appear in these companies' postings and are not US.
+const NON_US = ['canada','ontario','toronto','vancouver','british columbia','alberta','calgary',
+  'montreal','quebec','ottawa','winnipeg','edmonton','halifax',
+  'united kingdom','england','london','manchester','scotland','ireland','dublin',
+  'israel','tel aviv','jerusalem','herzliya',
+  'india','bangalore','bengaluru','mumbai','delhi','hyderabad','pune','gurgaon','chennai',
+  'philippines','manila','cebu','makati',
+  'mexico','mexico city','guadalajara','monterrey',
+  'brazil','sao paulo','argentina','colombia','bogota','costa rica',
+  'germany','berlin','munich','france','paris','spain','madrid','barcelona',
+  'netherlands','amsterdam','poland','warsaw','portugal','lisbon','romania','bucharest',
+  'australia','sydney','melbourne','new zealand','singapore','japan','tokyo','china','shanghai',
+  'hong kong','korea','seoul','vietnam','thailand','indonesia','jakarta','malaysia',
+  'united arab emirates','dubai','south africa','nigeria','kenya', 'emea','apac','latam'];
+
+/**
+ * Is this posting in the US?
+ *
+ * Deliberately asymmetric. A location that clearly names another country is
+ * dropped; anything else is kept. Getting this backwards — dropping whatever
+ * cannot be proven American — would silently discard real US roles whose
+ * location is written as "Field-based" or "Multiple locations", and a missing
+ * job is harder to notice than an extra one.
+ */
+function isUS(location, title) {
+  const s = String(location || '').toLowerCase().trim();
+  if (!s) return true;                       // unknown: keep
+
+  if (NON_US.some((k) => new RegExp('\\b' + k + '\\b').test(s))) return false;
+  if (/\b(united states|usa|u\.s\.a?\.?|america)\b/.test(s)) return true;
+  if (US_STATE_NAMES.some((n) => s.includes(n))) return true;
+  if ((String(location).match(/\b([A-Z]{2})\b/g) || []).some((a) => US_ABBR.has(a))) return true;
+
+  // "Remote" with no country attached: treat as US on a US board.
+  if (/\bremote\b|\banywhere\b|\bnationwide\b/.test(s)) return true;
+
+  return true;                               // nothing disqualifying found
+}
+
+/* ==========================================================================
+   ADAPTERS
+   Each returns an array of raw jobs, or throws. Throwing is how a source
+   reports failure — the caller decides what to do about it.
+   ========================================================================== */
+
+async function greenhouse(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for greenhouse');
+  const res = await get(`https://boards-api.greenhouse.io/v1/boards/${slug}/jobs?content=true`);
+  if (!res.ok) throw new Error('greenhouse HTTP ' + res.status);
+  const body = await res.json();
+  if (!Array.isArray(body.jobs)) throw new Error('greenhouse returned no jobs array');
+
+  return body.jobs.map((j) => {
+    const text = toText(j.content);
+    return {
+      sourceId: String(j.id),
+      title: j.title,
+      location: j.location?.name || 'Remote',
+      url: j.absolute_url,
+      description: text,
+      postedAt: j.updated_at || j.first_published || null,
+      ...parseComp(text),
+    };
+  });
+}
+
+async function lever(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for lever');
+  const res = await get(`https://api.lever.co/v0/postings/${slug}?mode=json`);
+  if (!res.ok) throw new Error('lever HTTP ' + res.status);
+  const body = await res.json();
+  if (!Array.isArray(body)) throw new Error('lever returned no array');
+
+  return body.map((j) => {
+    const text = toText([j.descriptionPlain || j.description, ...(j.lists || []).map((l) => l.content)].join('\n'));
+    return {
+      sourceId: String(j.id),
+      title: j.text,
+      location: j.categories?.location || 'Remote',
+      url: j.hostedUrl || j.applyUrl,
+      description: text,
+      postedAt: j.createdAt ? new Date(j.createdAt).toISOString() : null,
+      ...parseComp(text + ' ' + (j.salaryRange ? JSON.stringify(j.salaryRange) : '')),
+    };
+  });
+}
+
+async function workday(company) {
+  // Workday's CXS endpoint needs a tenant and a site path, both of which vary
+  // per client and both of which live in the careers URL:
+  //     {tenant}.wdN.myworkdayjobs.com/{site}
+  const host = company.atsSlug || '';
+  const m = (company.careersUrl || '').match(/myworkdayjobs\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?([^/?#]+)/);
+  const site = company.atsSite || (m && m[1]);
+  if (!host || !site) throw new Error('workday needs atsSlug (the host) and a site path');
+
+  const tenant = host.split('.')[0];
+  const url = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
+
+  // This endpoint is a POST with a JSON body, not a GET. A GET returns 405 and
+  // looks like the company simply has no openings, which is worse than an error.
+  // It also pages 20 at a time, so a large operator needs several calls.
+  const all = [];
+  const PAGE = 20;
+  for (let offset = 0; offset < 400; offset += PAGE) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'User-Agent': UA,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ appliedFacets: {}, limit: PAGE, offset, searchText: '' }),
+    });
+    if (!res.ok) throw new Error('workday HTTP ' + res.status);
+
+    const body = await res.json();
+    const posts = body.jobPostings || [];
+    all.push(...posts);
+
+    const total = body.total ?? all.length;
+    if (posts.length < PAGE || all.length >= total) break;
+    await sleep(200);              // be polite between pages
+  }
+
+  if (!all.length) throw new Error('workday returned no jobPostings');
+
+  return all.map((j) => ({
+    sourceId: String(j.bulletFields?.[0] || j.externalPath),
+    title: j.title,
+    location: j.locationsText || 'Remote',
+    // externalPath already starts with a slash, and the public job URL lives
+    // under the site path rather than the bare host
+    url: `https://${host}/${site}${j.externalPath}`,
+    description: '',               // full text needs a second call per job
+    postedAt: /^\d{4}-\d{2}-\d{2}/.test(j.startDate || '') ? j.startDate : null,
+    ...parseComp(j.title),
+  }));
+}
+
+/**
+ * Generic DOM scrape. Only viable where the careers page server-renders its
+ * job links; a JavaScript-rendered board returns nothing here, which is why
+ * detect-ats.js refuses to assign this method unless it sees real links.
+ */
+/**
+ * Navigation and call-to-action links live under /careers/ too, and the DOM
+ * adapter cannot tell them from postings by URL alone. "See all opportunities"
+ * got through an earlier exact-match filter and appeared on the board as a
+ * role, which is worse than missing a real one — it makes the whole feed look
+ * untrustworthy. When in doubt, drop it.
+ */
+function isNotAJob(title) {
+  // Normalise before matching: collapse runs of whitespace, turn hyphens and
+  // underscores between words into spaces, and drop trailing punctuation and
+  // arrows. Scraped titles arrive as "Job-Search", "Job  Search" and
+  // "Job Search →" and all three are the same nav label.
+  const t = String(title)
+    .replace(/[-\u2010-\u2015_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim().toLowerCase()
+    .replace(/[.!?→>»…\-–—]+$/, '').trim();
+
+  // Whole-phrase CTAs and nav labels.
+  if (/^(apply|apply now|view|view all|view more|view jobs?|see all|see more|see jobs?|learn more|read more|explore|explore all|search|search jobs?|browse|browse jobs?|all jobs?|all openings?|current openings?|join us|join our team|work (with|for) us|careers?|jobs?|opportunities|life at .*|our (culture|team|values|benefits)|benefits|culture|diversity.*|back|next|previous|home|contact( us)?|sign in|log ?in|register|subscribe|newsletter|privacy.*|terms.*|cookie.*)$/i.test(t)) return true;
+
+  // "Open Opportunities", "Open Roles", "Current Openings", "Available Positions"
+  // — a generic index label, not a specific posting.
+  if (/^(open|current|available|latest|all|our|more)\s+(opportunit\w*|roles?|positions?|jobs?|openings?|vacanc\w*)$/i.test(t)) return true;
+
+  // Phrases that begin like a CTA — "See all opportunities", "View our openings".
+  if (/^(see|view|browse|explore|search|find|discover|check out|learn)\b.{0,40}\b(job|jobs|role|roles|opening|openings|opportunit\w*|position|positions|career|careers|team)\b/i.test(t)) return true;
+
+  // Location or department index pages rather than a specific posting.
+  if (/^(all|browse by|filter by|jobs in|careers in|openings in)\b/i.test(t)) return true;
+
+  // A bare number, a date, or a single short word is not a job title.
+  if (/^[\d\s\-–—/,.]+$/.test(t)) return true;
+  if (!/\s/.test(t) && t.length < 8) return true;
+
+  // ---- department and category index pages ----
+  // "Engineering", "Sales", "Marketing" on their own are section headings on a
+  // careers page, not roles. A real posting says what the person would do.
+  if (/^(engineering|sales|marketing|product|design|operations|finance|legal|people|hr|human resources|support|customer success|data|security|it|technology|corporate|field|maintenance|leasing|construction|accounting|administration|general|other|misc\w*)$/i.test(t)) return true;
+
+  // ---- talent pools, not openings ----
+  // These collect résumés against no specific role. Sending a candidate to one
+  // is worse than not listing it — they apply into a void.
+  if (/\b(general application|talent (pool|network|community|pipeline)|future openings?|speculative|open application|don'?t see|didn'?t see|no(ne)? (of these|that fit)|other opportunit\w*|join (our )?talent|keep me in mind|submit your (resume|cv)|general interest)\b/i.test(t)) return true;
+
+  // ---- noun-first index labels ----
+  // "Job Search", "Career Opportunities", "Position Openings" — the same nav
+  // labels with the words the other way round.
+  if (/^(job|jobs|career|careers|position|positions|role|roles|employment|opening|openings)\s+(search\w*|opportunit\w*|listings?|boards?|openings?|portals?|centres?|centers?|pages?|home)$/i.test(t)) return true;
+
+  // ---- employment-type placeholders ----
+  if (/^(full[- ]?time|part[- ]?time|contract|temporary|intern(ship)?|seasonal|remote|hybrid|on[- ]?site)$/i.test(t)) return true;
+
+  // ---- an entire sentence is a description, not a title ----
+  // Scraped nav blocks sometimes yield a paragraph. Real titles are short and
+  // rarely contain sentence punctuation.
+  if (t.length > 110) return true;
+  if (/[.!?]\s+[a-z]/i.test(t)) return true;
+
+  return false;
+}
+
+/**
+ * Which adapters return a description at all.
+ *
+ * Workday, DOM and Reffie return a title and a link and nothing else — the
+ * body needs a second request per job, which these do not make. Judging their
+ * postings on description length would delete every Workday company from the
+ * board, which is most of the operators: Progress, Tricon, Greystar, Zillow,
+ * MRI. So the substance check only applies where a description was actually
+ * available and the employer chose not to write one.
+ */
+const DESCRIBES = new Set(['greenhouse', 'lever', 'ashby', 'workable', 'breezy', 'jsonld', 'ukg']);
+
+/**
+ * Is there enough here to be worth publishing?
+ *
+ * A listing with a title and nothing else sends the candidate to a page they
+ * have to decode themselves, and makes the board look thin. Worse, the AI
+ * review has nothing to read, so the candidate gets a meaningless score.
+ *
+ * Requiring substance means fewer roles on the board. That is the right trade:
+ * a smaller board where every posting is useful beats a bigger one padded with
+ * stubs.
+ */
+function isThin(job) {
+  const desc = String(job.description || '').trim();
+  const words = desc ? desc.split(/\s+/).length : 0;
+
+  // Length is a blunt instrument and I have now twice set it too high and
+  // deleted real postings — a 35-word maintenance role, then a 21-word
+  // construction one. Field and trade listings are genuinely terse.
   //
-  // method is null on purpose — run scripts/detect-ats.js to resolve each one
-  // against its live careers page. Guessing ATS slugs produces 404s that look
-  // like the company stopped hiring.
-  // ---------------------------------------------------------------------------
-  {
-    id: "amh", name: "AMH", hub: "opco",
-    careersUrl: "https://www.amh.com/careers",
-    website: "https://www.amh.com",
-    state: "Nevada", segment: "SFR REIT",
-    // NYSE: AMH. Over 61,000 homes. Formerly American Homes 4 Rent; also
-    // trades as AMH Living in some states.
-    verified: true, method: null, atsSlug: null, priority: true, active: true,
-  },
-  {
-    id: "firstkey-homes", name: "FirstKey Homes", hub: "opco",
-    careersUrl: "https://www.firstkeyhomes.com/careers",
-    website: "https://www.firstkeyhomes.com",
-    state: "Georgia", segment: "SFR Property Management",
-    // Cerberus-backed, ~34,000 homes.
-    verified: true, method: null, atsSlug: null, priority: true, active: true,
-  },
-  {
-    id: "main-street-renewal", name: "Main Street Renewal", hub: "opco",
-    careersUrl: "https://www.mainstreetrenewal.com/careers",
-    website: "https://www.mainstreetrenewal.com",
-    state: "Texas", segment: "SFR Property Management",
-    // Amherst Group's in-house manager, ~34,000 homes across 32 markets.
-    verified: true, method: null, atsSlug: null, priority: true, active: true,
-  },
-  {
-    id: "amherst", name: "Amherst Group", hub: "opco",
-    careersUrl: "https://www.amherst.com/careers",
-    website: "https://www.amherst.com",
-    state: "Texas", segment: "SFR Investment Manager",
-    verified: true, method: "workday", atsSlug: "amherstgroup.wd1.myworkdayjobs.com", active: true,
-  },
-  {
-    id: "vinebrook-homes", name: "VineBrook Homes", hub: "opco",
-    careersUrl: "https://recruiting.ultipro.com/VIN1007VNB/JobBoard/0460746d-ef85-4c7a-b43c-e13eed1e48cf/",
-    website: "https://www.vinebrookhomes.com",
-    state: "Ohio", segment: "SFR REIT",
-    // NexPoint-managed, roughly 25,000 homes.
-    verified: true, method: "ukg", atsSlug: null, active: true,
-  },
-  {
-    id: "sfr3", name: "SFR3", hub: "opco",
-    careersUrl: "https://www.sfr3.com/careers",
-    website: "https://www.sfr3.com",
-    state: "New York", segment: "SFR Operator",
-    verified: true, method: null, atsSlug: null, active: true,
-  },
-  {
-    id: "bluerock-homes", name: "Bluerock Homes", hub: "opco",
-    careersUrl: "https://bluerockhomes.com/careers",
-    website: "https://bluerockhomes.com",
-    state: "New York", segment: "SFR REIT",
-    // NYSE American: BHM.
-    verified: true, method: null, atsSlug: null, active: true,
-  },
-  {
-    id: "home-partners", name: "Home Partners of America", hub: "opco",
-    careersUrl: "https://www.homepartners.com/careers",
-    website: "https://www.homepartners.com",
-    state: "Illinois", segment: "Lease-to-Own SFR",
-    // Blackstone-owned.
-    verified: true, method: null, atsSlug: null, active: true,
-  },
-  {
-    id: "pathway-homes", name: "Pathway Homes", hub: "opco",
-    careersUrl: "https://pathwayhomes.com/careers",
-    website: "https://pathwayhomes.com",
-    state: "California", segment: "Lease-to-Own SFR",
-    verified: true, method: null, atsSlug: null, active: true,
-  },
-  {
-    id: "evernest", name: "Evernest", hub: "opco",
-    careersUrl: "https://www.evernest.co/careers",
-    website: "https://www.evernest.co",
-    state: "Alabama", segment: "SFR Property Management",
-    verified: true, method: null, atsSlug: null, active: true,
-  },
-  {
-    id: "homeriver-group", name: "HomeRiver Group", hub: "opco",
-    careersUrl: "https://www.homeriver.com/careers",
-    website: "https://www.homeriver.com",
-    state: "Idaho", segment: "SFR Property Management",
-    verified: true, method: null, atsSlug: null, active: true,
-  },
-  {
-    id: "poplar-homes", name: "Poplar Homes", hub: "opco",
-    careersUrl: "https://www.poplarhomes.com/careers",
-    website: "https://www.poplarhomes.com",
-    state: "California", segment: "SFR Property Management",
-    verified: true, method: null, atsSlug: null, active: true,
-  },
-  // ---------------------------------------------------------------------------
-  // Verified proptech vendors. Every token below was confirmed against the live
-  // ATS API before being added — a token-name collision puts another company's
-  // jobs on your board, which is worse than a missing company. Two known traps:
-  // Greenhouse "lighthouse" is a hospitality-tech firm, and "haven" is a video
-  // game studio; neither is the proptech company of that name.
-  // ---------------------------------------------------------------------------
-  {
-    id: "lessen", name: "Lessen", hub: "proptech",
-    careersUrl: "https://jobs.lever.co/lessen", website: "https://www.lessen.com",
-    state: "Arizona", segment: "Property Maintenance & Renovation Tech",
-    verified: true, method: "lever", atsSlug: "lessen", active: true,
-  },
-  {
-    id: "findigs", name: "Findigs", hub: "proptech",
-    careersUrl: "https://jobs.lever.co/findigs", website: "https://findigs.com",
-    state: "New York", segment: "Rental Application & Screening Software",
-    verified: true, method: "lever", atsSlug: "findigs", active: true,
-  },
-  {
-    id: "esusu", name: "Esusu", hub: "proptech",
-    careersUrl: "https://esusurent.com/careers", website: "https://esusurent.com",
-    state: "New York", segment: "Rent Reporting / Credit Building",
-    verified: true, method: "dom", atsSlug: null, active: true,
-    // Moved off Greenhouse (that board now 404s). Their Webflow careers page
-    // lists roles and links out to jobs.deel.com, which the dom adapter reads.
-  },
-  {
-    id: "property-meld", name: "Property Meld", hub: "proptech",
-    careersUrl: "https://property-meld.breezy.hr", website: "https://propertymeld.com",
-    state: "South Dakota", segment: "Maintenance Coordination SaaS",
-    verified: true, method: "breezy", atsSlug: "property-meld", active: true,
-  },
-  {
-    id: "showdigs", name: "Showdigs", hub: "proptech",
-    careersUrl: "https://showdigs.breezy.hr", website: "https://showdigs.com",
-    state: "Washington", segment: "Self-Touring & Showing Coordination",
-    verified: true, method: "breezy", atsSlug: "showdigs", active: true,
-  },
-  {
-    id: "lineage", name: "Lineage", hub: "proptech",
-    careersUrl: "https://boards.greenhouse.io/lineagehq", website: "https://www.lineage.com",
-    state: "New York", segment: "SFR Investing Infrastructure",
-    // the board token is "lineagehq", not "lineage"
-    verified: true, method: "greenhouse", atsSlug: "lineagehq", active: true,
-  },
-  {
-    id: "reffie", name: "Reffie", hub: "proptech",
-    careersUrl: "https://reffie.me/jobs", website: "https://reffie.me",
-    state: "New York", segment: "Leasing CRM & Workflow",
-    // No public ATS. Their careers site is server-rendered, so a small
-    // site-specific scraper reads it. Fragile by nature — it skips anything it
-    // cannot parse rather than guessing.
-    verified: true, method: "reffie", listUrl: "https://reffie.me/jobs", active: true,
-  },
-  // ---------------------------------------------------------------------------
-  // Major SFR operators. These were missing from the leads sheet, which is a
-  // vendor list — without them the OpCo hub had nothing to show.
+  // So the bar is only high enough to exclude fragments like "Join our team!".
+  // The role-language test below is what actually separates a posting from
+  // boilerplate, and it does not care how long the text is.
+  if (words < 12) return true;
+
+  // A description that is only boilerplate: equal-opportunity text, benefits
+  // blurb, or a company "about us" with nothing about the role.
+  const roleWords = /\b(you will|you'll|responsibilit\w+|duties|requirements?|qualifications?|experience|skills?|role|position|reporting|day[- ]to[- ]day|what you|we are looking|ideal candidate|must have)\b/i;
+  if (!roleWords.test(desc)) return true;
+
+  return false;
+}
+
+async function dom(company) {
+  const res = await get(company.careersUrl);
+  if (!res.ok) throw new Error('dom HTTP ' + res.status);
+  const html = await res.text();
+
+  const seen = new Map();
+
+  // Two ways a link can be a job:
   //
-  // All three run Workday. `atsSlug` is the host and `atsSite` is the site
-  // path; both were read off their live careers pages, so detect-ats.js does
-  // not need to resolve them.
-  // ---------------------------------------------------------------------------
-  {
-    id: "invitation-homes",
-    name: "Invitation Homes",
-    hub: "opco",
-    // NOT Workday. The legacy invitationhomes.wd1.myworkdayjobs.com/INVH host is
-    // dead (422/500). Their careers site runs on Paradox.ai, which lists every
-    // job in an XML sitemap and embeds JobPosting JSON-LD on each page.
-    careersUrl: "https://careers.invitationhomes.com/",
-    website: "https://www.invitationhomes.com",
-    state: "Texas",
-    segment: "SFR Property Management",
-    verified: true,
-    method: "jsonld",
-    sitemap: "https://careers.invitationhomes.com/sitemap.xml",
-    atsSlug: null,
-    priority: true,
-    active: true
-  },
-  {
-    id: "progress-residential",
-    name: "Progress Residential",
-    hub: "opco",
-    // The tenant is the PARENT company, Pretium Enterprise Services — not
-    // "progressresidential", which does not resolve.
-    careersUrl: "https://pretiumenterpriseservices.wd1.myworkdayjobs.com/PR",
-    website: "https://rentprogress.com",
-    state: "Arizona",
-    segment: "SFR Property Management",
-    verified: true,
-    method: "workday",
-    atsSlug: "pretiumenterpriseservices.wd1.myworkdayjobs.com",
-    atsSite: "PR",
-    priority: true,
-    active: true
-  },
-  {
-    id: "tricon-residential",
-    name: "Tricon Residential",
-    hub: "opco",
-    careersUrl: "https://tricon.wd3.myworkdayjobs.com/tricon",
-    website: "https://www.triconresidential.com",
-    state: "Texas",
-    segment: "SFR & Multifamily Property Management",
-    verified: true,
-    method: "workday",
-    atsSlug: "tricon.wd3.myworkdayjobs.com",
-    atsSite: "tricon",
-    priority: true,   // always shown on the graph, never crowded out
-    active: true,
-  },
-  {
-    id: "appfolio",
-    name: "AppFolio",
-    hub: "proptech",
-    careersUrl: "https://www.appfolio.com/open-roles",
-    website: "https://www.appfolio.com",
-    state: "California",
-    segment: "Property Management Software",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "yardi-systems",
-    name: "Yardi Systems",
-    hub: "proptech",
-    careersUrl: "https://www.yardi.com/careers",
-    website: "https://www.yardi.com",
-    state: "California",
-    segment: "Property Management Software",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "procore-technologies",
-    name: "Procore Technologies",
-    hub: "proptech",
-    careersUrl: "https://www.procore.com/careers",
-    website: "https://www.procore.com",
-    state: "California",
-    segment: "Construction Tech",
-    verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "matterport",
-    name: "Matterport",
-    hub: "proptech",
-    careersUrl: "https://matterport.com/careers",
-    website: "https://matterport.com",
-    state: "California",
-    segment: "3D Space Capture / Real Estate Media",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "measurabl",
-    name: "Measurabl",
-    hub: "proptech",
-    careersUrl: "https://measurabl.com/careers",
-    website: "https://measurabl.com",
-    state: "California",
-    segment: "ESG/Sustainability Data for CRE",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "placerai",
-    name: "Placer.ai",
-    hub: "proptech",
-    careersUrl: "https://www.placer.ai/careers",
-    website: "https://www.placer.ai",
-    state: "California",
-    segment: "Foot Traffic / Location Analytics",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "roofstock",
-    name: "Roofstock",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.roofstock.com/careers",
-    website: "https://www.roofstock.com",
-    state: "California",
-    segment: "SFR Investment Marketplace",
-    verified: false,
-    method: "greenhouse",
-    atsSlug: "roofstock",   // verified live
-    active: true,
-  },
-  {
-    id: "mynd",
-    name: "Mynd",
-    hub: "opco",
-    careersUrl: "https://www.mynd.co/careers",
-    website: "https://www.mynd.co",
-    state: "California",
-    segment: "SFR Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "doma",
-    name: "Doma",
-    hub: "proptech",
-    careersUrl: "https://doma.com/tech/careers/",
-    website: "https://www.doma.com",
-    state: "California",
-    segment: "Title Insurance / Mortgage Tech",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "blend-labs",
-    name: "Blend Labs",
-    hub: "proptech",
-    careersUrl: "https://blend.com/company/careers/",
-    website: "https://www.blend.com",
-    state: "California",
-    segment: "Mortgage/Lending Software",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "point",
-    name: "Point",
-    hub: "proptech",
-    careersUrl: "https://www.point.com/careers",
-    website: "https://www.point.com",
-    state: "California",
-    segment: "Home Equity Fintech",
-    verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "divvy-homes",
-    name: "Divvy Homes",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.divvyhomes.com/careers",
-    website: "https://www.divvyhomes.com",
-    state: "California",
-    segment: "Rent-to-Own Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "flock-homes",
-    name: "Flock Homes",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.flockhomes.com/careers",
-    website: "https://www.flockhomes.com",
-    state: "California",
-    segment: "SFR 1031 Exchange Platform",
-    verified: false,
-    method: "greenhouse",
-    atsSlug: "flockhomes",   // verified live
-    active: true,
-  },
-  {
-    id: "zumper",
-    name: "Zumper",
-    hub: "proptech",
-    careersUrl: "https://www.zumper.com/careers",
-    website: "https://www.zumper.com",
-    state: "California",
-    segment: "Rental Marketplace",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "apartment-list",
-    name: "Apartment List",
-    hub: "proptech",
-    careersUrl: "https://www.apartmentlist.com/careers",
-    website: "https://www.apartmentlist.com",
-    state: "California",
-    segment: "Rental Marketplace",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "hemlane",
-    name: "Hemlane",
-    hub: "proptech",
-    careersUrl: "https://www.hemlane.com/careers",
-    website: "https://www.hemlane.com",
-    state: "California",
-    segment: "Property Management Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "pacaso",
-    name: "Pacaso",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.pacaso.com/careers",
-    website: "https://www.pacaso.com",
-    state: "California",
-    segment: "Co-Ownership / Second Homes",
-    verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "pacaso",
-    active: true,
-  },
-  {
-    id: "crexi",
-    name: "Crexi",
-    hub: "proptech",
-    careersUrl: "https://www.crexi.com/careers",
-    website: "https://www.crexi.com",
-    state: "California",
-    segment: "CRE Marketplace & Data",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "kiavi",
-    name: "Kiavi",
-    hub: "proptech",
-    careersUrl: "https://www.kiavi.com/careers",
-    website: "https://www.kiavi.com",
-    state: "California",
-    segment: "Real Estate Investor Lending",
-    verified: true,
-    method: "greenhouse",
-    atsSlug: "kiavi",   // verified live
-    active: true,
-  },
-  {
-    id: "kasa-living",
-    name: "Kasa Living",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.kasa.com/careers",
-    website: "https://www.kasa.com",
-    state: "California",
-    segment: "Flexible-Stay Hospitality Tech",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "side",
-    name: "Side",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.side.com/about/careers/",
-    website: "https://www.side.com",
-    state: "California",
-    segment: "Real Estate Brokerage Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "housecanary",
-    name: "HouseCanary",
-    hub: "proptech",
-    careersUrl: "https://www.housecanary.com/careers",
-    website: "https://www.housecanary.com",
-    state: "California",
-    segment: "Real Estate Valuation/AVM Data",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "homelight",
-    name: "HomeLight",
-    hub: "proptech",
-    careersUrl: "https://www.homelight.com/careers",
-    website: "https://www.homelight.com",
-    state: "California",
-    segment: "Agent Matching / Real Estate Marketplace",
-    verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "homelight",
-    active: true,
-  },
-  {
-    id: "snapdocs",
-    name: "Snapdocs",
-    hub: "proptech",
-    careersUrl: "https://www.snapdocs.com/careers",
-    website: "https://www.snapdocs.com",
-    state: "California",
-    segment: "Digital Mortgage Closing Platform",
-    verified: false,
-    method: "ashby",   // greenhouse | lever | workday | dom
-    atsSlug: "snapdocs",
-    active: true,
-  },
-  {
-    id: "rentspree",
-    name: "RentSpree",
-    hub: "proptech",
-    careersUrl: "https://www.rentspree.com/careers",
-    website: "https://www.rentspree.com",
-    state: "California",
-    segment: "Tenant Screening Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "realtorcom-move-inc",
-    name: "Realtor.com (Move Inc.)",
-    hub: "proptech",
-    careersUrl: "https://www.move.com/careers",
-    website: "https://www.realtor.com",
-    state: "California",
-    segment: "Real Estate Listings Marketplace",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "auctioncom",
-    name: "Auction.com",
-    hub: "proptech",
-    careersUrl: "https://www.auction.com/lp/careers/",
-    website: "https://www.auction.com",
-    state: "California",
-    segment: "Real Estate Auction Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "realpage",
-    name: "RealPage",
-    hub: "proptech",
-    careersUrl: "https://www.realpage.com/careers",
-    website: "https://www.realpage.com",
-    state: "Texas",
-    segment: "Property Management Data & Software",
-    verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "resman",
-    name: "ResMan",
-    hub: "proptech",
-    careersUrl: "https://myresman.com/careers",
-    website: "https://myresman.com",
-    state: "Texas",
-    segment: "Property Management Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "homeward",
-    name: "Homeward",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.homeward.com/careers",
-    website: "https://www.homeward.com",
-    state: "Texas",
-    segment: "Cash-Offer / Mortgage Fintech",
-    verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "homeward",
-    active: true,
-  },
-  {
-    id: "steadily",
-    name: "Steadily",
-    hub: "proptech",
-    careersUrl: "https://www.steadily.com/careers",
-    website: "https://www.steadily.com",
-    state: "Texas",
-    segment: "Landlord Insurance",
-    verified: true,
-    method: "ashby",   // greenhouse | lever | workday | dom
-    atsSlug: "Steadily",
-    active: true,
-  },
-  {
-    id: "closinglock",
-    name: "Closinglock",
-    hub: "proptech",
-    careersUrl: "https://www.closinglock.com/careers",
-    website: "https://www.closinglock.com",
-    state: "Texas",
-    segment: "Wire Fraud Prevention for RE Closings",
-    verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "certifid",
-    name: "CertifID",
-    hub: "proptech",
-    careersUrl: "https://www.certifid.com/careers",
-    website: "https://www.certifid.com",
-    state: "Texas",
-    segment: "Wire Fraud Prevention / Identity Verification",
-    verified: false,
-    method: "lever",   // greenhouse | lever | workday | dom
-    atsSlug: "certifid",
-    active: true,
-  },
-  {
-    id: "luxury-presence",
-    name: "Luxury Presence",
-    hub: "proptech",
-    careersUrl: "https://www.luxurypresence.com/careers/open-positions/",
-    website: "https://www.luxurypresence.com",
-    state: "Texas",
-    segment: "Real Estate Agent Marketing Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "greenlite",
-    name: "GreenLite",
-    hub: "proptech",
-    careersUrl: "https://www.greenlite.ai/careers",
-    website: "https://www.greenlite.ai",
-    state: "Texas",
-    segment: "AI Permitting & Compliance",
-    verified: false,
-    method: "ashby",   // greenhouse | lever | workday | dom
-    atsSlug: "brettonai",
-    active: true,
-  },
-  {
-    id: "worksmith",
-    name: "Worksmith",
-    hub: "proptech",
-    careersUrl: "https://www.worksmith.com/careers",
-    website: "https://www.worksmith.com",
-    state: "Texas",
-    segment: "Retail/CRE Facilities Marketplace",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "ownwell",
-    name: "Ownwell",
-    hub: "proptech",
-    careersUrl: "https://www.ownwell.com/careers",
-    website: "https://www.ownwell.com",
-    state: "Texas",
-    segment: "Property Tax Appeal Platform",
-    verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "ownwell",
-    active: true,
-  },
-  {
-    id: "ojo-labs",
-    name: "Ojo Labs",
-    hub: "proptech",
-    careersUrl: "https://www.ojolabs.com/careers",
-    website: "https://www.ojolabs.com",
-    state: "Texas",
-    segment: "AI Real Estate Assistant",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "opcity-realtorcom",
-    name: "Opcity (Realtor.com)",
-    hub: "proptech",
-    careersUrl: "https://www.move.com/careers",
-    website: "https://www.opcity.com",
-    state: "Texas",
-    segment: "Real Estate Lead Conversion Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "compass",
-    name: "Compass",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.compass.com/careers",
-    website: "https://www.compass.com",
-    state: "New York",
-    segment: "Real Estate Brokerage Tech",
-    verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "vts",
-    name: "VTS",
-    hub: "proptech",
-    careersUrl: "https://www.vts.com/careers",
-    website: "https://www.vts.com",
-    state: "New York",
-    segment: "Commercial Real Estate Leasing Platform",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "butterflymx",
-    name: "ButterflyMX",
-    hub: "proptech",
-    careersUrl: "https://www.butterflymx.com/careers",
-    website: "https://www.butterflymx.com",
-    state: "New York",
-    segment: "Smart Access / Intercom Systems",
-    verified: true,
-    method: "ashby",   // greenhouse | lever | workday | dom
-    atsSlug: "butterflymx",
-    active: true,
-  },
-  {
-    id: "guesty",
-    name: "Guesty",
-    hub: "proptech",
-    careersUrl: "https://www.guesty.com/careers",
-    website: "https://www.guesty.com",
-    state: "New York",
-    segment: "Short-Term Rental Management Software",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "rhino",
-    name: "Rhino",
-    hub: "proptech",
-    careersUrl: "https://www.sayrhino.com/careers",
-    website: "https://www.sayrhino.com",
-    state: "New York",
-    segment: "Security Deposit Insurance",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "bilt-rewards",
-    name: "Bilt Rewards",
-    hub: "proptech",
-    careersUrl: "https://www.biltrewards.com/careers",
-    website: "https://www.biltrewards.com",
-    state: "New York",
-    segment: "Rent Rewards / Resident Fintech",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "compstak",
-    name: "CompStak",
-    hub: "proptech",
-    careersUrl: "https://compstak.com/jobs",
-    website: "https://www.compstak.com",
-    state: "New York",
-    segment: "CRE Comparable Data Platform",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "cadre",
-    name: "Cadre",
-    hub: "proptech",
-    careersUrl: "https://www.cadre.com/careers",
-    website: "https://www.cadre.com",
-    state: "New York",
-    segment: "CRE Investment Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "squarefoot",
-    name: "SquareFoot",
-    hub: "proptech",
-    careersUrl: "https://www.squarefoot.com/careers",
-    website: "https://www.squarefootfinance.com",
-    state: "New York",
-    segment: "Commercial Office Brokerage Tech",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "latch",
-    name: "Latch",
-    hub: "proptech",
-    careersUrl: "https://door.com/careers",
-    website: "https://www.latch.com",
-    state: "New York",
-    segment: "Smart Access for Multifamily",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "agora",
-    name: "Agora",
-    hub: "proptech",
-    careersUrl: "https://www.agora-re.com/careers",
-    website: "https://www.agora-re.com",
-    state: "New York",
-    segment: "Real Estate Investment Management SaaS/Fintech",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "cherre",
-    name: "Cherre",
-    hub: "proptech",
-    careersUrl: "https://www.cherre.com/careers",
-    website: "https://www.cherre.com",
-    state: "New York",
-    segment: "Real Estate Data Integration Platform",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "enertiv",
-    name: "Enertiv",
-    hub: "proptech",
-    careersUrl: "https://www.enertiv.com/careers",
-    website: "https://www.enertiv.com",
-    state: "New York",
-    segment: "Building Energy Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "bowery-valuation",
-    name: "Bowery Valuation",
-    hub: "proptech",
-    careersUrl: "https://www.boweryvaluation.com/careers",
-    website: "https://www.boweryvaluation.com",
-    state: "New York",
-    segment: "AI-Powered Appraisal Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "obligo",
-    name: "Obligo",
-    hub: "proptech",
-    careersUrl: "https://www.myobligo.com/careers",
-    website: "https://www.myobligo.com",
-    state: "New York",
-    segment: "Security Deposit Alternative",
-    verified: true,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "obligo",
-    active: true,
-  },
-  {
-    id: "theguarantors",
-    name: "TheGuarantors",
-    hub: "proptech",
-    careersUrl: "https://www.theguarantors.com/careers",
-    website: "https://www.theguarantors.com",
-    state: "New York",
-    segment: "Lease Insurance / Insurtech",
-    verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "funnel-leasing",
-    name: "Funnel Leasing",
-    hub: "proptech",
-    careersUrl: "https://funnelleasing.com/about/careers",
-    website: "https://www.funnelleasing.com",
-    state: "New York",
-    segment: "Multifamily Leasing CRM",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "wework",
-    name: "WeWork",
-    hub: "opco",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.wework.com/careers",
-    website: "https://www.wework.com",
-    state: "New York",
-    segment: "Flexible Workspace",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Flexible workspace, not residential. Kept for reference; set active:true to include.
-  },
-  {
-    id: "industrious",
-    name: "Industrious",
-    hub: "opco",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.industriousoffice.com/careers",
-    website: "https://www.industriousoffice.com",
-    state: "New York",
-    segment: "Flexible Workspace",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Flexible workspace, not residential. Kept for reference; set active:true to include.
-  },
-  {
-    id: "convene",
-    name: "Convene",
-    hub: "opco",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://convene.com/careers",
-    website: "https://convene.com",
-    state: "New York",
-    segment: "Flexible Workspace / Meeting Venues",
-    verified: true,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "convene",
-    active: false,
-    // PARKED — Meeting venues, not residential. Kept for reference; set active:true to include.
-  },
-  {
-    id: "orchard",
-    name: "Orchard",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.orchard.com/careers",
-    website: "https://www.orchard.com",
-    state: "New York",
-    segment: "Home Trade-In / Mortgage Fintech",
-    verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "orchard",
-    active: true,
-  },
-  {
-    id: "bettercom",
-    name: "Better.com",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://better.com/about-us/careers",
-    website: "https://better.com",
-    state: "New York",
-    segment: "Digital Mortgage Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "updater",
-    name: "Updater",
-    hub: "proptech",
-    careersUrl: "https://www.updater.com/careers",
-    website: "https://www.updater.com",
-    state: "New York",
-    segment: "Moving/Relocation Tech for Property Managers",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "livly",
-    name: "Livly",
-    hub: "proptech",
-    careersUrl: "https://www.livly.io/careers",
-    website: "https://www.livly.io",
-    state: "Illinois",
-    segment: "Resident Experience Platform",
-    verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "chamberlain-group",
-    name: "Chamberlain Group",
-    hub: "proptech",
-    careersUrl: "https://www.chamberlaingroup.com/careers",
-    website: "https://www.chamberlaingroup.com",
-    state: "Illinois",
-    segment: "Smart Access (myQ/LiftMaster)",
-    verified: false,
-    method: "workday",   // greenhouse | lever | workday | dom
-    atsSlug: "chamberlain.wd1.myworkdayjobs.com",
-    active: true,
-  },
-  {
-    id: "obie",
-    name: "Obie",
-    hub: "proptech",
-    careersUrl: "https://www.obieinsurance.com/careers",
-    website: "https://www.obieinsurance.com",
-    state: "Illinois",
-    segment: "Landlord Insurance / Insurtech",
-    verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "avail-realtorcom",
-    name: "Avail (Realtor.com)",
-    hub: "proptech",
-    careersUrl: "https://www.avail.co/careers",
-    website: "https://www.avail.co",
-    state: "Illinois",
-    segment: "DIY Landlord Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "hqo",
-    name: "HqO",
-    hub: "proptech",
-    careersUrl: "https://www.hqo.com/careers",
-    website: "https://www.hqo.com",
-    state: "Massachusetts",
-    segment: "Tenant/Workplace Experience Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "buildium-realpage",
-    name: "Buildium (RealPage)",
-    hub: "proptech",
-    careersUrl: "https://www.buildium.com/careers",
-    website: "https://www.buildium.com",
-    state: "Massachusetts",
-    segment: "Property Management Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "placester",
-    name: "Placester",
-    hub: "proptech",
-    careersUrl: "https://placester.com/careers",
-    website: "https://placester.com",
-    state: "Massachusetts",
-    segment: "Real Estate Agent Website Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "robin",
-    name: "Robin",
-    hub: "proptech",
-    careersUrl: "https://www.robinpowered.com/careers",
-    website: "https://www.robinpowered.com",
-    state: "Massachusetts",
-    segment: "Workplace Experience Platform",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "getcovered",
-    name: "GetCovered",
-    hub: "proptech",
-    careersUrl: "https://getcovered.io/careers",
-    website: "https://getcovered.io",
-    state: "Colorado",
-    segment: "Renters Insurance / PropTech-Insurtech",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "turbotenant",
-    name: "TurboTenant",
-    hub: "proptech",
-    careersUrl: "https://www.turbotenant.com/careers",
-    website: "https://www.turbotenant.com",
-    state: "Colorado",
-    segment: "Landlord/DIY Property Management Software",
-    verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "turbotenant",
-    active: true,
-  },
-  {
-    id: "homebot",
-    name: "Homebot",
-    hub: "proptech",
-    careersUrl: "https://www.homebot.ai/careers",
-    website: "https://www.homebot.ai",
-    state: "Colorado",
-    segment: "Homeowner Engagement Platform",
-    verified: false,
-    method: "ashby",   // greenhouse | lever | workday | dom
-    atsSlug: "homebot",
-    active: true,
-  },
-  {
-    id: "digible",
-    name: "Digible",
-    hub: "proptech",
-    careersUrl: "https://www.digible.com/careers",
-    website: "https://www.digible.com",
-    state: "Colorado",
-    segment: "Multifamily Marketing Agency/Tech",
-    verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "digible",
-    active: true,
-  },
-  {
-    id: "netvendor",
-    name: "NetVendor",
-    hub: "proptech",
-    careersUrl: "https://netvendor.bamboohr.com/careers",
-    website: "https://www.netvendor.com",
-    state: "Georgia",
-    segment: "Vendor Compliance & Insurance Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "smartrent",
-    name: "SmartRent",
-    hub: "proptech",
-    careersUrl: "https://smartrent.com/careers",
-    website: "https://smartrent.com",
-    state: "Arizona",
-    segment: "Smart Home / Multifamily IoT",
-    verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "offerpad",
-    name: "Offerpad",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.offerpad.com/careers",
-    website: "https://www.offerpad.com",
-    state: "Arizona",
-    segment: "iBuying / Real Estate Transactions",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "opendoor",
-    name: "Opendoor",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.opendoor.com/careers/open-positions",
-    website: "https://www.opendoor.com",
-    state: "Arizona",
-    segment: "iBuying / Real Estate Transactions",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "pointcentral",
-    name: "PointCentral",
-    hub: "proptech",
-    careersUrl: "https://www.pointcentral.com/careers",
-    website: "https://www.pointcentral.com",
-    state: "Arizona",
-    segment: "Smart Home for SFR (Alarm.com subsidiary)",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "entrata",
-    name: "Entrata",
-    hub: "proptech",
-    careersUrl: "https://www.entrata.com/careers",
-    website: "https://www.entrata.com",
-    state: "Utah",
-    segment: "Property Management Software (AI leasing/payments)",
-    verified: true,
-    method: "lever",   // greenhouse | lever | workday | dom
-    atsSlug: "entrata",
-    active: true,
-  },
-  {
-    id: "rentec-direct",
-    name: "Rentec Direct",
-    hub: "proptech",
-    careersUrl: "https://www.rentecdirect.com/careers",
-    website: "https://www.rentecdirect.com",
-    state: "Oregon",
-    segment: "Property Management Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "second-nature",
-    name: "Second Nature",
-    hub: "proptech",
-    careersUrl: "https://www.secondnature.com/careers",
-    website: "https://www.secondnature.com",
-    state: "Tennessee",
-    segment: "Resident Benefits / Property Management SaaS",
-    verified: false,
-    method: "ashby",
-    atsSlug: "second-nature",   // NOT "secondnaturecomputing" — different company
-    active: true,
-  },
-  {
-    id: "home365",
-    name: "Home365",
-    hub: "opco",
-    careersUrl: "https://www.home365.co/jobs/",
-    website: "https://www.home365.co",
-    state: "Nevada",
-    segment: "SFR Full-Service Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "cecilian-partners",
-    name: "Cecilian Partners",
-    hub: "proptech",
-    careersUrl: "https://www.cecilianpartners.com/careers",
-    website: "https://www.cecilianpartners.com",
-    state: "Pennsylvania",
-    segment: "New Home Community Development Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "costar-group",
-    name: "CoStar Group",
-    hub: "proptech",
-    careersUrl: "https://www.costargroup.com/careers",
-    website: "https://www.costargroup.com",
-    state: "Virginia",
-    segment: "Real Estate Data & Analytics",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "alarmcom",
-    name: "Alarm.com",
-    hub: "proptech",
-    careersUrl: "https://www.alarm.com/careers",
-    website: "https://www.alarm.com",
-    state: "Virginia",
-    segment: "Smart Property / Security Platform",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "notarize-proof",
-    name: "Notarize (Proof)",
-    hub: "proptech",
-    careersUrl: "https://www.proof.com/careers",
-    website: "https://www.proof.com",
-    state: "Virginia",
-    segment: "Remote Online Notarization for Real Estate Closings",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "zillow-group",
-    name: "Zillow Group",
-    hub: "proptech",
-    careersUrl: "https://www.zillow.com/careers",
-    website: "https://www.zillow.com",
-    state: "Washington",
-    segment: "Real Estate Marketplace",
-    verified: true,
-    method: "workday",
-    atsSlug: "zillow.wd5.myworkdayjobs.com",
-    atsSite: "Zillow_Group_External",   // verified live
-    active: true,
-  },
-  {
-    id: "redfin",
-    name: "Redfin",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.redfin.com/careers",
-    website: "https://www.redfin.com",
-    state: "Washington",
-    segment: "Real Estate Brokerage Tech",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "knock-crm",
-    name: "Knock CRM",
-    hub: "proptech",
-    careersUrl: "https://www.knockcrm.com/careers/",
-    website: "https://www.knockrentals.com",
-    state: "Washington",
-    segment: "Multifamily Leasing CRM",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "rocket-companies",
-    name: "Rocket Companies",
-    hub: "proptech",
-    careersUrl: "https://www.rocketcompanies.com/careers",
-    website: "https://www.rocketcompanies.com",
-    state: "Michigan",
-    segment: "Mortgage / Real Estate Fintech",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "rent-manager-lcs",
-    name: "Rent Manager (LCS)",
-    hub: "proptech",
-    careersUrl: "https://www.rentmanager.com/careers",
-    website: "https://www.rentmanager.com",
-    state: "Ohio",
-    segment: "Property Management Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "mri-software",
-    name: "MRI Software",
-    hub: "proptech",
-    careersUrl: "https://www.mrisoftware.com/careers",
-    website: "https://www.mrisoftware.com",
-    state: "Ohio",
-    segment: "Real Estate/Property Management Software",
-    verified: true,
-    method: "workday",
-    atsSlug: "mrisoftware.wd501.myworkdayjobs.com",
-    atsSite: "External_CareerSite",   // verified live
-    active: true,
-  },
-  {
-    id: "density",
-    name: "Density",
-    hub: "proptech",
-    careersUrl: "https://www.density.io/careers",
-    website: "https://www.density.io",
-    state: "Ohio",
-    segment: "Occupancy Sensing for Buildings",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "bright-mls",
-    name: "Bright MLS",
-    hub: "proptech",
-    careersUrl: "https://www.brightmls.com/careers",
-    website: "https://www.brightmls.com",
-    state: "Maryland",
-    segment: "Real Estate MLS / Listings Data Technology",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "renters-warehouse",
-    name: "Renters Warehouse",
-    hub: "opco",
-    careersUrl: "https://www.renterswarehouse.com/careers",
-    website: "https://www.renterswarehouse.com",
-    state: "Minnesota",
-    segment: "SFR Property Management Franchise",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "doorloop",
-    name: "DoorLoop",
-    hub: "proptech",
-    careersUrl: "https://www.doorloop.com/careers",
-    website: "https://www.doorloop.com",
-    state: "Florida",
-    segment: "Property Management Software",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "envoy",
-    name: "Envoy",
-    hub: "proptech",
-    careersUrl: "https://envoy.com/careers",
-    website: "https://envoy.com",
-    state: "California",
-    segment: "Workplace Experience Platform",
-    verified: true,
-    method: "ashby",   // greenhouse | lever | workday | dom
-    atsSlug: "envoy",
-    active: true,
-  },
-  {
-    id: "leaselock",
-    name: "LeaseLock",
-    hub: "proptech",
-    careersUrl: "https://www.leaselock.com/careers",
-    website: "https://www.leaselock.com",
-    state: "California",
-    segment: "Deposit-Free Leasing Insurtech",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "doorstead",
-    name: "Doorstead",
-    hub: "opco",
-    careersUrl: "https://www.doorstead.com/careers",
-    website: "https://www.doorstead.com",
-    state: "California",
-    segment: "Guaranteed-Rent Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "belong",
-    name: "Belong",
-    hub: "opco",
-    careersUrl: "https://belonghome.com/careers",
-    website: "https://belonghome.com",
-    state: "California",
-    segment: "SFR Property Management",
-    verified: false,
-    method: "workable",
-    atsSlug: "belong-6",   // Workable, and NOT "belong" — that slug is taken   // jobs.lever.co/belong
-    priority: true,   // always shown on the graph, never crowded out
-    active: true,
-  },
-  {
-    id: "medical-properties-trust",
-    name: "Medical Properties Trust",
-    hub: "opco",
-    careersUrl: "https://www.medicalpropertiestrust.com/careers",
-    website: "https://www.medicalpropertiestrust.com",
-    state: "Alabama",
-    segment: "Healthcare REIT",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Healthcare REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "uniti-group",
-    name: "Uniti Group",
-    hub: "opco",
-    careersUrl: "https://www.uniti.com/careers",
-    website: "https://www.uniti.com",
-    state: "Arkansas",
-    segment: "Infrastructure REIT (fiber/real estate)",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Fiber infrastructure REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "starwood-property-trust",
-    name: "Starwood Property Trust",
-    hub: "opco",
-    careersUrl: "https://www.starwoodcapital.com/careers",
-    website: "https://www.starwoodpropertytrust.com",
-    state: "Connecticut",
-    segment: "Commercial Mortgage REIT",
-    verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Commercial mortgage REIT, not an operator. Kept for reference; set active:true to include.
-  },
-  {
-    id: "alexander-and-baldwin",
-    name: "Alexander & Baldwin",
-    hub: "opco",
-    careersUrl: "https://www.alexanderbaldwin.com/careers",
-    website: "https://www.alexanderbaldwin.com",
-    state: "Hawaii",
-    segment: "Commercial Real Estate / Land REIT",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Commercial and land REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "kite-realty-group-trust",
-    name: "Kite Realty Group Trust",
-    hub: "opco",
-    careersUrl: "https://www.kiterealty.com/careers",
-    website: "https://www.kiterealty.com",
-    state: "Indiana",
-    segment: "Shopping Center REIT",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Shopping centre REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "lamar-advertising-company",
-    name: "Lamar Advertising Company",
-    hub: "opco",
-    careersUrl: "https://www.lamar.com/careers",
-    website: "https://www.lamar.com",
-    state: "Louisiana",
-    segment: "Outdoor Advertising REIT",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Outdoor advertising REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "eastgroup-properties",
-    name: "EastGroup Properties",
-    hub: "opco",
-    careersUrl: "https://www.eastgroup.net/careers",
-    website: "https://www.eastgroup.net",
-    state: "Mississippi",
-    segment: "Industrial REIT",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Industrial REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "epr-properties",
-    name: "EPR Properties",
-    hub: "opco",
-    careersUrl: "https://www.eprkc.com/careers",
-    website: "https://www.eprkc.com",
-    state: "Missouri",
-    segment: "Experiential/Entertainment REIT",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Entertainment REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "veris-residential",
-    name: "Veris Residential",
-    hub: "opco",
-    careersUrl: "https://www.verisresidential.com/careers",
-    website: "https://www.verisresidential.com",
-    state: "New Jersey",
-    segment: "Multifamily REIT",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "highwoods-properties",
-    name: "Highwoods Properties",
-    hub: "opco",
-    careersUrl: "https://www.highwoods.com/careers",
-    website: "https://www.highwoods.com",
-    state: "North Carolina",
-    segment: "Office REIT",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Office REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "greystar",
-    name: "Greystar",
-    hub: "opco",
-    careersUrl: "https://www.greystar.com/careers",
-    website: "https://www.greystar.com",
-    state: "South Carolina",
-    segment: "World's Largest Multifamily Property Manager",
-    verified: true,
-    method: "workday",
-    atsSlug: "greystar.wd1.myworkdayjobs.com",
-    atsSite: "External",   // verified live
-    active: true,
-    // Largest US rental housing operator — predominantly MULTIFAMILY, not scattered-site. Kept in opco but worth reviewing against the SFR focus.
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "easterly-government-properties",
-    name: "Easterly Government Properties",
-    hub: "opco",
-    careersUrl: "https://www.easterlyre.com/careers",
-    website: "https://www.easterlyre.com",
-    state: "District of Columbia",
-    segment: "Government-Leased Office REIT",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Government office REIT. Kept for reference; set active:true to include.
-  },
-  {
-    id: "cohen-esrey-communities",
-    name: "Cohen-Esrey Communities",
-    hub: "opco",
-    careersUrl: "https://www.cohenesrey.com/careers",
-    website: "https://www.cohenesrey.com",
-    state: "Kansas",
-    segment: "Multifamily Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "case-and-associates",
-    name: "Case & Associates",
-    hub: "opco",
-    careersUrl: "https://www.caseandassociates.com/careers",
-    website: "https://www.caseandassociates.com",
-    state: "Oklahoma",
-    segment: "Multifamily Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "oakbrook-corporation",
-    name: "Oakbrook Corporation",
-    hub: "opco",
-    careersUrl: "https://www.oakbrookcorp.com/careers",
-    website: "https://www.oakbrookcorp.com",
-    state: "Wisconsin",
-    segment: "Commercial & Residential Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "bh-management-services",
-    name: "BH Management Services",
-    hub: "opco",
-    careersUrl: "https://www.bhmanagement.com/careers",
-    website: "https://www.bhmanagement.com",
-    state: "Iowa",
-    segment: "Multifamily Property Management",
-    verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "atria-senior-living",
-    name: "Atria Senior Living",
-    hub: "opco",
-    careersUrl: "https://www.atriaseniorliving.com/careers",
-    website: "https://www.atriaseniorliving.com",
-    state: "Kentucky",
-    segment: "Senior Living Property Management",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: false,
-    // PARKED — Senior living, not scattered-site. Kept for reference; set active:true to include.
-  },
-  {
-    id: "picerne-real-estate-group",
-    name: "Picerne Real Estate Group",
-    hub: "opco",
-    careersUrl: "https://www.picerne.com/careers",
-    website: "https://www.picerne.com",
-    state: "Rhode Island",
-    segment: "Multifamily & Military Housing Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "the-lund-company",
-    name: "The Lund Company",
-    hub: "opco",
-    careersUrl: "https://www.lundco.com/careers",
-    website: "https://www.lundco.com",
-    state: "Nebraska",
-    segment: "Multifamily & Commercial Property Management",
-    verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "tamarack-property-management",
-    name: "Tamarack Property Management",
-    hub: "proptech",
-    careersUrl: "https://www.tamarackproperty.com/careers",
-    website: "https://www.tamarackproperty.com",
-    state: "Montana",
-    segment: "Affordable/Multifamily/Senior Housing Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
-    id: "mountain-property-management",
-    name: "Mountain Property Management",
-    hub: "opco",
-    careersUrl: "https://jacksonholeproperties.net/careers",
-    website: "https://jacksonholeproperties.net",
-    state: "Wyoming",
-    segment: "Residential & HOA Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "redstone",
-    name: "Redstone",
-    hub: "opco",
-    careersUrl: "https://www.redstonevt.com/careers",
-    website: "https://www.redstonevt.com",
-    state: "Vermont",
-    segment: "Multifamily & Commercial Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
+  //   1. the path names one — /job/, /jobs/, /careers/, /job-details/, /p/ …
+  //   2. the host is a known ATS, whatever the path looks like
+  //
+  // The second matters because careers pages increasingly link straight out to
+  // a hosted board: Esusu's Webflow page links to jobs.deel.com/<uuid>/
+  // job-details/<uuid>/overview, which no path pattern would guess.
+  const ATS_HOSTS = /(?:jobs\.deel\.com|boards\.greenhouse\.io|jobs\.lever\.co|jobs\.ashbyhq\.com|apply\.workable\.com|\.breezy\.hr|myworkdayjobs\.com|jobs\.smartrecruiters\.com|recruiting\.paylocity\.com|jobs\.jobvite\.com|icims\.com)/i;
+  const re = /<a[^>]+href="([^"#]+)"[^>]*>([\s\S]{0,300}?)<\/a>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const href = m[1];
+    const looksLikeJobPath = /\/(?:job|jobs|careers|opening|position)s?[\/-]|\/job-details\//i.test(href);
+    if (!looksLikeJobPath && !ATS_HOSTS.test(href)) continue;
+
+    const title = toText(m[2]).split('\n')[0].trim();
+    if (!title || title.length < 3 || title.length > 140) continue;
+    if (isNotAJob(title)) continue;
+    const url = href.startsWith('http') ? href : new URL(href, res.url).href;
+    if (!seen.has(url)) seen.set(url, { sourceId: url, title, location: 'See posting', url, description: '', postedAt: null, min: null, max: null });
+  }
+
+  const jobs = [...seen.values()];
+  if (!jobs.length) throw new Error('dom found no job links — page is probably JS-rendered');
+  return jobs;
+}
+
+
+/**
+ * Careers sites that publish an XML sitemap and embed JobPosting JSON-LD on
+ * each page — how Paradox.ai-hosted sites (Invitation Homes) expose their
+ * roles. Plain HTTP, no headless browser, so it runs fine on a CI runner.
+ */
+async function jsonld(company) {
+  const sitemapUrl = company.sitemap;
+  if (!sitemapUrl) throw new Error('jsonld needs a "sitemap" URL in config');
+  const isJob = company.jobUrlPattern ? new RegExp(company.jobUrlPattern) : /\/job\//;
+  const MAX = 300;                      // cap the per-page fetches
+
+  const locs = (xml) => [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]);
+  const text = async (url) => {
+    const r = await get(url);
+    if (!r.ok) throw new Error(url + ' → ' + r.status);
+    return r.text();
+  };
+
+  // The top-level sitemap is often an index pointing at child sitemaps.
+  const top = locs(await text(sitemapUrl));
+  let urls = top.filter((u) => isJob.test(u));
+  if (!urls.length) {
+    for (const child of top.filter((u) => /sitemap/i.test(u) && u.endsWith('.xml'))) {
+      try { urls.push(...locs(await text(child)).filter((u) => isJob.test(u))); }
+      catch { /* skip an unreadable child sitemap */ }
+    }
+  }
+  urls = [...new Set(urls)].slice(0, MAX);
+  if (!urls.length) throw new Error('sitemap listed no job pages');
+
+  const jobs = [];
+  for (const url of urls) {
+    try {
+      const html = await text(url);
+      const blocks = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+      for (const raw of blocks) {
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch { continue; }
+        for (const it of Array.isArray(parsed) ? parsed : [parsed]) {
+          if (!it || it['@type'] !== 'JobPosting' || !it.title) continue;
+          let loc = it.jobLocation;
+          if (Array.isArray(loc)) loc = loc[0];
+          const addr = (loc && loc.address) || {};
+          const description = toText(it.description || '');
+          jobs.push({
+            sourceId: it.identifier?.value || it.url || url,
+            title: it.title,
+            location: [addr.addressLocality, addr.addressRegion].filter(Boolean).join(', ') || 'See posting',
+            url: it.url || url,
+            description,
+            postedAt: it.datePosted || null,
+            ...parseComp(description + ' ' + (it.baseSalary ? JSON.stringify(it.baseSalary) : '')),
+          });
+        }
+      }
+    } catch { /* skip an unreadable page rather than invent a row */ }
+    await sleep(120);                   // be polite: this is many page fetches
+  }
+  if (!jobs.length) throw new Error('no JobPosting JSON-LD found');
+  return jobs;
+}
+
+/** Breezy HR publishes a plain JSON board. Used by smaller proptech vendors. */
+async function breezy(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for breezy');
+  const res = await get(`https://${slug}.breezy.hr/json`);
+  if (!res.ok) throw new Error('breezy HTTP ' + res.status);
+  const body = await res.json();
+  if (!Array.isArray(body)) throw new Error('breezy returned no array');
+
+  return body.map((j) => {
+    const description = toText(j.description || '');
+    return {
+      sourceId: String(j.id || j.url),
+      title: j.name,
+      location: j.location?.name || 'Remote',
+      url: j.url,
+      description,
+      postedAt: j.published_date || null,
+      ...parseComp(description),
+    };
+  });
+}
+
+
+/**
+ * Reffie's careers page is Framer-hosted with no public ATS, but it is
+ * server-rendered: the listing links to /jobs/<slug> pages, each carrying an
+ * og:title of the form "Reffie | Role - Location".
+ *
+ * Site-specific and fragile by nature — Framer markup can change. It skips
+ * anything it cannot parse rather than guessing, so a redesign costs you the
+ * company's listings, never a page of invented ones.
+ */
+async function reffie(company) {
+  const listUrl = company.listUrl || company.careersUrl;
+  if (!listUrl) throw new Error('reffie needs a listUrl');
+  const origin = new URL(listUrl).origin;
+
+  const res = await get(listUrl);
+  if (!res.ok) throw new Error('reffie HTTP ' + res.status);
+  const html = await res.text();
+
+  const slugs = [...new Set([...html.matchAll(/jobs\/([a-z0-9][a-z0-9-]+)/gi)].map((m) => m[1].toLowerCase()))]
+    .filter((s) => s !== 'jobs');
+  if (!slugs.length) throw new Error('no job links found on the listing page');
+
+  const jobs = [];
+  for (const slug of slugs) {
+    const url = `${origin}/jobs/${slug}`;
+    try {
+      const page = await get(url);
+      if (!page.ok) continue;
+      const body = await page.text();
+      const og = (body.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i) || [])[1];
+      if (!og) continue;
+
+      const cleaned = toText(og).replace(/^\s*Reffie\s*[|｜]\s*/i, '').trim();
+      let title = cleaned, location = 'Remote';
+      const dash = cleaned.lastIndexOf(' - ');
+      if (dash > -1) {
+        title = cleaned.slice(0, dash).trim();
+        location = cleaned.slice(dash + 3).trim();
+      }
+      if (title && !isNotAJob(title)) {
+        jobs.push({ sourceId: slug, title, location, url, description: '', postedAt: null, min: null, max: null });
+      }
+    } catch { /* skip an unreadable page */ }
+    await sleep(150);
+  }
+
+  if (!jobs.length) throw new Error('no readable postings');
+  return jobs;
+}
+
+
+/**
+ * Ashby publishes a public JSON board — no key, no scraping. Common among
+ * newer venture-backed companies, so this is likely to resolve several of the
+ * vendors currently failing as "JS-rendered".
+ */
+async function ashby(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for ashby');
+
+  const res = await get(`https://api.ashbyhq.com/posting-api/job-board/${slug}?includeCompensation=true`);
+  if (!res.ok) throw new Error('ashby HTTP ' + res.status);
+  const body = await res.json();
+  const list = body?.jobs;
+  if (!Array.isArray(list)) throw new Error('ashby returned no jobs array');
+
+  return list.filter((j) => j.isListed !== false).map((j) => {
+    const description = toText(j.descriptionHtml || j.descriptionPlain || '');
+    // Ashby gives structured compensation when the employer fills it in —
+    // better than parsing it back out of the description.
+    let min = null, max = null;
+    const salary = (j.compensation?.compensationTierSummary || '') + ' ' + description;
+    ({ min, max } = parseComp(salary));
+
+    return {
+      sourceId: String(j.id),
+      title: j.title,
+      location: j.location || j.address?.postalAddress?.addressLocality || 'Remote',
+      url: j.jobUrl || j.applyUrl,
+      description,
+      postedAt: j.publishedAt || null,
+      min, max,
+    };
+  });
+}
+
+
+/**
+ * Workable's public board API. The slug is the path on apply.workable.com —
+ * often not the company name: Belong's is "belong-6", because earlier accounts
+ * took the plain name first.
+ *
+ * The endpoint is a POST that returns pages of 100. It also returns roles in
+ * every country, so the US filter downstream does real work here.
+ */
+async function workable(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for workable');
+
+  const out = [];
+  let token = null;
+
+  for (let page = 0; page < 12; page++) {
+    const res = await fetch(
+      `https://apply.workable.com/api/v1/widget/accounts/${encodeURIComponent(slug)}?details=true` +
+      (token ? `&token=${encodeURIComponent(token)}` : ''),
+      { headers: { 'User-Agent': UA, Accept: 'application/json' } });
+
+    if (!res.ok) throw new Error('workable HTTP ' + res.status);
+    const body = await res.json();
+    const jobs = body?.jobs;
+    if (!Array.isArray(jobs)) throw new Error('workable returned no jobs array');
+
+    for (const j of jobs) {
+      const description = toText(j.description || '');
+      const city = j.city || j.location?.city || '';
+      const region = j.state || j.region || j.location?.region || '';
+      const country = j.country || j.location?.country || '';
+      out.push({
+        sourceId: String(j.shortcode || j.id),
+        title: j.title,
+        // Country is kept in the string so the US filter can see it —
+        // Belong posts heavily in Buenos Aires.
+        location: [city, region, country].filter(Boolean).join(', ') || 'Remote',
+        url: j.url || j.application_url || `https://apply.workable.com/${slug}/j/${j.shortcode}/`,
+        description,
+        postedAt: j.published_on || j.created_at || null,
+        ...parseComp(description),
+      });
+    }
+
+    token = body?.nextPage || null;
+    if (!token || jobs.length === 0) break;
+    await sleep(200);
+  }
+
+  return out;
+}
+
+/**
+ * UKG Ready / UltiPro recruiting boards.
+ *
+ * The public careers page is often behind a WAF that refuses a scripted
+ * request outright — VineBrook's returns 403 to anything that is not a real
+ * browser. The board itself is a separate host and is not protected, so going
+ * straight to it sidesteps the block entirely. That is the whole reason this
+ * adapter exists.
+ *
+ * A board URL carries both values needed:
+ *     recruiting.ultipro.com/{tenant}/JobBoard/{boardId}/
+ * where tenant looks like VIN1007VNB and boardId is a GUID. Same two-field
+ * shape as Workday, so atsSlug holds the tenant and atsSite the board id.
+ *
+ * Results come from a POST, not a GET. A GET returns the HTML shell and would
+ * read as "no openings" rather than as a mistake.
+ */
+async function ukg(company) {
+  const url = company.careersUrl || '';
+  const m = url.match(/recruiting\.ultipro\.com\/([^/]+)\/JobBoard\/([0-9a-f-]{36})/i);
+
+  const tenant = company.atsSlug || (m && m[1]);
+  const board = company.atsSite || (m && m[2]);
+  if (!tenant || !board) {
+    throw new Error('ukg needs atsSlug (tenant, e.g. VIN1007VNB) and atsSite (the board GUID)');
+  }
+
+  const endpoint =
+    `https://recruiting.ultipro.com/${tenant}/JobBoard/${board}/JobBoardView/LoadSearchResults`;
+
+  const all = [];
+  const PAGE = 50;
+
+  for (let skip = 0; skip < 500; skip += PAGE) {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'User-Agent': UA,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        opportunitySearch: {
+          Top: PAGE,
+          Skip: skip,
+          QueryString: '',
+          OrderBy: [{ Value: 'postedDateDesc', PropertyName: 'PostedDate', Ascending: false }],
+          // These three filter stubs look pointless and are not. A minimal body
+          // returns HTTP 200 with an empty opportunities array on some tenants,
+          // which reads as "not hiring" rather than as a malformed request —
+          // exactly how VineBrook failed on the first attempt. This mirrors what
+          // the board's own frontend sends.
+          Filters: [
+            { t: 'TermsSearchFilterDto', fieldName: 4, extra: null, values: [] },
+            { t: 'TermsSearchFilterDto', fieldName: 5, extra: null, values: [] },
+            { t: 'TermsSearchFilterDto', fieldName: 6, extra: null, values: [] },
+          ],
+        },
+        matchCriteria: {
+          PreferredJobs: [],
+          Educations: [],
+          LicenseAndCertifications: [],
+          Skills: [],
+          hasNoLicenses: false,
+          SkippedSkills: [],
+        },
+      }),
+    });
+
+    if (!res.ok) throw new Error('ukg HTTP ' + res.status);
+
+    const body = await res.json().catch(() => null);
+    // Named explicitly rather than guessed at: if UltiPro changes the envelope,
+    // this should fail and be fixed, not quietly report a company as not hiring.
+    const page = body?.opportunities;
+    if (!Array.isArray(page)) throw new Error('ukg returned no opportunities array');
+
+    all.push(...page);
+
+    const total = body.totalCount ?? all.length;
+    if (!all.length && total === 0 && skip === 0) {
+      // Distinguish "this board is genuinely empty" from "the request was
+      // shaped wrong and the board ignored it". Both return 200 with an empty
+      // array, so the count it claims to hold is the only signal available.
+      throw new Error('ukg board reports 0 total openings — check the board id, or the company really is not hiring');
+    }
+    if (page.length < PAGE || all.length >= total) break;
+    await sleep(250);
+  }
+
+  if (!all.length) throw new Error('ukg returned no opportunities');
+
+  return all.map((j) => {
+    // Locations is an array of nested address objects; City and State are
+    // sometimes plain strings and sometimes { Name } objects, depending on the
+    // tenant's configuration.
+    const loc = Array.isArray(j.Locations) ? j.Locations[0] : null;
+    const addr = loc?.Address || loc || {};
+    const city = addr.City?.Name || addr.City || '';
+    const state = addr.State?.Code || addr.State?.Name || addr.State || '';
+    const location = [city, state].filter(Boolean).join(', ') || 'See posting';
+
+    const posted = typeof j.PostedDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(j.PostedDate)
+      ? j.PostedDate.slice(0, 10)
+      : null;
+
+    const description = toText(j.JobDescription || j.Description || '');
+
+    return {
+      sourceId: String(j.Id ?? j.RequisitionNumber ?? j.Title),
+      title: j.Title,
+      location,
+      url: `https://recruiting.ultipro.com/${tenant}/JobBoard/${board}/OpportunityDetail?opportunityId=${j.Id}`,
+      description,
+      postedAt: posted,
+      ...parseComp(`${j.Title} ${description}`),
+    };
+  });
+}
+
+const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, ashby, workable, reffie, dom, ukg };
+
+/* ==========================================================================
+   RUN
+   ========================================================================== */
+
+function normalise(raw, company) {
+  const description = raw.description || '';
+  return {
+    id: `${company.method}:${company.id}:${raw.sourceId}`,
+    hub: company.hub,
+    title: String(raw.title).trim(),
+    company: company.name,
+    company_id: company.id,
+    priority: company.priority === true,
+    category: categorise(raw.title),
+    segment: segmentOf(company),
+    level: levelOf(raw.title),
+    location: String(raw.location || 'Remote').trim(),
+    employment_type: /intern/i.test(raw.title) ? 'contract' : 'full-time',
+    comp_min: raw.min,
+    comp_max: raw.max,
+    summary: summarise(description) || `${raw.title} at ${company.name}.`,
+    description,
+    apply_url: raw.url,
+    source: company.method,
+    posted_at: raw.postedAt,
+    scraped_at: new Date().toISOString(),
+    status: 'open',
+  };
+}
+
+async function scrapeOne(company) {
+  const adapter = ADAPTERS[company.method];
+  if (!adapter) return { company, ok: false, skipped: true, reason: 'no scrape method set', jobs: [] };
+  try {
+    const raw = await adapter(company);
+    // A few companies keep the ATS feed live but disable the public pages it
+    // links to (Belong's jobs.lever.co URLs all 404). Where linkOverride is
+    // set, point every job at their working careers site instead of a dead URL.
+    const raw2 = company.linkOverride
+      ? raw.map((j) => ({ ...j, url: company.linkOverride }))
+      : raw;
+    // Every adapter passes through the same gate, rather than each one
+    // filtering differently — the DOM adapter checked titles and the API ones
+    // did not, so junk got through depending on the source.
+    const present = raw2.filter((j) => j && j.title && j.sourceId);
+    const named   = present.filter((j) => !isNotAJob(j.title));
+    const inUS    = named.filter((j) => isUS(j.location, j.title));
+    // Only enforce substance where the adapter could supply it.
+    const canJudge = DESCRIBES.has(company.method);
+    const solid   = canJudge ? inUS.filter((j) => !isThin(j)) : inUS;
+
+    return {
+      company, ok: true,
+      jobs: solid.map((j) => normalise(j, company)),
+      dropped: inUS.length - solid.length + (named.length - inUS.length),
+      junk: present.length - named.length,
+      thin: inUS.length - solid.length,
+      outsideUS: named.length - inUS.length,
+      // Flagged so the log can say these went out without detail, rather than
+      // implying they passed a check that never ran.
+      undescribed: canJudge ? 0 : solid.length,
+    };
+  } catch (err) {
+    return { company, ok: false, reason: err.message, jobs: [] };
+  }
+}
+
+/** Jobs from the last successful run, so a failing source does not vanish. */
+async function loadPrevious(path) {
+  if (!existsSync(path)) return [];
+  try {
+    const data = JSON.parse(await readFile(path, 'utf8'));
+    const jobs = Array.isArray(data) ? data : data.jobs;
+    return Array.isArray(jobs) ? jobs : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Companies approved through the discovery queue, from the Worker.
+ *
+ * config.js stays the source of truth: it is hand-curated, carries the REVIEW
+ * markers, and is what detect-ats.js writes back into. The database is purely
+ * additive — it contributes companies config.js has never heard of, which is
+ * exactly what an approved discovery is.
+ *
+ * A company present in both keeps its config.js definition. That rule matters:
+ * it means nothing you have deliberately set by hand can be silently replaced
+ * by a row in a table.
+ *
+ * Failure here is never fatal. No credentials, no network, no endpoint — the
+ * scrape proceeds on config.js alone. A discovery arriving a day late is a
+ * small cost; a scrape that dies because an API was briefly down is not.
+ */
+async function companiesFromDatabase() {
+  if (!HISTORY_URL || !HISTORY_KEY) return [];
+  try {
+    const res = await fetch(HISTORY_URL.replace(/\/$/, '') + '/api/companies/feed', {
+      headers: { 'X-Admin-Key': HISTORY_KEY },
+    });
+    if (!res.ok) {
+      console.log(`companies  database feed unavailable (HTTP ${res.status}) — using config.js only`);
+      return [];
+    }
+    const body = await res.json();
+    return Array.isArray(body?.companies) ? body.companies : [];
+  } catch (err) {
+    console.log(`companies  database feed unreachable (${err.message}) — using config.js only`);
+    return [];
+  }
+}
+
+const configIds = new Set(COMPANIES.map((c) => c.id));
+const fromDb = (await companiesFromDatabase()).filter((c) => c.id && !configIds.has(c.id));
+if (fromDb.length) {
+  const named = fromDb.map((c) => c.name).join(', ');
+  console.log(`companies  ${fromDb.length} from the discovery queue: ${named}\n`);
+}
+
+const targets = [...COMPANIES, ...fromDb]
+  .filter((c) => c.active !== false)
+  .filter((c) => (args.hub ? c.hub === args.hub : true))
+  .filter((c) => (args.only ? c.id === args.only : true));
+
+const ready = targets.filter((c) => c.method);
+const pending = targets.filter((c) => !c.method);
+
+console.log(`Scraping ${ready.length} companies` +
+  (pending.length ? `, skipping ${pending.length} with no method set` : '') + '\n');
+
+const results = [];
+for (let i = 0; i < ready.length; i += CONCURRENCY) {
+  const batch = await Promise.all(ready.slice(i, i + CONCURRENCY).map(scrapeOne));
+  for (const r of batch) {
+    const label = r.company.name.padEnd(30).slice(0, 30);
+    // Name each reason separately. "12 dropped" hides whether a company is
+    // posting junk, hiring abroad, or writing stubs — and those need different
+    // fixes.
+    const why = [];
+    if (r.junk)      why.push(`${r.junk} not a job`);
+    if (r.outsideUS) why.push(`${r.outsideUS} outside the US`);
+    if (r.thin)      why.push(`${r.thin} too thin`);
+
+    console.log(r.ok
+      ? `  ok    ${label} ${r.jobs.length} role${r.jobs.length === 1 ? '' : 's'}` +
+        (why.length ? `  (${why.join(', ')})` : '')
+      : `  FAIL  ${label} ${r.reason}`);
+  }
+  results.push(...batch);
+  if (i + CONCURRENCY < ready.length) await sleep(DELAY_MS);
+}
+
+const okResults = results.filter((r) => r.ok);
+const failed = results.filter((r) => !r.ok && !r.skipped);
+const failedIds0 = new Set(failed.map((r) => r.company.id));
+const fresh = okResults.flatMap((r) => r.jobs);
+
+// Carry over jobs from sources that failed this run. A scrape failure is not
+// evidence that a company stopped hiring, and dropping them would make the
+// board look like the market emptied out.
+// Anything this run did not freshly produce is carried over from the previous
+// feed. Two distinct cases, and missing the second one is what made
+// `--hub=opco` followed by `--hub=proptech` show only PropTech:
+//
+//   1. a company that FAILED this run — a scrape failure is not evidence that
+//      a company stopped hiring
+//   2. a company that was OUT OF SCOPE this run — `--hub=`, `--only=` and
+//      `active:false` all narrow the target list, and those companies' roles
+//      must survive untouched
+//
+// In short: a scrape updates the companies it covered and leaves the rest alone.
+const scrapedIds = new Set(okResults.map((r) => r.company.id));
+const previous = await loadPrevious(OUT);
+const carriedRaw = previous.filter((j) => !scrapedIds.has(j.company_id));
+
+// Carried-over roles were written by an older, looser version of these filters,
+// so they have to pass the current ones too. Without this, junk scraped once
+// survives every future run: it is never re-scraped, so it is never re-judged.
+//
+// The substance check is applied only where the source could supply a
+// description, matching the live rule — otherwise every carried Workday role
+// would be deleted on the first run after this change.
+const carried = carriedRaw.filter((j) => {
+  if (isNotAJob(j.title)) return false;
+  if (!isUS(j.location, j.title)) return false;
+  if (DESCRIBES.has(j.source) && isThin({ description: j.description })) return false;
+  return true;
+});
+
+const purged = carriedRaw.length - carried.length;
+
+const outOfScope = carried.filter((j) => !failedIds0.has(j.company_id)).length;
+const fromFailed = carried.length - outOfScope;
+
+/* --------------------------------------------------------------------------
+   Role targeting
+   --------------------------------------------------------------------------
+   The board exists to serve senior operators and the people who hire them, and
+   the business runs on placement fees. A maintenance technician posting is a
+   real job, but it is not a role anyone pays a placement fee on and it is not
+   what an executive audience comes here to read. Volume that does not convert
+   is noise, and at 50-odd postings per large operator it drowns everything
+   else on the page.
+
+   Two rules, in order:
+
+   1. Seniority wins. A Director of Maintenance is a leadership hire worth a
+      fee; a Maintenance Technician II is not. The same word appears in both,
+      so matching on the word alone would throw away the wrong half. Seniority
+      is checked first and overrides every exclusion below it.
+
+   2. Then exclude the individual-contributor operational families.
+
+   Compensation is deliberately NOT a gate. Most postings publish no salary at
+   all — Workday and DOM sources return titles only — so a $100k floor applied
+   literally would delete nearly every operator role including the senior ones
+   this filter exists to protect. It is used as a sort signal instead.
+
+   Nothing here touches what gets collected. job_history still records every
+   role from every scrape, because maintenance hiring volume across SFR
+   operators is a genuine market signal and the data layer is the long-term
+   asset. This filters the published feed only.
+   -------------------------------------------------------------------------- */
+
+/** Manager and above. Checked before any exclusion, and beats all of them. */
+const SENIOR = /\b(chief|c[ftoi]o\b|president|founder|partner|principal|head of|vice president|\bvp\b|\bsvp\b|\bevp\b|director|senior director|managing director|general manager|regional manager|regional director|area manager|portfolio manager|division manager|controller|counsel|senior manager)\b/i;
+
+/** Individual-contributor operational roles the board no longer publishes. */
+const EXCLUDED = [
+  [/\b(maintenance|service|construction|field|turnover|make[- ]ready|facilit(y|ies))\s+(tech|technician|associate|specialist|worker|assistant|helper)/i, 'field technician'],
+  [/\b(tech|technician)\s+(i{1,3}|[123])\b/i, 'technician'],
+  [/\b(technician|electrician|plumber|hvac|handyman|handyperson|groundskeeper|porter|janitor|janitorial|housekeep|custodian|landscap|painter|carpenter)\b/i, 'trades'],
+  [/\bquality assurance\s+(specialist|analyst|associate|inspector)\b/i, 'QA specialist'],
+  [/\bqa\s+(specialist|inspector)\b/i, 'QA specialist'],
+  [/\b(leasing|sales)\s+(agent|consultant|associate|professional)\b/i, 'leasing agent'],
+  [/\b(administrative|admin|office)\s+(assistant|coordinator|associate|support|specialist)\b/i, 'admin support'],
+  [/\b(receptionist|data entry|file clerk|mail\s?room)\b/i, 'admin support'],
+  [/\bcustomer (service|support)\s+(representative|rep|associate|agent)\b/i, 'support rep'],
+  [/\b(intern|internship|apprentice)\b/i, 'intern'],
 ];
 
-/** Companies pinned to the front of the board regardless of volume. */
-export const priorityIds = () => COMPANIES.filter(c => c.priority).map(c => c.id);
-
-/** Only companies run.js can actually scrape right now. */
-export const scrapeable = (hub) => COMPANIES.filter(c =>
-  c.active && c.method && (!hub || c.hub === hub));
-
-/** Configured but not yet resolvable — surface these, do not hide them. */
-export const pending = () => COMPANIES.filter(c => c.active && !c.method);
-
 /**
- * Scattered-site operators only — the board's actual subject.
- *
- * Multifamily managers are tagged assetClass:"multifamily" rather than removed:
- * they are legitimate operators and a candidate may want them, but the two are
- * different markets and must never be reported as one number.
+ * Should this role appear on the board?
+ * Returns null to publish, or a short reason string to drop.
  */
-export const scatteredSite = () => COMPANIES.filter(c =>
-  c.active && c.hub === 'opco' && c.assetClass !== 'multifamily');
+function excludeReason(job) {
+  const title = String(job.title || '');
+  if (SENIOR.test(title)) return null;       // rule 1: seniority overrides
+  for (const [re, reason] of EXCLUDED) {
+    if (re.test(title)) return reason;
+  }
+  return null;
+}
 
-/** Companies parked as out of scope, with the reason kept in a comment. */
-export const parked = () => COMPANIES.filter(c => c.active === false);
+const all = [...fresh, ...carried];
 
-export default COMPANIES;
+console.log('\n' + '-'.repeat(60));
+const sum = (k) => okResults.reduce((n, r) => n + (r[k] || 0), 0);
+console.log(`scraped   ${fresh.length} roles from ${okResults.length} sources`);
+if (sum('junk'))      console.log(`filtered  ${sum('junk')} entries that were not job postings`);
+if (sum('outsideUS')) console.log(`filtered  ${sum('outsideUS')} roles outside the US`);
+if (sum('thin'))      console.log(`filtered  ${sum('thin')} roles with too little detail to publish`);
+if (purged)           console.log(`purged    ${purged} previously-published roles that no longer pass the filters`);
+
+const undescribed = okResults.filter((r) => r.undescribed > 0);
+if (undescribed.length) {
+  console.log('');
+  console.log(`${sum('undescribed')} roles published without a description ` +
+    `(${[...new Set(undescribed.map((r) => r.company.method))].join(', ')} return titles only):`);
+  undescribed.forEach((r) => console.log(`  ${r.company.name.padEnd(30)} ${r.undescribed}`));
+}
+
+// A company that scraped fine but published nothing is easy to miss and worth
+// knowing about — usually a board of stubs, or a talent pool rather than roles.
+const emptied = okResults.filter((r) => r.jobs.length === 0 && (r.junk || r.thin));
+if (emptied.length) {
+  console.log('');
+  console.log(`${emptied.length} compan${emptied.length === 1 ? 'y' : 'ies'} scraped but published nothing:`);
+  emptied.forEach((r) => console.log(`  ${r.company.name.padEnd(30)} ${r.thin ? r.thin + ' too thin' : ''}${r.junk ? (r.thin ? ', ' : '') + r.junk + ' not jobs' : ''}`));
+}
+if (fromFailed) console.log(`carried   ${fromFailed} roles from ${failed.length} failed source(s)`);
+if (outOfScope) console.log(`kept      ${outOfScope} roles from companies not in this run`);
+if (pending.length) console.log(`skipped   ${pending.length} companies with no method — run scripts/detect-ats.js`);
+if (failed.length) {
+  console.log(`\nfailed ${failed.length}:`);
+  failed.forEach((r) => console.log(`  ${r.company.name.padEnd(30).slice(0, 30)} ${r.reason}`));
+}
+
+// A priority company failing empties the hub it anchors, so say so loudly
+// rather than leaving it as one line among forty.
+const priorityFailed = failed.filter((r) => r.company.priority);
+if (priorityFailed.length) {
+  console.log('\n' + '!'.repeat(60));
+  console.log('PRIORITY COMPANIES FAILED — the board will look empty without these:');
+  priorityFailed.forEach((r) => console.log(`  ${r.company.name}: ${r.reason}`));
+  console.log('!'.repeat(60));
+}
+
+// Per-hub totals, so "no OpCo roles" is visible in the log rather than only
+// on the live site. Counted on the published set, because that is what the
+// board shows — reporting the collected figure here would overstate it.
+for (const h of ['opco', 'proptech']) {
+  const n = published.filter((j) => j.hub === h).length;
+  const src = new Set(published.filter((j) => j.hub === h).map((j) => j.company)).size;
+  const held = all.filter((j) => j.hub === h).length - n;
+  console.log(`${h.padEnd(9)} ${String(n).padStart(4)} roles from ${src} companies` +
+    (held ? `  (${held} held back)` : ''));
+  if (n === 0) console.log(`          ^ nothing for the ${h} hub — check the failures above`);
+}
+
+// Refuse to publish an empty feed. Better to leave yesterday's file in place
+// than to replace a working board with nothing. Checked on the published set:
+// a filter tuned too aggressively would empty the board while the collection
+// looked healthy, and that should stop the run just as a failed scrape does.
+if (!published.length) {
+  console.error(`\nNo publishable jobs — refusing to write an empty feed.` +
+    (all.length ? `  (${all.length} collected, all held back by the role filter)` : ''));
+  process.exit(1);
+}
+
+if (args.dry) {
+  console.log('\ndry run — nothing written');
+  process.exit(0);
+}
+
+// Every source failing is an outage, not a quiet day. The feed still holds
+// carried-over roles so the board keeps working, but the run is marked failed
+// so GitHub emails you instead of the problem going unnoticed for weeks.
+const totalFailure = ready.length > 0 && okResults.length === 0;
+
+// Applied to the published feed only. `fresh` is what goes to job_history a
+// few lines below, and it stays whole.
+const dropped = new Map();
+const published = all.filter((j) => {
+  const reason = excludeReason(j);
+  if (!reason) return true;
+  dropped.set(reason, (dropped.get(reason) || 0) + 1);
+  return false;
+});
+
+const feed = {
+  generated_at: new Date().toISOString(),
+  count: published.length,
+  sources_ok: okResults.length,
+  sources_failed: failed.length,
+  jobs: published.sort((a, b) => (b.posted_at || '').localeCompare(a.posted_at || '')),
+};
+
+await writeFile(OUT, JSON.stringify(feed, null, 2) + '\n');
+console.log(`\nwrote ${OUT} — ${published.length} roles`);
+
+if (dropped.size) {
+  const total = [...dropped.values()].reduce((a, b) => a + b, 0);
+  console.log(`\nheld back ${total} of ${all.length} roles from the board ` +
+    `(still recorded in history):`);
+  [...dropped].sort((a, b) => b[1] - a[1])
+    .forEach(([reason, n]) => console.log(`  ${String(n).padStart(4)}  ${reason}`));
+}
+
+/* --------------------------------------------------------------------------
+   Send the snapshot to the history table.
+   --------------------------------------------------------------------------
+   The feed is overwritten every day; this is what keeps the record of what was
+   open when, and therefore what got filled and how fast. It cannot be
+   reconstructed after the fact.
+
+   Skipped silently if HISTORY_URL and HISTORY_KEY are not set, so the scraper
+   still works without it. A failure here is reported but never fails the run —
+   the feed matters more than the archive.
+   -------------------------------------------------------------------------- */
+
+if (HISTORY_URL && HISTORY_KEY) {
+  try {
+    const res = await fetch(HISTORY_URL.replace(/\/$/, '') + '/api/history/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Key': HISTORY_KEY },
+      body: JSON.stringify({
+        sources_ok: okResults.length,
+        sources_failed: results.length - okResults.length,
+        // Which companies this run actually reached.
+        //
+        // Without it the Worker cannot tell "confirmed still open" from "not
+        // checked". It stamps every role in the payload as freshly seen, so
+        // carried-over roles from a failed or out-of-scope company look
+        // permanently fresh: they never close, and days_open never resolves.
+        scraped_company_ids: [...scrapedIds],
+        // Freshly scraped roles only. A carried-over role was not verified
+        // this run, so moving its last_seen forward would be a lie — and the
+        // whole point of this table is knowing when a role was really open.
+        jobs: fresh.map((j) => ({
+          id: j.id, hub: j.hub, company: j.company, company_id: j.company_id,
+          title: j.title, category: j.category, level: j.level, location: j.location,
+          comp_min: j.comp_min, comp_max: j.comp_max,
+          apply_url: j.apply_url, source: j.source, posted_at: j.posted_at,
+        })),
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error(`history  NOT recorded — ${body.error || res.status}`);
+    } else {
+      console.log(`history  ${body.recorded} roles recorded · ${body.new_roles} new · ${body.closed} closed` +
+        (body.companies_checked != null ? `  (${body.companies_checked} companies checked` +
+          (body.unchecked_open_roles ? `, ${body.unchecked_open_roles} open roles left unverified` : '') + ')' : '') +
+        (body.closing_skipped ? '  (closing skipped: run looked unreliable)' : ''));
+    }
+  } catch (err) {
+    console.error('history  NOT recorded —', err.message);
+  }
+} else {
+  console.log('history  skipped (HISTORY_URL / HISTORY_KEY not set)');
+}
+
+if (totalFailure) {
+  console.error('\nEvery source failed. The feed kept its previous roles, but this needs looking at.');
+  process.exit(1);
+}
