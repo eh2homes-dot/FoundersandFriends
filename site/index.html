@@ -1291,11 +1291,8 @@ a.foot-line:hover{color:var(--green)}
       <div class="orbit-labels" id="orbit-labels" aria-hidden="true"></div>
       <div class="orbit-titles" id="orbit-titles" aria-hidden="true"></div>
       <div class="orbit-key" aria-hidden="true">
-        <span><i class="orbit-dot" style="background:var(--green)"></i>OpCo role</span>
-        <span><i class="orbit-dot" style="background:var(--cyan)"></i>PropTech role</span>
+        <span><i class="orbit-dot" style="background:var(--green)"></i>Open role</span>
         <span><i class="orbit-dot" style="background:var(--purple-bright)"></i>Company</span>
-        <span><i class="orbit-dot" style="background:#5fd6c4;opacity:.55"></i>Operators globe</span>
-        <span><i class="orbit-dot" style="background:#8aa4ff;opacity:.55"></i>Technology globe</span>
       </div>
       <div class="orbit-card" id="orbit-card" role="status" aria-live="polite"></div>
     </div>
@@ -2939,9 +2936,12 @@ document.addEventListener('click', (e) => {
    cards do — one way into a posting, not two.
    ========================================================================== */
 const Orbit = (() => {
-  const ROLE_COLOUR = 0x00FF88;   // OpCo roles
-  const CO_COLOUR   = 0x7F4DE0;   // company nodes, both sides
-  const PT_COLOUR   = 0x3BE8FF;   // PropTech roles
+  /* Green marks a role, purple marks a company, blue is the globe they sit
+     in. Three jobs, three colours, the same on both sides — the two hubs are
+     told apart by their captions and by which one is dimmed, not by recolouring
+     the whole vocabulary each time. */
+  const ROLE_COLOUR = 0x00FF88;
+  const CO_COLOUR   = 0x7F4DE0;
 
   const LIT = 0.5;
 
@@ -3105,7 +3105,7 @@ const Orbit = (() => {
      mutable state across two globes is how the wrong ring ends up being
      redrawn. */
   function buildGlobe(hubKey, jobs, centre, shell){
-    const roleColour = hubKey === 'opco' ? ROLE_COLOUR : PT_COLOUR;
+    const roleColour = ROLE_COLOUR;
 
     const g = {
       hub: hubKey,
@@ -3282,15 +3282,13 @@ const Orbit = (() => {
     return g;
   }
 
-  /* Each globe gets its own colour, and neither is the purple of the company
-     nodes — with all three the same family the body, the perimeter and the
-     roles blurred into one mass. Deep ocean for the operators, deep indigo for
-     the vendors: dark enough that the bright role dots sit clearly on top, and
-     different enough that the two sides are told apart at a glance even before
-     the captions are read. */
+  /* Deep blue, dark enough that the green role dots and the purple company
+     nodes both sit clearly on top of it. Identical on both globes: they are
+     the same kind of object holding different data, and giving each its own
+     colour made the palette say something it did not mean. */
   const SKIN = {
-    opco:     { body: 0x0d3a4e, emissive: 0x0a2b3d, grid: 0x5fd6c4, rim: 0x2fbfae },
-    proptech: { body: 0x1c2b63, emissive: 0x131d47, grid: 0x8aa4ff, rim: 0x5a74e0 },
+    opco:     { body: 0x16346e, emissive: 0x0f2450, grid: 0x7fa8ff, rim: 0x3f6fe0 },
+    proptech: { body: 0x16346e, emissive: 0x0f2450, grid: 0x7fa8ff, rim: 0x3f6fe0 },
   };
 
   function drawGlobeBody(g){
