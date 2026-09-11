@@ -3281,7 +3281,10 @@ const Orbit = (() => {
        silently does nothing. Weight has to come from opacity and colour, so
        these are pushed up rather than thickened. */
     linkSegs = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
-      color: 0x6ee7a8, transparent: true, opacity: 0.26, depthWrite: false,
+      /* Low on purpose. At 0.26 the threads crossed the entire interior and
+         turned the globe into a ball of string; the role dots are the subject
+         and the threads only need to be followable, not loud. */
+      color: 0x6ee7a8, transparent: true, opacity: 0.09, depthWrite: false,
       blending: THREE.AdditiveBlending,
     }));
     linkSegs.userData = { kind:'globe' };
@@ -3444,28 +3447,60 @@ const Orbit = (() => {
       new THREE.SphereGeometry(CORE, 48, 36),
       new THREE.MeshPhongMaterial({
         color: 0x4a2d8f, emissive: 0x2a1560, emissiveIntensity: 0.75,
-        shininess: 18, transparent: true, opacity: 0.26, depthWrite: false,
+        shininess: 18, transparent: true, opacity: 0.20, depthWrite: false,
       }),
     );
     body.userData = { kind:'globe' };
     world.add(body);
 
-    /* The wireframe skin. Deliberately coarse: a fine mesh turns into a grey
-       haze at this size, while large facets read as a constructed surface. */
-    const skin = new THREE.Mesh(
-      new THREE.SphereGeometry(CORE * 1.004, 26, 18),
-      new THREE.MeshBasicMaterial({
-        color: 0xc9b8ff, wireframe: true, transparent: true,
-        opacity: 0.20, depthWrite: false,
-      }),
-    );
-    skin.userData = { kind:'globe' };
-    world.add(skin);
+    /* The skin, as latitude and longitude rings.
+
+       A wireframe sphere was the obvious thing and the wrong one: it
+       triangulates, and the diagonals read as a tangled net laid over the
+       roles rather than as a surface behind them. Real rings have no
+       diagonals, so the eye reads curvature and then stops looking at them. */
+    const ring = (opacity) => new THREE.LineBasicMaterial({
+      color: 0xa898e8, transparent: true, opacity, depthWrite: false,
+    });
+
+    const LATS = 7, MERIDIANS = 14, SEG = 96;
+
+    for (let i = 1; i <= LATS; i++){
+      const phi = (i / (LATS + 1)) * Math.PI;
+      const y = Math.cos(phi) * CORE, r = Math.sin(phi) * CORE;
+      const pts = [];
+      for (let k = 0; k <= SEG; k++){
+        const t = (k / SEG) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(t) * r, y, Math.sin(t) * r));
+      }
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        ring(Math.abs(y) < 0.001 ? 0.16 : 0.075),
+      );
+      line.userData = { kind:'globe' };
+      world.add(line);
+    }
+
+    for (let m = 0; m < MERIDIANS; m++){
+      const theta = (m / MERIDIANS) * Math.PI * 2;
+      const pts = [];
+      for (let k = 0; k <= SEG; k++){
+        const phi = (k / SEG) * Math.PI;
+        pts.push(new THREE.Vector3(
+          Math.cos(theta) * Math.sin(phi) * CORE,
+          Math.cos(phi) * CORE,
+          Math.sin(theta) * Math.sin(phi) * CORE,
+        ));
+      }
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ring(0.06));
+      line.userData = { kind:'globe' };
+      world.add(line);
+    }
 
     /* Light at the core, falling off through the volume. Additive and
        back-faced so it glows from within rather than masking what sits in
        front of it. */
-    for (const [r, o] of [[CORE * 0.30, 0.22], [CORE * 0.55, 0.12], [CORE * 0.80, 0.07]]){
+    for (const [r, o] of [[CORE * 0.34, 0.07], [CORE * 0.62, 0.04]]){
       const g = new THREE.Mesh(
         new THREE.SphereGeometry(r, 24, 18),
         new THREE.MeshBasicMaterial({
