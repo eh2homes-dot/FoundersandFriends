@@ -366,8 +366,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Title Insurance / Mortgage Tech",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "doma",
     active: true,
   },
   {
@@ -691,8 +691,8 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Real Estate Agent Marketing Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "lever",   // greenhouse | lever | workday | dom
+    atsSlug: "luxurypresence",
     active: true,
   },
   {
@@ -847,8 +847,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "CRE Comparable Data Platform",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "lever",   // greenhouse | lever | workday | dom
+    atsSlug: "compstak",
     active: true,
   },
   {
@@ -977,8 +977,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Multifamily Leasing CRM",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "workable",   // greenhouse | lever | workday | dom
+    atsSlug: "funnel-leasing",
     active: true,
   },
   {
@@ -1045,8 +1045,8 @@ export const COMPANIES = [
     state: "New York",
     segment: "Digital Mortgage Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "better-mortgage",
     active: true,
   },
   {
@@ -1266,7 +1266,7 @@ export const COMPANIES = [
     state: "Arizona",
     segment: "iBuying / Real Estate Transactions",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
+    method: "dom",   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
@@ -1707,8 +1707,8 @@ export const COMPANIES = [
     state: "North Carolina",
     segment: "Office REIT",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ukg",   // greenhouse | lever | workday | dom
+    atsSlug: "HIG1001HIW/cf2a3a89-ceb7-4bb7-aa13-3167c6417621",
     active: false,
     // PARKED — Office REIT. Kept for reference; set active:true to include.
   },
