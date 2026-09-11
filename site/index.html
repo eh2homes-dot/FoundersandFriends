@@ -3180,7 +3180,7 @@ const Orbit = (() => {
      than in module state, because there are two of them now and shared
      mutable state across two globes is how the wrong ring ends up being
      redrawn. */
-  function buildGlobe(hubKey, jobs, centre){
+  function buildGlobe(hubKey, jobs, centre, shell){
     const roleColour = hubKey === 'opco' ? ROLE_COLOUR : PT_COLOUR;
 
     const g = {
@@ -3253,13 +3253,18 @@ const Orbit = (() => {
     g.hidden = totalRoles - drawn;
 
     // Sized to the roster so two globes of different size still read as a pair.
-    /* The body shrinks, the ring does not.
+    /* Both globes are the same size, which is why `shell` arrives as an
+       argument rather than being worked out here.
 
-       Scaling both together changes nothing on screen — the camera simply
-       zooms in and the picture is identical. What matters is the ratio, so the
-       core drops to roughly half of what it was while the ring is pinned to
-       the same fraction of the shell it always had. */
-    const shell = Math.max(22, Math.min(58, 10.5 * Math.sqrt(g.companies.length)));
+       Sizing each to its own company count made OpCo a marble beside a
+       PropTech beach ball, and worse: PropTech's ring grew so wide it reached
+       across and swallowed the OpCo side. They are two halves of one picture
+       and have to be drawn as a matched pair — the counts are already told by
+       how full each globe is.
+
+       The body shrinks, the ring does not. Scaling both together changes
+       nothing on screen: the camera zooms in and the picture is identical.
+       Only the ratio matters. */
     g.core = shell * (0.34 + Math.min(0.09, drawn / 2600));
     g.ringR = shell * 0.78;
 
@@ -3478,31 +3483,37 @@ const Orbit = (() => {
     const opco = filteredJobs('opco');
     const prop = filteredJobs('proptech');
 
-    // Provisional sizes, so the two can be placed before either is built.
-    const sizeOf = (jobs) => {
+    // How many companies each side will end up drawing, counted before either
+    // globe is built so the pair can be sized and placed together.
+    const countOf = (jobs, hubKey) => {
       const names = new Set(jobs.map(j => j.company));
-      ROSTER.forEach(r => { if (r.hub === (jobs === opco ? 'opco' : 'proptech')) names.add(r.name); });
-      return Math.max(22, Math.min(58, 10.5 * Math.sqrt(Math.max(names.size, 1))));
+      ROSTER.forEach(r => { if (r.hub === hubKey) names.add(r.name); });
+      return Math.max(names.size, 1);
     };
-    const rOpco = sizeOf(opco) * 0.78;
-    const rProp = sizeOf(prop) * 0.78;
+    const nOpco = countOf(opco, 'opco');
+    const nProp = countOf(prop, 'proptech');
 
-    /* Separation measured from the two rings rather than fixed, so the gap
-       between them stays the same whether one side has seven companies and the
-       other thirty. A constant offset has them overlapping on one board and
-       marooned on another. */
+    const shell = Math.max(24, Math.min(58, 10.5 * Math.sqrt(Math.max(nOpco, nProp))));
+    const rRing = shell * 0.78;
+
+    /* One shell for both, from whichever side has more companies, so the
+       busier hub still has room to space its perimeter. */
     /* Centres are placed so the two rings clear each other by `gap`, which is
        the distance between centres minus both radii — not the total width.
        Splitting the total width instead puts the centres too close and the
        rings intersect, which is exactly what it did. */
-    const gap = Math.max(rOpco, rProp) * 0.42;
-    const between = rOpco + gap + rProp;      // centre to centre
+    /* Centres separated so the two rings clear each other by `gap` — that is
+       the distance between centres minus both radii, not the total width.
+       Splitting the total width instead puts them too close and the rings
+       intersect, which is what it did. */
+    const gap = rRing * 0.30;
+    const between = rRing * 2 + gap;          // centre to centre
     const xOpco = -between / 2;
     const xProp =  between / 2;
-    const span = between + rOpco + rProp;     // outer edge to outer edge
+    const span = between + rRing * 2;         // outer edge to outer edge
 
-    globes.push(buildGlobe('opco', opco, new THREE.Vector3(xOpco, 0, 0)));
-    globes.push(buildGlobe('proptech', prop, new THREE.Vector3(xProp, 0, 0)));
+    globes.push(buildGlobe('opco', opco, new THREE.Vector3(xOpco, 0, 0), shell));
+    globes.push(buildGlobe('proptech', prop, new THREE.Vector3(xProp, 0, 0), shell));
 
     worldSpan = span;
 
@@ -3778,6 +3789,15 @@ const Orbit = (() => {
       v.copy(g.centre).project(camera);
       const cx = (v.x * 0.5 + 0.5) * VW, cy = (-v.y * 0.5 + 0.5) * VH;
 
+      /* Only the hub in focus is named. Thirty dim labels around the other
+         globe read as clutter rather than as context, and they were colliding
+         with the labels that matter. The dimmed globe still shows its shape,
+         its company nodes and its role count — that is what context needs. */
+      if (g.hub !== hub){
+        for (const l of g.labels) l.el.style.opacity = 0;
+        continue;
+      }
+
       for (const l of g.labels){
         v.copy(l.node.position).project(camera);
         if (v.z > 1){ l.el.style.opacity = 0; continue; }
@@ -3794,18 +3814,18 @@ const Orbit = (() => {
           align: dx < -0.25 ? 'right' : dx > 0.25 ? 'left' : 'centre',
           depth: camera.position.distanceTo(l.node.position),
           w: l.el.offsetWidth || l.co.name.length * 6.4,
-          dim: g.hub !== hub,
+          dim: false,
         });
       }
     }
-    candidates.sort((a, b) => (a.dim - b.dim) || (a.depth - b.depth));
+    candidates.sort((a, b) => a.depth - b.depth);
 
     for (const c of candidates){
       const clash = placed.some(q =>
         Math.abs(q.y - c.y) < 14 && Math.abs(q.x - c.x) < (q.w + c.w) / 2 + 8);
       if (clash){ c.l.el.style.opacity = 0; continue; }
       placed.push(c);
-      c.l.el.style.opacity = c.dim ? 0.3 : 0.92;
+      c.l.el.style.opacity = 0.92;
       c.l.el.style.left = c.x + 'px';
       c.l.el.style.top  = c.y + 'px';
       c.l.el.style.transform =
