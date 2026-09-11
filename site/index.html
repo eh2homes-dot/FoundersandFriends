@@ -645,6 +645,18 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #orbit-canvas:active{cursor:grabbing}
 
 .orbit-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.orbit-title{
+  position:absolute;transform:translate(-50%,0);text-align:center;white-space:nowrap;
+  pointer-events:none;
+}
+.orbit-title b{
+  display:block;font-family:var(--head);font-size:26px;font-weight:600;
+  letter-spacing:.01em;line-height:1.1;
+}
+.orbit-title span{
+  display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-dim);margin-top:5px;
+}
 .orbit-lab{
   /* transform is set per frame in JS — labels align left, right or centre
      depending on which side of the globe they sit. */
@@ -1306,6 +1318,7 @@ a.foot-line:hover{color:var(--green)}
     <div class="web-wrap orbit-wrap" id="orbit-view" hidden>
       <canvas id="orbit-canvas" aria-label="Every open role arranged around its company"></canvas>
       <div class="orbit-labels" id="orbit-labels" aria-hidden="true"></div>
+      <div class="orbit-titles" id="orbit-titles" aria-hidden="true"></div>
       <div class="orbit-key" aria-hidden="true">
         <span><i class="orbit-dot" style="background:var(--green)"></i>OpCo role</span>
         <span><i class="orbit-dot" style="background:var(--cyan)"></i>PropTech role</span>
@@ -3171,7 +3184,10 @@ const Orbit = (() => {
       if (o.material) o.material.dispose();
     });
     stage.clear();
-    globes.forEach(g => g.labels.forEach(l => l.el.remove()));
+    globes.forEach(g => {
+      g.labels.forEach(l => l.el.remove());
+      if (g.title) g.title.remove();
+    });
     globes = [];
     hot = null;
   }
@@ -3231,9 +3247,9 @@ const Orbit = (() => {
        not a visualisation — you cannot pick out a single role, which is the
        one thing the view is for. */
     const totalRoles = jobs.length;
-    /* Down with the globe. The disc lost about two thirds of its area, and
-         holding the old count would have meant orbs too small to see. */
-    const CAP = 90;
+    /* Scaled with the body: a bigger disc can hold more without the orbs
+         merging, and a sparse globe reads as a board with nothing on it. */
+    const CAP = 150;
     if (totalRoles > CAP){
       const keep = Math.max(1, Math.floor(CAP / g.companies.length));
       const spare = Math.max(0, CAP - keep * g.companies.length);
@@ -3265,7 +3281,7 @@ const Orbit = (() => {
        The body shrinks, the ring does not. Scaling both together changes
        nothing on screen: the camera zooms in and the picture is identical.
        Only the ratio matters. */
-    g.core = shell * (0.34 + Math.min(0.09, drawn / 2600));
+    g.core = shell * (0.50 + Math.min(0.10, drawn / 2200));
     g.ringR = shell * 0.78;
 
     drawGlobeBody(g);
@@ -3341,6 +3357,20 @@ const Orbit = (() => {
 
     buildPins(g);
     buildLinks(g);
+
+    /* A caption under each globe. Two spheres side by side say nothing about
+       which is which, and the hub toggle above the board is too far from them
+       to do that job — the label belongs on the thing it names. */
+    const t = document.createElement('div');
+    t.className = 'orbit-title';
+    const open = jobs.length;
+    t.innerHTML =
+      `<b>${hubKey === 'opco' ? 'OpCo' : 'PropTech'}</b>` +
+      `<span>${hubKey === 'opco' ? 'operators' : 'technology'} · ` +
+      `${open} role${open === 1 ? '' : 's'} · ${g.companies.length} compan${g.companies.length === 1 ? 'y' : 'ies'}</span>`;
+    $('orbit-titles').appendChild(t);
+    g.title = t;
+
     return g;
   }
 
@@ -3775,6 +3805,17 @@ const Orbit = (() => {
       g.travelPoints.geometry.setDrawRange(0, litN);
       g.travelPoints.geometry.attributes.position.needsUpdate = true;
       g.travelPoints.visible = litN > 0;
+    }
+
+    // Captions sit under their own globe, below the ring so nothing collides.
+    for (const g of globes){
+      if (!g.title) continue;
+      v.copy(g.centre).addScaledVector(camUp, -g.ringR * 1.12).project(camera);
+      if (v.z > 1){ g.title.style.opacity = 0; continue; }
+      g.title.style.opacity = g.hub === hub ? 1 : 0.4;
+      g.title.style.left = ((v.x * 0.5 + 0.5) * VW) + 'px';
+      g.title.style.top  = ((-v.y * 0.5 + 0.5) * VH) + 'px';
+      g.title.style.color = g.hub === hub ? 'var(--ink)' : 'var(--ink-dim)';
     }
 
     /* Labels, placed outside each ring along the line from its own globe's
