@@ -3155,15 +3155,14 @@ const Orbit = (() => {
     const drawn = companies.reduce((n, c) => n + c.shown.length, 0);
     const totalDrawn = drawn;
     let seedIndex = 0;
-    CORE  = SHELL * (0.52 + Math.min(0.18, drawn / 1400));
+    CORE  = SHELL * (0.40 + Math.min(0.14, drawn / 1800));
     drawGlobe();
 
-    const bodyGeo = new THREE.SphereGeometry(2.3, 28, 22);
-    const gridGeo = new THREE.SphereGeometry(2.39, 14, 9);     // coarse = meridians
+    const bodyGeo = new THREE.SphereGeometry(2.5, 36, 28);
     const haloGeo = new THREE.SphereGeometry(3.7, 22, 18);
     // Big enough to pick out at twenty roles, small enough not to merge into
     // a single mass at a hundred and seventy.
-    const jobR = Math.max(0.62, Math.min(1.5, 26 / Math.sqrt(Math.max(drawn, 1))));
+    const jobR = Math.max(0.5, Math.min(1.25, 20 / Math.sqrt(Math.max(drawn, 1))));
     const jobGeo  = new THREE.SphereGeometry(jobR, 14, 12);
 
     companies.forEach((co, ci) => {
@@ -3185,23 +3184,21 @@ const Orbit = (() => {
       /* Three meshes make a company read as a small globe: a shaded body, a
          coarse wireframe for meridians, and a back-face halo that sits like
          atmosphere at the rim instead of a disc in front of it. */
+      /* A solid orb: opaque, no wireframe, one clear highlight. The wireframe
+         shell that used to sit over these read as a cage and made the company
+         nodes compete with the roles for attention — they are the fixed base
+         the roles hang off, so they should sit still and stay quiet. */
       const node = new THREE.Mesh(bodyGeo, new THREE.MeshPhongMaterial({
-        color: coColour, shininess: 38, specular: 0x6d5f9c,
-        emissive: coColour, emissiveIntensity: 0.3, transparent: true, opacity: 1,
+        color: coColour, shininess: 64, specular: 0xbba9f0,
+        emissive: coColour, emissiveIntensity: 0.22,
+        transparent: false, opacity: 1,
       }));
       node.position.copy(anchor);
       node.userData = { kind:'company', co };
       world.add(node); coMeshes.push(node);
 
-      const grid = new THREE.Mesh(gridGeo, new THREE.MeshBasicMaterial({
-        color: 0xffffff, wireframe: true, transparent: true, opacity: 0.2,
-      }));
-      grid.position.copy(anchor);
-      grid.userData = { kind:'decor', co, base: 0.2 };
-      world.add(grid);
-
       const halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({
-        color: coColour, transparent: true, opacity: 0.1, side: THREE.BackSide,
+        color: coColour, transparent: true, opacity: 0.07, side: THREE.BackSide,
         blending: THREE.AdditiveBlending, depthWrite: false,
       }));
       halo.position.copy(anchor);
@@ -3230,9 +3227,13 @@ const Orbit = (() => {
         const y = 1 - (2 * (k + 0.5)) / Math.max(totalDrawn, 1);
         const rXY = Math.sqrt(Math.max(0, 1 - y * y));
         const theta = golden * k;
-        // Cube root keeps the fill even by volume; without it everything piles
-        // up near the surface.
-        const rad = CORE * 0.94 * Math.cbrt(((k * 0.6180339887) % 1) * 0.88 + 0.12);
+        /* Orbs are placed by their centres, so the outermost ones stick out by
+           their own radius — which is what put roles outside the sphere. The
+           usable radius subtracts that, leaving every orb fully enclosed.
+           Cube root keeps the fill even by volume; without it everything piles
+           up against the surface. */
+        const usable = CORE - jobR * 1.35;
+        const rad = usable * Math.cbrt(((k * 0.6180339887) % 1) * 0.86 + 0.14);
 
         const p = new THREE.Vector3(
           Math.cos(theta) * rXY * rad,
@@ -3285,8 +3286,12 @@ const Orbit = (() => {
     linkPos = new Float32Array(links.length * 6);       // two ends per link
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(linkPos, 3));
+    /* linewidth is ignored by WebGL on nearly every platform — setting it to 3
+       silently does nothing. Weight has to come from opacity and colour, so
+       these are pushed up rather than thickened. */
     linkSegs = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
-      color: ROLE_COLOUR, transparent: true, opacity: 0.05, depthWrite: false,
+      color: 0x6ee7a8, transparent: true, opacity: 0.26, depthWrite: false,
+      blending: THREE.AdditiveBlending,
     }));
     linkSegs.userData = { kind:'globe' };
     world.add(linkSegs);
@@ -3299,7 +3304,7 @@ const Orbit = (() => {
     lgeo.setAttribute('position', new THREE.BufferAttribute(litPos, 3));
     lgeo.setDrawRange(0, 0);
     linkLit = new THREE.LineSegments(lgeo, new THREE.LineBasicMaterial({
-      color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false,
+      color: 0xffffff, transparent: true, opacity: 0.95, depthWrite: false,
       blending: THREE.AdditiveBlending,
     }));
     linkLit.userData = { kind:'globe' };
@@ -3321,29 +3326,27 @@ const Orbit = (() => {
     return DOT_TEX;
   }
 
-  /* Sized to the most threads that can be traced at once, not to every thread
-     on the globe — only the traced ones ever carry a dot. */
+  /* One dot per thread, running all the time. Scoping them to the traced
+     threads made the globe static until you hovered something; the motion is
+     what tells you the board is live. Colour carries the emphasis instead —
+     traced threads run white, the rest a dim green. */
   function buildTravellers(){
     if (!links.length) return;
-    travelPos = new Float32Array(litCap * 3);
-    travelCol = new Float32Array(litCap * 3);
-    const c = new THREE.Color(0xffffff);
-    for (let i = 0; i < litCap; i++){
-      travelCol[i*3] = c.r; travelCol[i*3+1] = c.g; travelCol[i*3+2] = c.b;
-    }
+    travelPos = new Float32Array(links.length * 3);
+    travelCol = new Float32Array(links.length * 3);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(travelPos, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(travelCol, 3));
-    geo.setDrawRange(0, 0);
     /* PointsMaterial draws squares by default, which at this size look like
        specks of grit rather than lights. A tiny radial-gradient sprite costs
        one texture and makes them round. */
     travelPoints = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 3.0, vertexColors: true, transparent: true, opacity: 1,
+      size: 2.6, vertexColors: true, transparent: true, opacity: 1,
       sizeAttenuation: true, depthWrite: false, map: dotTexture(),
       blending: THREE.AdditiveBlending,
     }));
-    travelPoints.visible = false;
+    travelPoints.visible = true;
+    paintTravellers();
     travelPoints.userData = { kind:'globe' };
     world.add(travelPoints);
   }
@@ -3446,7 +3449,7 @@ const Orbit = (() => {
   function fitDistance(){
     const vFov = camera.fov * Math.PI / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    return Math.max(70, Math.min(300, (CORE * 1.42 * 1.26) / Math.tan(Math.min(vFov, hFov) / 2)));
+    return Math.max(70, Math.min(300, (CORE * 1.78 * 1.22) / Math.tan(Math.min(vFov, hFov) / 2)));
   }
 
   /* Every role currently passing the filters, whichever side of the globe it
@@ -3510,7 +3513,10 @@ const Orbit = (() => {
     ndc.x = ((e.clientX - r.left) / VW) * 2 - 1;
     ndc.y = -((e.clientY - r.top) / VH) * 2 + 1;
     ray.setFromCamera(ndc, camera);
-    const hits = ray.intersectObjects([...jobMeshes, ...coMeshes], false);
+    /* Roles only. The companies are the fixed base the roles hang off — they
+       hold still and take no input, so they are not offered to the raycaster
+       at all rather than being hit and then ignored. */
+    const hits = ray.intersectObjects(jobMeshes, false);
     return hits.find(h => h.object.material.opacity > LIT)?.object || null;
   }
 
@@ -3519,10 +3525,11 @@ const Orbit = (() => {
      the isolated company so the trace survives after a click. */
   function setTrace(){
     litLinks.length = 0;
+    /* Only a role can be hovered now, and it traces its own thread back to its
+       company. Nothing lights the whole company at once, because nothing can
+       be hovered that means "this company". */
     let co = null, job = null;
-    if (hot && hot.userData.kind === 'company') co = hot.userData.co;
-    else if (hot && hot.userData.kind === 'job'){ co = hot.userData.co; job = hot.userData.job; }
-    else if (focus) co = companies.find(c => c.name === focus) || null;
+    if (hot && hot.userData.kind === 'job'){ co = hot.userData.co; job = hot.userData.job; }
 
     if (co){
       for (let i = 0; i < links.length; i++){
@@ -3533,6 +3540,22 @@ const Orbit = (() => {
       }
     }
     if (linkLit) linkLit.geometry.setDrawRange(0, litLinks.length * 2);
+    paintTravellers();
+  }
+
+  /* Dim green for a thread at rest, white for one being traced. Rewritten only
+     when the trace changes, not per frame. */
+  function paintTravellers(){
+    if (!travelCol || !links.length) return;
+    const lit = new Set(litLinks);
+    const dim = new THREE.Color(ROLE_COLOUR).multiplyScalar(0.55);
+    for (let i = 0; i < links.length; i++){
+      const on = lit.has(i);
+      travelCol[i*3]   = on ? 1 : dim.r;
+      travelCol[i*3+1] = on ? 1 : dim.g;
+      travelCol[i*3+2] = on ? 1 : dim.b;
+    }
+    if (travelPoints) travelPoints.geometry.attributes.color.needsUpdate = true;
   }
 
   function hover(e){
@@ -3548,13 +3571,10 @@ const Orbit = (() => {
     hot.scale.setScalar(1.7);
     canvas().style.cursor = 'pointer';
     const d = hot.userData;
-    card.innerHTML = d.kind === 'job'
-      ? `<div class="t">${esc(d.job.title)}</div>
-         <div class="m">${esc(d.job.company)}<br>${esc(d.job.location || '')}</div>
-         <div class="go">Click to open this role</div>`
-      : `<div class="t">${esc(d.co.name)}</div>
-         <div class="m">${d.co.jobs.length} open role${d.co.jobs.length === 1 ? '' : 's'}</div>
-         <div class="go">Click to show only this company</div>`;
+    card.innerHTML =
+      `<div class="t">${esc(d.job.title)}</div>
+       <div class="m">${esc(d.job.company)}<br>${esc(d.job.location || '')}</div>
+       <div class="go">Click to open this role</div>`;
     card.classList.add('is-on');
     placeCard(e);
   }
@@ -3602,13 +3622,7 @@ const Orbit = (() => {
       if (moved > 6) return;                    // that was a drag
       const obj = pick(e);
       if (!obj) return;
-      const d = obj.userData;
-      if (d.kind === 'job'){
-        openDrawer(d.job.id);                   // same drawer the cards open
-      } else {
-        focus = focus === d.co.name ? null : d.co.name;
-        drawRail(); emphasise(); setTrace();
-      }
+      if (obj.userData.kind === 'job') openDrawer(obj.userData.job.id);
     });
 
     /* Hovering a row lifts its node, so it is obvious which speck on the globe
@@ -3641,7 +3655,7 @@ const Orbit = (() => {
        a sphere. */
     camRight.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
     camUp.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
-    const ringR = CORE * 1.42;
+    const ringR = CORE * 1.78;
 
     for (const node of coMeshes){
       const co = node.userData.co;
@@ -3677,27 +3691,25 @@ const Orbit = (() => {
       linkLit.visible = false;
     }
 
-    /* The travelling dots run the traced threads only.
+    /* The travelling dots, running every thread all the time.
 
-       On all five hundred at once they read as grit; on the handful under the
-       cursor they are the old web's signature — the thread is not merely
-       highlighted, it is carrying something. */
-    if (travelPoints && litLinks.length){
-      travelPoints.visible = true;
-      const t = performance.now() * 0.00016;
-      for (let n = 0; n < litLinks.length; n++){
-        const L = links[litLinks[n]];
-        const a = L.co.anchor;
-        const k = (t + ((litLinks[n] * 37) % 100) / 100) % 1;
+       Scoping them to the traced threads left the globe motionless until you
+       hovered something, and the motion is what tells you the board is live.
+       Emphasis moves to colour instead: a traced thread runs a white dot, the
+       rest run dim green. */
+    if (travelPoints && links.length){
+      const t = performance.now() * 0.00013;
+      for (let i = 0; i < links.length; i++){
+        const L = links[i], a = L.co.anchor;
+        // Phase from the index, so the dots sit spread along their threads
+        // rather than setting off together.
+        const k = (t + ((i * 37) % 100) / 100) % 1;
         const e = k * k * (3 - 2 * k);            // ease so they slow at each end
-        travelPos[n*3]   = a.x + (L.to.x - a.x) * e;
-        travelPos[n*3+1] = a.y + (L.to.y - a.y) * e;
-        travelPos[n*3+2] = a.z + (L.to.z - a.z) * e;
+        travelPos[i*3]   = a.x + (L.to.x - a.x) * e;
+        travelPos[i*3+1] = a.y + (L.to.y - a.y) * e;
+        travelPos[i*3+2] = a.z + (L.to.z - a.z) * e;
       }
-      travelPoints.geometry.setDrawRange(0, litLinks.length);
       travelPoints.geometry.attributes.position.needsUpdate = true;
-    } else if (travelPoints){
-      travelPoints.visible = false;
     }
 
     const r = viewport();
