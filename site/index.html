@@ -302,6 +302,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @keyframes g-pulse{0%{transform:scale(1);opacity:.6}65%,100%{transform:scale(1.85);opacity:0}}
 .g-co .n{font-family:var(--mono);font-size:10.5px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .g-co .lbl{font-family:var(--body);font-size:15px;font-weight:600;fill:var(--ink-soft)}
+.co-lead{stroke-width:1;opacity:.3;transition:opacity .25s,stroke .25s}
+.g-co.opco .co-lead{stroke:rgba(0,255,136,.55)}
+.g-co.proptech .co-lead{stroke:rgba(169,143,236,.65)}
+.g-co.is-lit .co-lead{opacity:.95}
 .g-co .sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;fill:var(--ink-dim)}
 .g-co.opco.is-lit .core{fill:#00FF88}
 .g-co.proptech.is-lit .core{fill:#8B5CF0}
@@ -3653,8 +3657,21 @@ function globeBuild(){
     num.textContent = c.count;
     g.append(num);
 
-    const lx = c.x + c.side * (r + 11);
+    // Every label on a side starts at the same x, so they read as one column
+    // instead of stepping in and out with the curve of the ring. A hairline
+    // runs from the node out to its label, which is what stops the aligned
+    // label from looking detached from the node it belongs to.
+    const lx = GLOBE.CX + c.side * (GLOBE.RC + 30);
     const anchor = c.side > 0 ? 'start' : 'end';
+    const leadFrom = c.x + c.side * (r + 5);
+    const leadTo = lx - c.side * 9;
+    if (Math.abs(leadTo - leadFrom) > 6){
+      g.append(el('line', {
+        class: 'co-lead',
+        x1: leadFrom.toFixed(1), y1: c.y.toFixed(1),
+        x2: leadTo.toFixed(1),   y2: c.y.toFixed(1),
+      }));
+    }
     const name = c.name.length > 24 ? c.name.slice(0, 23).trimEnd() + '…' : c.name;
     const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.y - 1).toFixed(1), 'text-anchor': anchor });
     lbl.textContent = name;
