@@ -3118,7 +3118,7 @@ const Orbit = (() => {
        Every role stays in the list on the right; the globe shows a readable
        sample and says how many it is holding back. */
     const totalRoles = data.length;
-    const CAP = 170;
+    const CAP = 260;
 
     if (totalRoles > CAP){
       // Proportional, but every company keeps at least one node — otherwise a
@@ -3180,9 +3180,12 @@ const Orbit = (() => {
        the outermost point to the surface stops the sphere being breached. Only
        honouring the first is what let orbs poke through the skin at small
        counts, where the points are far apart but sit near the edge. */
-    const byGap = rolePts.minGap * 0.44;
+    const byGap = rolePts.minGap * 0.17;
     const byEdge = Math.max(0.2, CORE - rolePts.maxRadius);
-    const jobR = Math.max(0.34, Math.min(2.3, byGap, byEdge));
+    /* Small on purpose. At orbs this size the sphere is a field of points you
+       can count, rather than a wall of touching balls — the packing is what
+       made it unreadable, not the number of roles. */
+    const jobR = Math.max(0.26, Math.min(0.78, byGap, byEdge));
     const jobGeo = new THREE.SphereGeometry(jobR, 14, 12);
     let roleAt = 0;
 
@@ -3329,7 +3332,9 @@ const Orbit = (() => {
        specks of grit rather than lights. A tiny radial-gradient sprite costs
        one texture and makes them round. */
     travelPoints = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 2.6, vertexColors: true, transparent: true, opacity: 1,
+      // Kept just under the role orbs, so a dot arriving at a role does not
+      // look bigger than the thing it arrives at.
+      size: 1.5, vertexColors: true, transparent: true, opacity: 1,
       sizeAttenuation: true, depthWrite: false, map: dotTexture(),
       blending: THREE.AdditiveBlending,
     }));
