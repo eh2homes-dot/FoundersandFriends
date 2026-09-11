@@ -3023,6 +3023,7 @@ const Orbit = (() => {
   let linkLit = null, litPos = null, litCap = 0, litLinks = [];
   let hiddenRoles = 0, coRadius = 1.9;
   let pulses = [];
+  let pinPoints = null, pinPos = null, jobRadius = 1;
   let yaw = 0.6, pitch = 0.44, dist = 150;
   let dragging = false, px = 0, py = 0, moved = 0;
   let VW = 1, VH = 1;
@@ -3090,6 +3091,7 @@ const Orbit = (() => {
     jobMeshes = []; coMeshes = []; labels = [];
     jobListRefs = []; listHot = null;
     pulses = [];
+    pinPoints = null; pinPos = null;
     travelPoints = null; travelPos = null; travelCol = null;
     links = []; linkSegs = null; linkPos = null;
     linkLit = null; litPos = null; litCap = 0; litLinks = [];
@@ -3263,10 +3265,11 @@ const Orbit = (() => {
         const pol = rolePts.points[roleAt++];
         const p = new THREE.Vector3();   // set in the frame loop, in the view plane
 
-        const m = new THREE.Mesh(jobGeo, new THREE.MeshPhongMaterial({
-          color: roleColour, shininess: 52, specular: 0x9a8cc7,
-          emissive: roleColour, emissiveIntensity: 0.42,
-          transparent: true, opacity: 0.92,
+        /* The ring around it carries the size, so the sphere only has to mark
+           the centre — bright and flat reads as a plotted point, where a
+           shaded ball would read as an object sitting there. */
+        const m = new THREE.Mesh(jobGeo, new THREE.MeshBasicMaterial({
+          color: roleColour, transparent: true, opacity: 0.95,
         }));
         m.position.copy(p);
         m.userData = { kind:'job', job, co, pol };
@@ -3281,6 +3284,8 @@ const Orbit = (() => {
       });
     });
 
+    jobRadius = jobR;
+    buildPins();
     buildLinks();
     buildTravellers();
 
@@ -3312,10 +3317,10 @@ const Orbit = (() => {
        silently does nothing. Weight has to come from opacity and colour, so
        these are pushed up rather than thickened. */
     linkSegs = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
-      /* Low on purpose. At 0.26 the threads crossed the entire interior and
-         turned the globe into a ball of string; the role dots are the subject
-         and the threads only need to be followable, not loud. */
-      color: 0x6ee7a8, transparent: true, opacity: 0.09, depthWrite: false,
+      /* Barely there. Every thread drawn at a readable weight is a ball of
+         string; these only need to say that a web exists. The ones actually
+         being followed are drawn by the lit layer above. */
+      color: 0x6ee7a8, transparent: true, opacity: 0.035, depthWrite: false,
       blending: THREE.AdditiveBlending,
     }));
     linkSegs.userData = { kind:'globe' };
@@ -3323,17 +3328,62 @@ const Orbit = (() => {
 
     // Sized for the busiest single company, since that is the most that can
     // ever be lit at once.
-    litCap = Math.max(1, ...companies.map(c => c.shown.length));
+    /* Sized for every thread, because the lit set is now a rolling window over
+         all of them rather than one company's worth. The buffer is a few
+         kilobytes; guessing a smaller cap and silently dropping threads is the
+         kind of bug that only shows up on the busiest board. */
+    litCap = Math.max(1, links.length);
     litPos = new Float32Array(litCap * 6);
     const lgeo = new THREE.BufferGeometry();
     lgeo.setAttribute('position', new THREE.BufferAttribute(litPos, 3));
     lgeo.setDrawRange(0, 0);
     linkLit = new THREE.LineSegments(lgeo, new THREE.LineBasicMaterial({
-      color: 0xffffff, transparent: true, opacity: 0.95, depthWrite: false,
+      color: 0xbcffdc, transparent: true, opacity: 0.85, depthWrite: false,
       blending: THREE.AdditiveBlending,
     }));
     linkLit.userData = { kind:'globe' };
     world.add(linkLit);
+  }
+
+  /* The pin ring drawn over every role.
+
+     A sphere says "an object is here"; a ring around a point says "this spot,
+     specifically". Since the whole view is meant to read as roles located on a
+     map, every role gets the second treatment. Built as one Points system with
+     a ring texture — as meshes it would be two hundred and sixty extra draw
+     calls for what is, in the end, a decal. */
+  let PIN_TEX = null;
+  function pinTexture(){
+    if (PIN_TEX) return PIN_TEX;
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, 64, 64);
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = 3.2;
+    ctx.beginPath(); ctx.arc(32, 32, 23, 0, Math.PI * 2); ctx.stroke();
+    // Four ticks at the compass points, which is what turns a circle into a
+    // crosshair and a crosshair into a location.
+    ctx.lineWidth = 2.6;
+    for (const [x1,y1,x2,y2] of [[32,2,32,11],[32,53,32,62],[2,32,11,32],[53,32,62,32]]){
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    }
+    PIN_TEX = new THREE.CanvasTexture(c);
+    return PIN_TEX;
+  }
+
+  function buildPins(){
+    if (!jobMeshes.length) return;
+    pinPos = new Float32Array(jobMeshes.length * 3);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pinPos, 3));
+    pinPoints = new THREE.Points(geo, new THREE.PointsMaterial({
+      size: jobRadius * 4.4, color: 0x9dffc8, map: pinTexture(),
+      transparent: true, opacity: 0.5, sizeAttenuation: true,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    pinPoints.userData = { kind:'globe' };
+    world.add(pinPoints);
   }
 
   let DOT_TEX = null;
@@ -3368,7 +3418,7 @@ const Orbit = (() => {
     travelPoints = new THREE.Points(geo, new THREE.PointsMaterial({
       // Kept just under the role orbs, so a dot arriving at a role does not
       // look bigger than the thing it arrives at.
-      size: 1.5, vertexColors: true, transparent: true, opacity: 1,
+      size: 2.0, vertexColors: true, transparent: true, opacity: 1,
       sizeAttenuation: true, depthWrite: false, map: dotTexture(),
       blending: THREE.AdditiveBlending,
     }));
@@ -3413,10 +3463,23 @@ const Orbit = (() => {
     const golden = Math.PI * (3 - Math.sqrt(5));
     const points = [];
 
+    /* A pure spiral is too orderly — the eye reads the pattern instead of the
+       points, and it looks like a lattice rather than plotted locations. Each
+       point is nudged off its lattice position by a deterministic amount, far
+       enough to break the regularity, never far enough to bring two together:
+       the gap is measured after the nudge, not before, so whatever it does is
+       accounted for. */
+    const spacing = R / Math.sqrt(total);
     for (let i = 0; i < total; i++){
-      const r = R * Math.sqrt((i + 0.5) / total);
-      const theta = golden * i;
-      points.push({ r, theta });
+      const r0 = R * Math.sqrt((i + 0.5) / total);
+      const t0 = golden * i;
+
+      // Deterministic offsets, so the same board always draws the same map.
+      const jr = (((i * 0.7548776662) % 1) - 0.5) * spacing * 0.62;
+      const jt = (((i * 0.5698402909) % 1) - 0.5) * (spacing * 0.62) / Math.max(r0, spacing);
+
+      const r = Math.min(R, Math.max(spacing * 0.35, r0 + jr));
+      points.push({ r, theta: t0 + jt });
     }
 
     /* Nearest-neighbour distance on a Vogel spiral is smallest at the rim, so
@@ -3629,17 +3692,13 @@ const Orbit = (() => {
     paintTravellers();
   }
 
-  /* Dim green for a thread at rest, white for one being traced. Rewritten only
-     when the trace changes, not per frame. */
+  /* Every dot on screen is on a thread that is currently guiding, so they are
+     all the same colour — the emphasis is carried by which threads are lit at
+     all, not by shading the dots against each other. */
   function paintTravellers(){
-    if (!travelCol || !links.length) return;
-    const lit = new Set(litLinks);
-    const dim = new THREE.Color(ROLE_COLOUR).multiplyScalar(0.55);
-    for (let i = 0; i < links.length; i++){
-      const on = lit.has(i);
-      travelCol[i*3]   = on ? 1 : dim.r;
-      travelCol[i*3+1] = on ? 1 : dim.g;
-      travelCol[i*3+2] = on ? 1 : dim.b;
+    if (!travelCol) return;
+    for (let i = 0; i < travelCol.length; i += 3){
+      travelCol[i] = 1; travelCol[i+1] = 1; travelCol[i+2] = 1;
     }
     if (travelPoints) travelPoints.geometry.attributes.color.needsUpdate = true;
   }
@@ -3763,6 +3822,14 @@ const Orbit = (() => {
         .addScaledVector(camUp, Math.sin(pol.theta) * pol.r);
     }
 
+    if (pinPoints && pinPos){
+      for (let i = 0; i < jobMeshes.length; i++){
+        const q = jobMeshes[i].position;
+        pinPos[i*3] = q.x; pinPos[i*3+1] = q.y; pinPos[i*3+2] = q.z;
+      }
+      pinPoints.geometry.attributes.position.needsUpdate = true;
+    }
+
     /* The pulse rings. Billboarded to the camera so they always read as
        circles rather than ellipses, and expanding on a loop that resets
        sharply — a slow fade out and a quick return looks like a signal, an
@@ -3788,38 +3855,57 @@ const Orbit = (() => {
       linkSegs.geometry.attributes.position.needsUpdate = true;
     }
 
-    // The traced threads, written from the same link data into the bright layer.
-    if (linkLit && litLinks.length){
-      for (let n = 0; n < litLinks.length; n++){
-        const L = links[litLinks[n]], a = L.co.anchor, b = L.mesh.position;
-        litPos[n*6]   = a.x; litPos[n*6+1] = a.y; litPos[n*6+2] = a.z;
-        litPos[n*6+3] = b.x; litPos[n*6+4] = b.y; litPos[n*6+5] = b.z;
-      }
-      linkLit.geometry.attributes.position.needsUpdate = true;
-      linkLit.visible = true;
-    } else if (linkLit){
-      linkLit.visible = false;
-    }
 
-    /* The travelling dots, running every thread all the time.
 
-       Scoping them to the traced threads left the globe motionless until you
-       hovered something, and the motion is what tells you the board is live.
-       Emphasis moves to colour instead: a traced thread runs a white dot, the
-       rest run dim green. */
-    if (travelPoints && links.length){
-      const t = performance.now() * 0.00013;
+    /* Which threads are guiding right now.
+
+       The lines exist to point at a role, and a pointer nobody can follow is
+       not a pointer. Drawing all two hundred and sixty at a readable weight
+       gives a ball of string; drawing them all faintly gives wallpaper. So
+       each thread takes a turn: it brightens, a dot runs its length to the
+       role at the end, and it fades again, with phases spread so a couple of
+       dozen are live at any moment and the whole set cycles through.
+
+       Hovering overrides the rota — a thread being traced deliberately stays
+       lit for as long as the cursor is on it. */
+    if (linkLit && links.length){
+      const T = performance.now() * 0.00009;
+      const WINDOW = 0.16;                 // fraction of the cycle a thread is live
+      const forced = new Set(litLinks);    // whatever the cursor is tracing
+      let litN = 0, dotN = 0;
+
       for (let i = 0; i < links.length; i++){
         const L = links[i], a = L.co.anchor, b = L.mesh.position;
-        // Phase from the index, so the dots sit spread along their threads
-        // rather than setting off together.
-        const k = (t + ((i * 37) % 100) / 100) % 1;
-        const e = k * k * (3 - 2 * k);            // ease so they slow at each end
-        travelPos[i*3]   = a.x + (b.x - a.x) * e;
-        travelPos[i*3+1] = a.y + (b.y - a.y) * e;
-        travelPos[i*3+2] = a.z + (b.z - a.z) * e;
+
+        // Where this thread sits in its own cycle.
+        const cycle = (T + (i * 0.6180339887) % 1) % 1;
+        const live = forced.has(i) || cycle < WINDOW;
+        if (!live) continue;
+
+        litPos[litN*6]   = a.x; litPos[litN*6+1] = a.y; litPos[litN*6+2] = a.z;
+        litPos[litN*6+3] = b.x; litPos[litN*6+4] = b.y; litPos[litN*6+5] = b.z;
+        litN++;
+
+        /* The dot runs the thread across the window and stops at the role.
+           A traced thread loops instead, so the pointer keeps repeating for
+           as long as someone is looking at it. */
+        let k = forced.has(i) ? (T * 6) % 1 : cycle / WINDOW;
+        const e = k * k * (3 - 2 * k);     // slow at each end, quick between
+        travelPos[dotN*3]   = a.x + (b.x - a.x) * e;
+        travelPos[dotN*3+1] = a.y + (b.y - a.y) * e;
+        travelPos[dotN*3+2] = a.z + (b.z - a.z) * e;
+        dotN++;
       }
-      travelPoints.geometry.attributes.position.needsUpdate = true;
+
+      linkLit.geometry.setDrawRange(0, litN * 2);
+      linkLit.geometry.attributes.position.needsUpdate = true;
+      linkLit.visible = litN > 0;
+
+      if (travelPoints){
+        travelPoints.geometry.setDrawRange(0, dotN);
+        travelPoints.geometry.attributes.position.needsUpdate = true;
+        travelPoints.visible = dotN > 0;
+      }
     }
 
     const r = viewport();
