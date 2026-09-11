@@ -261,7 +261,8 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-axis{stroke-width:1}
 
 /* the outer circle the companies ride on */
-.g-ring{fill:none;stroke:url(#g-ring-grad);stroke-width:1}
+/* One unbroken circle the whole way round. */
+.g-ring{fill:none;stroke:rgba(200,197,218,.17);stroke-width:1}
 /* The lit stretch where each side's companies sit, drawn over the ring so the
    circle stays continuous and only its brightness changes. */
 .g-arc{fill:none;stroke-width:1.3;stroke-linecap:round}
@@ -269,7 +270,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-arc.proptech{stroke:rgba(169,143,236,.4)}
 
 /* threads */
-.g-thread{fill:none;stroke-width:1.25;opacity:.4;transition:opacity .3s,stroke-width .3s}
+.g-thread{fill:none;stroke-width:1;opacity:.2;transition:opacity .3s,stroke-width .3s}
 .g-thread.opco{stroke:#00FF88}
 .g-thread.proptech{stroke:#A98FEC}
 .g-thread.is-lit{opacity:1;stroke-width:2.2}
@@ -277,7 +278,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-thread.proptech.is-lit{filter:drop-shadow(0 0 5px rgba(169,143,236,.85))}
 
 .g-spark{pointer-events:none;transition:opacity .3s}
-.g-spark.opco{fill:#00FF88;filter:drop-shadow(0 0 4px rgba(0,255,136,.95))}
+.g-spark.opco{fill:#00FF88;filter:drop-shadow(0 0 4px rgba(0,255,136,.8))}
 .g-spark.proptech{fill:#C4B0FF;filter:drop-shadow(0 0 4px rgba(169,143,236,.95))}
 .g-spark.lit{fill:#fff}
 
@@ -1359,18 +1360,6 @@ a.foot-line:hover{color:var(--green)}
               <stop offset="46%"  stop-color="rgba(34,222,190,.22)"/>
               <stop offset="54%"  stop-color="rgba(150,110,240,.26)"/>
               <stop offset="100%" stop-color="rgba(152,112,244,.52)"/>
-            </linearGradient>
-            <!-- The company ring fades out where it crosses the axis. Drawn
-                 solid, the top and bottom of the circle run straight from the
-                 last operator to the first technology company and read as a
-                 link between two firms that have nothing to do with each other. -->
-            <linearGradient id="g-ring-grad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(200,197,218,.2)"/>
-              <stop offset="38%"  stop-color="rgba(200,197,218,.16)"/>
-              <stop offset="49%"  stop-color="rgba(200,197,218,0)"/>
-              <stop offset="51%"  stop-color="rgba(200,197,218,0)"/>
-              <stop offset="62%"  stop-color="rgba(200,197,218,.16)"/>
-              <stop offset="100%" stop-color="rgba(200,197,218,.2)"/>
             </linearGradient>
             <!-- Sphere shading: a light source up and to the left, and the limb
                  falling away into shadow. This is what makes it read as a ball
@@ -3626,6 +3615,7 @@ function globeBuild(){
       links.push({
         key: 'l:' + s.job.id, from: role, to: s.co, hub: h,
         phase: globeHash(roles.length) * Math.PI * 2,
+        bend: 0.35 + globeHash(roles.length + 17) * 1.15,
         speed: 0.5 + globeHash(roles.length + 7) * 0.5,
         period: 9000 + globeHash(roles.length + 31) * 7000,   // one pass every 9–16s
         start: globeHash(roles.length + 53),
@@ -3692,25 +3682,40 @@ function globeBuild(){
 
 /* A thread that genuinely undulates: three waypoints alternating either side
    of the straight run, joined with smooth cubics. */
+/* Threads are bundled: each one is drawn towards a gathering point on its own
+   company's radius before it reaches the node, so a company's threads run as
+   one stem rather than each cutting its own line across the globe. Straight
+   lines from every job to every node is what makes a field this dense read as
+   stray hairs. */
 function globeThread(L, time, still){
+  const { CX, CY, R } = GLOBE;
   const a = L.from, b = L.to;
-  const dx = b.x - a.x, dy = b.y - a.y;
+
+  // The corridor: out along the company's own radius, just inside the sphere.
+  const ca = Math.atan2(b.y - CY, b.x - CX);
+  const gx = CX + Math.cos(ca) * R * 0.88;
+  const gy = CY + Math.sin(ca) * R * 0.88;
+
+  // A gentle drift so the bundle breathes, plus the pointer's tug.
+  const sway = still ? 0 : Math.sin(time * 0.00022 * L.speed + L.phase) * 3 * L.bend;
+  const dx = gx - a.x, dy = gy - a.y;
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len, ny = dx / len;
-  const amp = Math.min(9, len * 0.06);
-  const sway = still ? 0.5 : Math.sin(time * 0.00022 * L.speed + L.phase);
-  const at = (f, dir) => {
-    const o = amp * dir * (0.55 + 0.45 * sway);
-    const w = 1 - Math.abs(f - 0.5) * 1.4;
-    return { x: a.x + dx * f + nx * o + L.pull.x * w, y: a.y + dy * f + ny * o + L.pull.y * w };
-  };
-  const p1 = at(0.25, 1), p2 = at(0.5, -1), p3 = at(0.75, 1);
+
+  // Leaves the job heading for the corridor, arrives at the node along it.
+  // Hug the job's own radius first, then bend into the corridor. Leaving
+  // straight from the dot is what made these read as cut lines.
+  const ja = Math.atan2(a.y - CY, a.x - CX);
+  const ar = Math.hypot(a.x - CX, a.y - CY);
+  const lift = Math.min(46, len * 0.42);
+  const c1x = a.x + Math.cos(ja) * lift + nx * sway + L.pull.x * 0.6;
+  const c1y = a.y + Math.sin(ja) * lift + ny * sway + L.pull.y * 0.6;
+  const c2x = gx + (gx - CX) * 0.1;
+  const c2y = gy + (gy - CY) * 0.1;
+
   const f = (v) => v.toFixed(1);
-  return `M ${f(a.x)} ${f(a.y)}`
-       + ` C ${f(a.x + dx*0.1 + nx*amp*0.6)} ${f(a.y + dy*0.1 + ny*amp*0.6)}, ${f(p1.x - dx*0.08)} ${f(p1.y - dy*0.08)}, ${f(p1.x)} ${f(p1.y)}`
-       + ` S ${f(p2.x)} ${f(p2.y)}, ${f(p2.x)} ${f(p2.y)}`
-       + ` S ${f(p3.x)} ${f(p3.y)}, ${f(p3.x)} ${f(p3.y)}`
-       + ` S ${f(b.x - dx*0.1 + nx*amp*0.4)} ${f(b.y - dy*0.1 + ny*amp*0.4)}, ${f(b.x)} ${f(b.y)}`;
+  return `M ${f(a.x)} ${f(a.y)} C ${f(c1x)} ${f(c1y)}, ${f(c2x)} ${f(c2y)}, ${f(gx)} ${f(gy)}`
+       + ` S ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
 }
 
 function globeStep(time, once){
