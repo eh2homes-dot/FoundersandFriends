@@ -3151,16 +3151,37 @@ const Orbit = (() => {
     CORE  = SHELL * (0.40 + Math.min(0.14, drawn / 1800));
     drawGlobe();
 
-    /* Node radius falls as the ring fills up. At thirty-five companies a fixed
-       size leaves the nodes almost touching, and the labels have nowhere to
-       sit; at four it would look needlessly timid. */
-    const coR = Math.max(1.0, Math.min(2.4, 11 / Math.sqrt(Math.max(companies.length, 1))));
+    /* Node radius comes from the ring's own geometry, not from a formula in
+       the company count. The gap between neighbours on a circle of radius R
+       with n nodes is exactly 2R·sin(π/n); half of that is the largest radius
+       at which two nodes can never touch, and 0.4 leaves visible air between
+       them rather than having them kiss. */
+    const ringRadius = CORE * 1.78;
+    const neighbourGap = companies.length > 1
+      ? 2 * ringRadius * Math.sin(Math.PI / companies.length)
+      : ringRadius;
+    const coR = Math.max(0.8, Math.min(2.6, neighbourGap * 0.40));
     coRadius = coR;
     const bodyGeo = new THREE.SphereGeometry(coR, 20, 16);
-    // Big enough to pick out at twenty roles, small enough not to merge into
-    // a single mass at a hundred and seventy.
-    const jobR = Math.max(0.5, Math.min(1.25, 20 / Math.sqrt(Math.max(drawn, 1))));
-    const jobGeo  = new THREE.SphereGeometry(jobR, 14, 12);
+    /* Role positions are laid out before anything is drawn, so the orb radius
+       can be derived from the layout instead of guessed at.
+
+       Guessing is what produced overlapping orbs: a formula in the count alone
+       cannot know that two particular points happened to land close together.
+       Measuring the closest pair and halving it guarantees no two orbs touch,
+       whatever the distribution does. */
+    const rolePts = layoutRoles(companies, CORE);
+    /* Two ceilings, and the orb takes the lower.
+
+       Half the closest gap stops any two orbs from touching. The distance from
+       the outermost point to the surface stops the sphere being breached. Only
+       honouring the first is what let orbs poke through the skin at small
+       counts, where the points are far apart but sit near the edge. */
+    const byGap = rolePts.minGap * 0.44;
+    const byEdge = Math.max(0.2, CORE - rolePts.maxRadius);
+    const jobR = Math.max(0.34, Math.min(1.5, byGap, byEdge));
+    const jobGeo = new THREE.SphereGeometry(jobR, 14, 12);
+    let roleAt = 0;
 
     companies.forEach((co, ci) => {
       /* Companies ring the globe rather than sitting on its surface. Evenly
@@ -3202,30 +3223,8 @@ const Orbit = (() => {
          connecting line cross the middle; keeping each company's roles on its
          own side means the links stay short and the eye can follow one company
          inward without untangling anything. */
-      co.shown.forEach((job, ji) => {
-        /* Spread through the whole interior rather than clustered under their
-           own company. The ring no longer holds a fixed world position, so
-           there is nothing to cluster toward — and an even fill is what the
-           globe should look like anyway. seedIndex keeps the sequence
-           continuous across companies so the fill stays even overall. */
-        const k = seedIndex++;
-        const golden = Math.PI * (3 - Math.sqrt(5));
-        const y = 1 - (2 * (k + 0.5)) / Math.max(totalDrawn, 1);
-        const rXY = Math.sqrt(Math.max(0, 1 - y * y));
-        const theta = golden * k;
-        /* Orbs are placed by their centres, so the outermost ones stick out by
-           their own radius — which is what put roles outside the sphere. The
-           usable radius subtracts that, leaving every orb fully enclosed.
-           Cube root keeps the fill even by volume; without it everything piles
-           up against the surface. */
-        const usable = CORE - jobR * 1.35;
-        const rad = usable * Math.cbrt(((k * 0.6180339887) % 1) * 0.86 + 0.14);
-
-        const p = new THREE.Vector3(
-          Math.cos(theta) * rXY * rad,
-          y * rad,
-          Math.sin(theta) * rXY * rad,
-        );
+      co.shown.forEach((job) => {
+        const p = rolePts.points[roleAt++];
 
         const m = new THREE.Mesh(jobGeo, new THREE.MeshPhongMaterial({
           color: roleColour, shininess: 52, specular: 0x9a8cc7,
@@ -3348,6 +3347,80 @@ const Orbit = (() => {
      Built from real latitude rings and meridians rather than a wireframe
      sphere, because a wireframe triangulates and the diagonals read as a
      geodesic mesh instead of a globe. */
+
+  /* Role positions, arranged so no two can overlap.
+
+     Points scattered through a volume by any golden-angle trick are evenly
+     distributed on average but say nothing about the closest pair, and it is
+     the closest pair that decides whether orbs touch. Nested shells fix the
+     radial spacing by construction, and a Fibonacci spread within each shell
+     fixes the angular spacing. The actual minimum is then measured rather than
+     assumed — with a few hundred points that is a few tens of thousands of
+     comparisons, once, at build time.
+
+     Returns the points and the closest gap between any two of them. */
+  function layoutRoles(cos, core){
+    const total = cos.reduce((n, c) => n + c.shown.length, 0);
+    if (!total) return { points: [], minGap: core, maxRadius: 0 };
+
+    // Shell count from the cube root of the population: the number that keeps
+    // radial and angular spacing roughly equal rather than one starving the
+    // other.
+    const shells = Math.max(1, Math.round(Math.cbrt(total / 2.2)));
+    const inner = core * 0.16;
+    const outer = core * 0.88;
+
+    // Points per shell scale with surface area, so density is even throughout
+    // instead of crowding the outer shells.
+    const weights = [];
+    for (let i = 0; i < shells; i++){
+      const r = shells === 1 ? outer : inner + (outer - inner) * (i / (shells - 1));
+      weights.push({ r, w: r * r });
+    }
+    const wSum = weights.reduce((a, b) => a + b.w, 0);
+
+    const counts = weights.map(x => Math.max(1, Math.round(total * x.w / wSum)));
+    // Rounding drifts; settle the difference on the outermost shell, which has
+    // the most room to absorb it.
+    let drift = total - counts.reduce((a, b) => a + b, 0);
+    counts[counts.length - 1] += drift;
+    if (counts[counts.length - 1] < 1){
+      counts[counts.length - 1] = 1;
+    }
+
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    const points = [];
+    weights.forEach((shell, si) => {
+      const n = counts[si];
+      for (let i = 0; i < n && points.length < total; i++){
+        const y = n === 1 ? 0 : 1 - (2 * (i + 0.5)) / n;
+        const rXY = Math.sqrt(Math.max(0, 1 - y * y));
+        // Offset each shell's spiral so shells do not line up radially.
+        const theta = golden * i + si * 1.1;
+        points.push(new THREE.Vector3(
+          Math.cos(theta) * rXY * shell.r,
+          y * shell.r,
+          Math.sin(theta) * rXY * shell.r,
+        ));
+      }
+    });
+    while (points.length < total) points.push(new THREE.Vector3(0, 0, 0));
+
+    // The measurement that makes the guarantee real.
+    let minGap = Infinity;
+    for (let i = 0; i < points.length; i++){
+      for (let j = i + 1; j < points.length; j++){
+        const d = points[i].distanceTo(points[j]);
+        if (d < minGap) minGap = d;
+      }
+    }
+    if (!isFinite(minGap) || minGap === 0) minGap = core * 0.2;
+
+    const maxRadius = points.reduce((m, p) => Math.max(m, p.length()), 0);
+
+    return { points, minGap, maxRadius };
+  }
+
   function drawGlobe(){
     /* The globe itself, given the treatment the company orbs used to carry: a
        translucent body, a wireframe skin over it, and a light at the core.
@@ -3626,7 +3699,7 @@ const Orbit = (() => {
        a sphere. */
     camRight.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
     camUp.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
-    const ringR = CORE * 1.78;
+    const ringR = CORE * 1.78;   // matches ringRadius used when sizing nodes
 
     for (const node of coMeshes){
       const co = node.userData.co;
