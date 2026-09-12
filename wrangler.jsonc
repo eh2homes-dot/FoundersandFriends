@@ -19,20 +19,3 @@
     // /api/stats returned the homepage and every admin sign-in failed.
     //
     // This runs worker.js first for /api/*, and serves assets everywhere else.
-    "run_worker_first": ["/api/*"]
-  },
-
-  // Click tracking and applications. Both tables live in this one database.
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "founders-clicks",
-      "database_id": "b2fac751-e9ae-4190-850f-47426681d322"
-    }
-  ],
-
-  // Logs from console.error in worker.js.
-  "observability": {
-    "enabled": true
-  }
-}
