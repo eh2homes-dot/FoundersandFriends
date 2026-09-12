@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V101" />
+<meta name="ff-build" content="RING-V103" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -420,6 +420,12 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @keyframes handoff-ping{from{opacity:.9}to{opacity:0;stroke-width:5}}
 
 .hemi-label{text-anchor:middle;font-family:var(--mono);font-size:20px;letter-spacing:.26em;text-transform:uppercase}
+/* The plate behind each hub name. The globes sit on a gradient that runs from
+   near-black to deep violet, so a name with no backing reads differently at
+   each end of the canvas — the plate gives it one consistent ground. */
+.hub-plate rect{stroke-width:1}
+.hub-plate.opco rect{fill:rgba(169,143,236,.12);stroke:rgba(169,143,236,.38)}
+.hub-plate.proptech rect{fill:rgba(0,255,136,.1);stroke:rgba(0,255,136,.34)}
 .hemi-label.opco{fill:#A98FEC}
 .hemi-label.proptech{fill:#00FF88}
 
@@ -1443,7 +1449,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
-        <svg id="globe" viewBox="0 0 2100 784" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
+        <svg id="globe" viewBox="0 0 2100 800" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(0,255,136,.035)"/>
@@ -1511,7 +1517,10 @@ a.foot-line:hover{color:var(--green)}
               <line class="g-axis" x1="525" y1="196" x2="525" y2="584" stroke="url(#g-axis-grad)"/>
             </g>
             <circle class="g-shade" cx="525" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label opco" x="525" y="770">OpCo</text>
+            <g class="hub-plate opco">
+              <rect x="440" y="746" width="170" height="42" rx="21"/>
+              <text class="hemi-label opco" x="525" y="770">OpCo</text>
+            </g>
           </g>
 
           <g class="g-world" data-hub="proptech">
@@ -1528,7 +1537,10 @@ a.foot-line:hover{color:var(--green)}
               <line class="g-axis" x1="1575" y1="196" x2="1575" y2="584" stroke="url(#g-axis-grad)"/>
             </g>
             <circle class="g-shade" cx="1575" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label proptech" x="1575" y="770">PropTech</text>
+            <g class="hub-plate proptech">
+              <rect x="1470" y="746" width="210" height="42" rx="21"/>
+              <text class="hemi-label proptech" x="1575" y="770">PropTech</text>
+            </g>
           </g>
 
           <g id="g-threads"></g>
@@ -3666,7 +3678,7 @@ const GLOBE = {
   // so the only way to make each sphere bigger is to make the space it sits in
   // smaller. The centres come together and the label columns tighten with
   // them — 1800 is the floor before the two inner columns of text meet.
-  VW: 2100, VH: 784,          // the canvas
+  VW: 2100, VH: 800,          // the canvas
   CY: 390,
   CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
   cxOf: (hub) => (hub === 'proptech' ? 1575 : 525),
@@ -3749,6 +3761,13 @@ const GLOBE = {
                    // 12 → 22 → 32 has taken the canvas 1850 → 1900 → 2100.
                    // The same for every node — that regularity is the point.
   LABEL_LINE: 26,  // one row of label text, used when one has to step aside
+  // Shorter names for the ring, where the legal name is longer than the
+  // layout can hold. One company should not cost every globe 5% of its size:
+  // fitting "Starwood Property Trust" in full needs the canvas at 2210 instead
+  // of 2100. The key must match the feed exactly; an unmatched key is ignored.
+  LABEL_ALIAS: {
+    'Starwood Property Trust': 'Starwood Property',
+  },
   LABEL_MAX: 20,   // characters before a name is truncated. Twenty is what
                    // "Progress Residential" needs, and it is the longest name
                    // on the board — so nothing is cut now. The width came from
@@ -3969,9 +3988,10 @@ function globeBuild(){
       // the circle's edge, so placement has to know how big the circle is.
       mine.forEach(c => {
         c.r = Math.min(19, 11.5 + Math.sqrt(c.count) * 1.35);
-        const name = c.name.length > GLOBE.LABEL_MAX
-          ? c.name.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : c.name;
-        c.tw = name.length * CHAR;
+        const short = GLOBE.LABEL_ALIAS[c.name] || c.name;
+        c.shown = short.length > GLOBE.LABEL_MAX
+          ? short.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : short;
+        c.tw = c.shown.length * CHAR;
       });
 
       const hitsNode = (box, self) => mine.some(n => {
@@ -3988,7 +4008,7 @@ function globeBuild(){
       // The hub name under each globe is a drawn object like any other. It was
       // not in the obstacle set, so a company label could land on top of it —
       // which is how "Entrata" ended up sitting across "PROPTECH".
-      const HUB_LABEL = { x0: cx - 92, x1: cx + 92, y0: 752, y1: 784 };
+      const HUB_LABEL = { x0: cx - 108, x1: cx + 108, y0: 742, y1: 792 };
       const hitsHubLabel = (box) =>
         box.x0 < HUB_LABEL.x1 && box.x1 > HUB_LABEL.x0
         && box.y0 < HUB_LABEL.y1 && box.y1 > HUB_LABEL.y0;
@@ -4253,8 +4273,9 @@ function globeBuild(){
       // Column x, or the node's own x for the two polar caps.
       const mid0 = c.anchor === 'middle';
       const anchor = mid0 ? 'middle' : (side > 0 ? 'start' : 'end');
-      const name0 = c.name.length > GLOBE.LABEL_MAX
-        ? c.name.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : c.name;
+      // Whatever the placement pass measured — reusing it is what guarantees
+      // the box it tested and the text it draws are the same width.
+      const name0 = c.shown || c.name;
       const textW = name0.length * 9.4;   // approx advance at 18px
       let lx = c.lx;
       // Keep the text on the canvas: a name hanging off the edge is worse than
