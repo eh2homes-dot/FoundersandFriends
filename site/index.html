@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V46" />
+<meta name="ff-build" content="RING-V48" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -265,7 +265,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
-#globe{display:block;width:100%;max-width:1920px;height:auto;max-height:min(74vh,820px);
+#globe{display:block;width:100%;max-width:1920px;height:auto;max-height:min(53vh,620px);
   margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
@@ -396,10 +396,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hemi-label.opco{fill:#00FF88}
 .hemi-label.proptech{fill:#A98FEC}
 
-.orbit-more{display:flex;justify-content:center;margin-top:10px}
+.orbit-more{display:flex;justify-content:center;margin-top:6px}
 .orbit-more[hidden]{display:none}
 .all-cos{
-  display:inline-flex;align-items:center;gap:10px;padding:11px 22px;border-radius:100px;
+  display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border-radius:100px;
   cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;
   color:var(--ink-soft);background:rgba(11,6,24,.7);border:1px solid var(--line-2);
   transition:border-color .2s,color .2s,background .2s,transform .2s,box-shadow .2s;
@@ -808,7 +808,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #board-view[data-view="list"] .orbits,
 #board-view[data-view="list"] .hub-cards{display:none}
 #board-view[data-view="list"] .board-hero .laser-rule{margin-top:34px}
-.orbits > .data-status{margin:18px auto 4px;max-width:980px;justify-content:center}
+.orbits > .data-status{margin:12px auto 0;max-width:980px;justify-content:center}
 
 .stat-line{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -1073,7 +1073,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* ---------- data status ---------- */
 .data-status{
   display:flex;align-items:center;gap:11px;flex-wrap:wrap;
-  padding:11px 16px;border-radius:11px;margin-bottom:16px;
+  padding:9px 15px;border-radius:11px;margin-bottom:10px;
   font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
   border:1px solid var(--line);background:rgba(11,6,24,.7);color:var(--ink-dim);
 }
@@ -1401,7 +1401,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
-        <svg id="globe" viewBox="0 0 1800 740" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
+        <svg id="globe" viewBox="0 0 1800 716" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(0,255,136,.035)"/>
@@ -1468,7 +1468,7 @@ a.foot-line:hover{color:var(--green)}
               <line class="g-axis" x1="440" y1="156" x2="440" y2="544" stroke="url(#g-axis-grad)"/>
             </g>
             <circle class="g-shade" cx="440" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label opco" x="440" y="714">OpCo</text>
+            <text class="hemi-label opco" x="440" y="700">OpCo</text>
           </g>
 
           <g class="g-world" data-hub="proptech">
@@ -1484,7 +1484,7 @@ a.foot-line:hover{color:var(--green)}
               <line class="g-axis" x1="1360" y1="156" x2="1360" y2="544" stroke="url(#g-axis-grad)"/>
             </g>
             <circle class="g-shade" cx="1360" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label proptech" x="1360" y="714">PropTech</text>
+            <text class="hemi-label proptech" x="1360" y="700">PropTech</text>
           </g>
 
           <g id="g-threads"></g>
@@ -3621,7 +3621,7 @@ const GLOBE = {
   // so the only way to make each sphere bigger is to make the space it sits in
   // smaller. The centres come together and the label columns tighten with
   // them — 1800 is the floor before the two inner columns of text meet.
-  VW: 1800, VH: 740,          // the canvas
+  VW: 1800, VH: 716,          // the canvas
   CY: 350,
   CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
   cxOf: (hub) => (hub === 'proptech' ? 1360 : 440),
