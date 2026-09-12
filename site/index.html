@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V96" />
+<meta name="ff-build" content="RING-V97" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -390,10 +390,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* The lead is what says which name belongs to which node. At .28 it was
    invisible against the background, so three labels stacked in a column read
    as unattached text. It carries the hub's colour now rather than a grey. */
-.co-lead{fill:none;stroke-width:1.2;opacity:.5;transition:opacity .25s,stroke-width .25s}
-.g-co.opco .co-lead{stroke:rgba(0,255,136,.75)}
-.g-co.proptech .co-lead{stroke:rgba(169,143,236,.85)}
-.g-co.is-lit .co-lead{opacity:1;stroke-width:1.8}
 .g-co .sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;fill:var(--ink-dim)}
 .g-co.opco.is-lit .core{fill:#00FF88}
 .g-co.proptech.is-lit .core{fill:#8B5CF0}
@@ -402,8 +398,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* Dim every other name while one is traced, so the one you are pointing at is
    unmistakable even when its label sits three rows up a column. */
 #globe.is-focused .g-co:not(.is-lit) .lbl,
-#globe.is-focused .g-co:not(.is-lit) .sub,
-#globe.is-focused .g-co:not(.is-lit) .co-lead{opacity:.22}
+#globe.is-focused .g-co:not(.is-lit) .sub{opacity:.22}
 .g-co:focus{outline:none}
 .g-co:focus-visible .core{stroke:#fff;stroke-width:3}
 
@@ -4255,20 +4250,9 @@ function globeBuild(){
       if (mid0) lx = Math.min(GLOBE.VW - textW / 2 - 6, Math.max(textW / 2 + 6, lx));
       else if (side < 0) lx = Math.max(lx, textW + 6);
       else lx = Math.min(lx, GLOBE.VW - textW - 6);
-      // An elbow where the label has been pushed off its node's height. The
-      // polar caps sit directly above or below their node, so a lead there
-      // would be a stray dash across the name.
-      if (!mid0 && Math.abs(c.ly - c.y) > 2){
-        const x0 = c.x + side * (r + 3);
-        const x1 = lx - side * 6;
-        const mid = x0 + (x1 - x0) * 0.45;
-        g.append(el('path', {
-          class: 'co-lead',
-          d: `M ${x0.toFixed(1)} ${c.y.toFixed(1)} L ${mid.toFixed(1)} ${c.y.toFixed(1)}`
-           + ` L ${mid.toFixed(1)} ${c.ly.toFixed(1)} L ${x1.toFixed(1)} ${c.ly.toFixed(1)}`,
-          fill: 'none',
-        }));
-      }
+      // No lead lines. They tied a label back to its node when the label sat
+      // in a distant column; on the label ring each name is directly outward
+      // from its own node, so a connector draws a line and explains nothing.
       const name = name0;
       const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: c.ly.toFixed(1), 'text-anchor': anchor });
       lbl.textContent = name;
@@ -4601,8 +4585,12 @@ function globeOrbitals(){
 
       const dot = document.createElementNS(NS, 'circle');
       dot.setAttribute('class', 'orb-dot');
-      dot.setAttribute('cx', rx);      // a real position, so it shows even if
-      dot.setAttribute('cy', 0);       // the motion below never starts
+      // At the origin, not at rx. animateMotion applies its own transform on
+      // top of whatever position the element already has, so a cx of rx put the
+      // dot at twice the radius — orbiting outside the ring as a stray white
+      // speck. The fallback caused the bug it was meant to prevent.
+      dot.setAttribute('cx', 0);
+      dot.setAttribute('cy', 0);
       dot.setAttribute('r', (3.4 - i * 0.3).toFixed(1));
 
       const motion = document.createElementNS(NS, 'animateMotion');
