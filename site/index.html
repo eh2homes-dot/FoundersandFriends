@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V37" />
+<meta name="ff-build" content="RING-V39" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -265,7 +265,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
-#globe{display:block;width:100%;max-width:1180px;height:auto;max-height:min(68vh,720px);
+#globe{display:block;width:100%;max-width:1560px;height:auto;max-height:min(62vh,660px);
   margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
@@ -392,12 +392,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #globe.is-handoff .g-role.is-lit .halo{animation:handoff-ping .52s ease-out both}
 @keyframes handoff-ping{from{opacity:.9}to{opacity:0;stroke-width:5}}
 
-.hemi-label{text-anchor:middle;font-family:var(--mono);font-size:13px;letter-spacing:.24em;text-transform:uppercase}
+.hemi-label{text-anchor:middle;font-family:var(--mono);font-size:15px;letter-spacing:.24em;text-transform:uppercase}
 .hemi-label.opco{fill:#00FF88}
 .hemi-label.proptech{fill:#A98FEC}
-/* The seam. Faint on purpose — it should read as a division of one sphere,
-   not as two objects sitting next to each other. */
-.g-divide{stroke:rgba(190,200,235,.22);stroke-width:1;stroke-dasharray:3 7;pointer-events:none}
 
 .orbit-more{display:flex;justify-content:center;margin-top:14px}
 .orbit-more[hidden]{display:none}
@@ -1403,7 +1400,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
-        <svg id="globe" viewBox="0 0 1000 610" role="img" aria-label="Open roles by hub, each connected to the company hiring">
+        <svg id="globe" viewBox="0 0 2000 700" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(0,255,136,.035)"/>
@@ -1419,8 +1416,6 @@ a.foot-line:hover{color:var(--green)}
               <stop offset="75%"  stop-color="rgba(200,197,218,.3)"/>
               <stop offset="100%" stop-color="rgba(200,197,218,0)"/>
             </linearGradient>
-            <clipPath id="g-clip-l"><rect x="0" y="0" width="500" height="610"/></clipPath>
-            <clipPath id="g-clip-r"><rect x="500" y="0" width="500" height="610"/></clipPath>
             <!-- One even wash for the whole graticule. A strong colour split
                  down the middle made the wireframe read as two objects rather
                  than one sphere. -->
@@ -1455,40 +1450,46 @@ a.foot-line:hover{color:var(--green)}
             </linearGradient>
           </defs>
 
-          <!-- The halo sits outside the sphere, so it has to be drawn before
-               anything that should appear in front of it. -->
-          <circle class="g-atmo" cx="500" cy="290" r="170" fill="url(#g-atmo)"/>
-          <ellipse class="g-ring" cx="500" cy="290" rx="418" ry="262"/>
+          <!-- Two globes, one per hub, same model. Drawn in a single SVG
+               rather than two: the animation loop, the pointer routing and the
+               hover card all key off one coordinate space, and splitting them
+               would mean three copies of each. -->
+          <g class="g-world" data-hub="opco">
+            <circle class="g-atmo" cx="500" cy="330" r="170" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="500" cy="330" r="280"/>
+            <g class="g-hemi opco" data-goto="opco">
+              <circle class="g-half" cx="500" cy="330" r="156"/>
+            </g>
+            <g class="g-mesh" data-cx="500" pointer-events="none"></g>
+            <g pointer-events="none">
+              <circle class="g-rim" cx="500" cy="330" r="156"/>
+              <g class="g-orbits" data-cx="500"></g>
+              <line class="g-axis" x1="500" y1="166" x2="500" y2="494" stroke="url(#g-axis-grad)"/>
+            </g>
+            <circle class="g-shade" cx="500" cy="330" r="156" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label opco" x="500" y="690">OpCo</text>
+          </g>
 
-          <g class="g-hemi opco" data-goto="opco">
-            <circle class="g-half" cx="500" cy="290" r="156" clip-path="url(#g-clip-l)"/>
+          <g class="g-world" data-hub="proptech">
+            <circle class="g-atmo" cx="1500" cy="330" r="170" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="1500" cy="330" r="280"/>
+            <g class="g-hemi proptech" data-goto="proptech">
+              <circle class="g-half" cx="1500" cy="330" r="156"/>
+            </g>
+            <g class="g-mesh" data-cx="1500" pointer-events="none"></g>
+            <g pointer-events="none">
+              <circle class="g-rim" cx="1500" cy="330" r="156"/>
+              <g class="g-orbits" data-cx="1500"></g>
+              <line class="g-axis" x1="1500" y1="166" x2="1500" y2="494" stroke="url(#g-axis-grad)"/>
+            </g>
+            <circle class="g-shade" cx="1500" cy="330" r="156" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label proptech" x="1500" y="690">PropTech</text>
           </g>
-          <g class="g-hemi proptech" data-goto="proptech">
-            <circle class="g-half" cx="500" cy="290" r="156" clip-path="url(#g-clip-r)"/>
-          </g>
-
-          <!-- The wireframe is built in JS: the meridians have to be redrawn
-               each frame for the sphere to turn, and hand-writing twenty-odd
-               ellipses here would only duplicate that. -->
-          <g id="g-mesh" pointer-events="none"></g>
-          <g pointer-events="none">
-            <circle class="g-rim" cx="500" cy="290" r="156"/>
-            <g id="g-orbits"></g>
-            <line class="g-axis" x1="500" y1="126" x2="500" y2="454" stroke="url(#g-axis-grad)"/>
-          </g>
-          <!-- Laid over the wireframe but under the jobs, so the sphere reads
-               as a solid volume without dimming the data. -->
-          <circle class="g-shade" cx="500" cy="290" r="156" fill="url(#g-shade)" pointer-events="none"/>
 
           <g id="g-threads"></g>
           <g id="g-sparks"></g>
           <g id="g-roles"></g>
           <g id="g-cos"></g>
-
-          <!-- The halves mean something again, so they are named. -->
-          <line class="g-divide" x1="500" y1="134" x2="500" y2="446"/>
-          <text class="hemi-label opco"     x="330" y="600">OpCo</text>
-          <text class="hemi-label proptech" x="670" y="600">PropTech</text>
         </svg>
         <!-- The status line lives under the globe now: it carries the same
              counts the old caption did, so running both was saying the same
@@ -3615,14 +3616,22 @@ function wireHubCards(){
    ========================================================================== */
 
 const GLOBE = {
-  CX: 500, CY: 290,
+  VW: 2000, VH: 700,          // the canvas
+  CY: 330,
+  CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
+  cxOf: (hub) => (hub === 'proptech' ? 1500 : 500),
   R: 156,          // the sphere — still smaller than the ring, so the ring
                    // stays the main shape, but with enough presence to hold
                    // the centre. The ceiling is the ring itself: the oval
                    // clears 272px vertically, and the threads need room to
                    // fan out of the sphere before they reach a node.
-  RCX: 336,        // the companies ride a wide oval, not a circle: the viewBox
-  RCY: 272,        // is landscape, so a circle wastes the sides and crowds the
+  // A true circle: equal radii. The oval existed because one ring had to span
+  // a landscape canvas; with a globe per hub each has a square-ish area of its
+  // own, and a circle sits more naturally around a sphere than an ellipse does.
+  // 280 is the ceiling — the canvas is 700 tall with the centre at 330, so a
+  // larger radius would push the lowest node under the hub label.
+  RCX: 280,
+  RCY: 280,        // is landscape, so a circle wastes the sides and crowds the
                    // top. Separate radii let the nodes sit evenly all the way
                    // round without the labels colliding.
   MAX_COS: 21,     // per hub, so up to 42 nodes share the full ring. The
@@ -3642,7 +3651,6 @@ const GLOBE = {
                    // companies: three roles each, rather than some on two and
                    // some on three.
   ORBITS: [136, 118, 100, 82, 64, 46],   // drawn as rings; no longer where roles sit
-  AXIS_GAP: 11,    // px of clear space either side of the divide
   MIN_GAP: 19,     // px between role dots. A dot is 9px across with a 17px
                    // halo, and 63 dots in half a 137px disc can hold ~23px
                    // apart at best, so 19 leaves room without forcing a grid
@@ -3698,28 +3706,24 @@ function globeRows(){
    So: generate exactly as many points as there are roles, never sub-sample, and
    relax them apart until nothing collides. The seed is a golden-ratio sequence,
    which spreads without clumping; the relaxation then guarantees the gap. */
-function globeSlots(want, side){
+function globeSlots(want, hub){
   const n = Math.max(1, want);
-  const key = 'slots' + side + ':' + n;
+  const key = 'slots' + hub + ':' + n;
   if (globeState[key]) return globeState[key];
-  const { CX, CY, R, MIN_GAP, AXIS_GAP } = GLOBE;
+  const { CY, R, MIN_GAP } = GLOBE;
+  const CX = GLOBE.cxOf(hub);
   const lim = R * 0.88;
   const PHI = 0.6180339887;
 
-  // Half a disc, not a whole one: the sphere is split down the middle, OpCo on
-  // the left and PropTech on the right. Radius by sqrt so density is even from
-  // centre to rim; bearing by the golden ratio across this side's 180 degrees,
-  // so successive points land far apart instead of in a line.
+  // A whole disc now: each hub has a sphere to itself, so there is no half to
+  // stay inside and no axis to avoid.
   const pts = [];
   for (let k = 0; k < n; k++){
     const rr = lim * Math.sqrt((k + 0.5) / n);
-    const frac = (k * PHI) % 1;
-    const a = (side > 0 ? -90 + 180 * frac : 90 + 180 * frac) * Math.PI / 180;
+    const a = 2 * Math.PI * ((k * PHI) % 1);
     pts.push({ dx: Math.cos(a) * rr, dy: Math.sin(a) * rr });
   }
 
-  // Relax: push apart anything closer than MIN_GAP, then pull everything back
-  // inside the rim and off the centre line.
   for (let pass = 0; pass < 12; pass++){
     for (let i = 0; i < n; i++){
       for (let j = i + 1; j < n; j++){
@@ -3734,15 +3738,12 @@ function globeSlots(want, side){
     for (const q of pts){
       const d = Math.hypot(q.dx, q.dy);
       if (d > lim){ q.dx *= lim / d; q.dy *= lim / d; }
-      // The halves are relaxed separately, so this gap is what stops a green
-      // dot and a purple one colliding across the divide.
-      if (side * q.dx < AXIS_GAP) q.dx = side * AXIS_GAP;
     }
   }
 
   const out = pts.map(q => ({
     x: CX + q.dx, y: CY + q.dy, ro: Math.hypot(q.dx, q.dy),
-    rel: globeRel(CX + q.dx, CY + q.dy, side),
+    rel: Math.atan2(q.dy, q.dx) * 180 / Math.PI,
   }));
   out.sort((a, b) => a.rel - b.rel || b.ro - a.ro);
   globeState[key] = out;
@@ -3751,8 +3752,8 @@ function globeSlots(want, side){
 
 /* The angle of a point from the horizon on its own side, used to order slots
    and to keep each company's jobs together. */
-function globeRel(x, y, side){
-  const a = Math.atan2(y - GLOBE.CY, x - GLOBE.CX) * 180 / Math.PI;
+function globeRel(x, y, side, cx = GLOBE.cxOf('opco')){
+  const a = Math.atan2(y - GLOBE.CY, x - cx) * 180 / Math.PI;
   if (side > 0) return a;
   return a > 0 ? 180 - a : -180 - a;
 }
@@ -3811,24 +3812,17 @@ function globeBuild(){
     picks.push(...sample.map(s => ({ job: s.job, co: s.co, hub: h })));
   }
 
-  // Each hub owns half the ring: OpCo down the left, PropTech down the right,
-  // matching the half of the sphere its roles sit in. A company's thread then
-  // never crosses the divide — which is what makes the split readable rather
-  // than just colour-coded.
-  if (cos.length){
-    const place = (list, from, to) => {
-      const n = list.length;
-      list.forEach((c, i) => {
-        const f = n === 1 ? 0.5 : i / (n - 1);
-        const rad = (from + (to - from) * f) * Math.PI / 180;
-        c.x = GLOBE.CX + Math.cos(rad) * GLOBE.RCX;
-        c.y = GLOBE.CY + Math.sin(rad) * GLOBE.RCY;
-      });
-    };
-    // Leave a few degrees clear at the poles so the two halves read as two
-    // arcs rather than one unbroken ring.
-    place(cos.filter(c => c.hub === 'opco'), 264, 96);
-    place(cos.filter(c => c.hub === 'proptech'), -84, 84);
+  // Each hub's companies ring their own globe, the whole way round. Equal
+  // steps of angle from the top — equal angle, not equal height, because on an
+  // oval those differ and stepping by height crowds the sides.
+  for (const h of ['opco', 'proptech']){
+    const list = cos.filter(c => c.hub === h);
+    const cx = GLOBE.cxOf(h);
+    list.forEach((c, i) => {
+      const rad = (-90 + (i / list.length) * 360) * Math.PI / 180;
+      c.x = cx + Math.cos(rad) * GLOBE.RCX;
+      c.y = GLOBE.CY + Math.sin(rad) * GLOBE.RCY;
+    });
   }
 
   // Labels: a name beside each node, nudged apart until none overlap.
@@ -3859,12 +3853,18 @@ function globeBuild(){
       // Keep the whole column on the canvas.
       const top = list[0].ly, bottom = list[list.length - 1].ly;
       const span = bottom - top;
-      const fitTop = Math.max(14, Math.min(top, 596 - span));
+      const fitTop = Math.max(14, Math.min(top, GLOBE.VH - 24 - span));
       const shift = fitTop - top;
       if (shift) list.forEach(c => { c.ly += shift; });
     };
-    settle(cos.filter(c => c.hub === 'opco'));
-    settle(cos.filter(c => c.hub === 'proptech'));
+    // Four columns, not two: each globe has nodes on both of its sides, and a
+    // label column can only be de-collided against the labels sharing it.
+    for (const h of ['opco', 'proptech']){
+      const cx = GLOBE.cxOf(h);
+      const mine = cos.filter(c => c.hub === h);
+      settle(mine.filter(c => c.x < cx));
+      settle(mine.filter(c => c.x >= cx));
+    }
   }
 
   // Roles sit on their hub's side of the sphere, and within it near the bearing
@@ -3880,12 +3880,13 @@ function globeBuild(){
       if (!groups.has(s.co.key)) groups.set(s.co.key, []);
       groups.get(s.co.key).push(s);
     }
-    const bearing = (c) => globeRel(c.x, c.y, side);
+    const cx = GLOBE.cxOf(h);
+    const bearing = (c) => globeRel(c.x, c.y, side, cx);
     const flat = [...groups.values()]
       .sort((g1, g2) => bearing(g1[0].co) - bearing(g2[0].co))
       .flat();
 
-    const pts = globeSlots(flat.length, side);   // already sorted by bearing
+    const pts = globeSlots(flat.length, h);   // already sorted by bearing
     flat.forEach((s, i) => {
       const p = pts[i];
       if (!p) return;
@@ -3957,8 +3958,9 @@ function globeBuild(){
     // title instead; the count stays inside the node. Set LABELS true to bring
     // the column back (and drop ARC_MAX to about 140 if you do).
     if (GLOBE.LABELS && c.ly != null){
-      const side = c.hub === 'opco' ? -1 : 1;
-      const lx = GLOBE.CX + side * (GLOBE.RCX + 30);
+      const cx = GLOBE.cxOf(c.hub);
+      const side = c.x < cx ? -1 : 1;
+      const lx = cx + side * (GLOBE.RCX + 26);
       const anchor = side > 0 ? 'start' : 'end';
       // An elbow, not a straight line: once a label has been nudged off its
       // node's height a horizontal rule points at the wrong row.
@@ -4078,9 +4080,12 @@ function globeStep(time, once){
   // minute and a half — slow enough to read as a globe, not a spinner.
   if (!still && globeState.mers.length){
     const ph = time / 150000 * Math.PI * 2;
-    const step = Math.PI / globeState.mers.length;
+    // Phase from MERS, not from the array length. With two globes the array is
+    // twice as long, and dividing by it would halve the step and make both
+    // spheres turn at half speed with the wrong meridian spacing.
+    const step = Math.PI / GLOBE.MERS;
     globeState.mers.forEach((el, i) => {
-      el.setAttribute('rx', (GLOBE.R * Math.abs(Math.sin(ph + i * step))).toFixed(1));
+      el.setAttribute('rx', (GLOBE.R * Math.abs(Math.sin(ph + (i % GLOBE.MERS) * step))).toFixed(1));
     });
   }
 
@@ -4138,7 +4143,7 @@ function globePeek(key, svg){
   // viewBox units → page pixels, so the card tracks the dot at any zoom.
   const rect = svg.getBoundingClientRect();
   const host = svg.parentElement.getBoundingClientRect();
-  const sx = rect.width / 1000, sy = rect.height / 610;
+  const sx = rect.width / GLOBE.VW, sy = rect.height / GLOBE.VH;
   let left = (rect.left - host.left) + role.x * sx;
   const top = (rect.top - host.top) + role.y * sy - 9 * sy;
 
@@ -4223,28 +4228,30 @@ function globeLatFor(x, y){
    lines rather than a dot floating on one. Fainter lines are added between
    them for the web, and the meridians are animated to give the turn. */
 function globeMesh(){
-  const g = $('g-mesh');
-  if (!g) return;
+  const worlds = [...document.querySelectorAll('#globe .g-mesh')];
+  if (!worlds.length) return;
 
-  const rings = $('g-orbits');
-  if (rings && !rings.children.length){
+  document.querySelectorAll('#globe .g-orbits').forEach((rings) => {
+    if (rings.children.length) return;
+    const cx = rings.dataset.cx;
     rings.innerHTML = GLOBE.ORBITS
-      .map((r, i) => `<circle class="g-orbit${i ? ' inner' : ''}" cx="${GLOBE.CX}" cy="${GLOBE.CY}" r="${r}"/>`)
+      .map((r, i) => `<circle class="g-orbit${i ? ' inner' : ''}" cx="${cx}" cy="${GLOBE.CY}" r="${r}"/>`)
       .join('');
-  }
-  const { CX, CY, R, MERS } = GLOBE;
+  });
 
+  const { CY, R, MERS } = GLOBE;
   const rows = globeRows();
 
-  // Halfway between each pair, and one above the widest, so the mesh keeps its
-  // density even when few roles are showing.
-  const frag = rows.map((ry) =>
-    `<ellipse class="g-lat g-lat-row" cx="${CX}" cy="${CY}" rx="${R}" ry="${ry.toFixed(1)}"/>`);
-  for (let i = 0; i < MERS; i++){
-    frag.push(`<ellipse class="g-mer" cx="${CX}" cy="${CY}" rx="${(R * Math.abs(Math.sin(i * Math.PI / MERS))).toFixed(1)}" ry="${R}"/>`);
+  for (const g of worlds){
+    const CX = Number(g.dataset.cx);
+    const frag = rows.map((ry) =>
+      `<ellipse class="g-lat g-lat-row" cx="${CX}" cy="${CY}" rx="${R}" ry="${ry.toFixed(1)}"/>`);
+    for (let i = 0; i < MERS; i++){
+      frag.push(`<ellipse class="g-mer" cx="${CX}" cy="${CY}" rx="${(R * Math.abs(Math.sin(i * Math.PI / MERS))).toFixed(1)}" ry="${R}"/>`);
+    }
+    g.innerHTML = frag.join('');
   }
-  g.innerHTML = frag.join('');
-  globeState.mers = [...g.querySelectorAll('.g-mer')];
+  globeState.mers = [...document.querySelectorAll('#globe .g-mer')];
 }
 
 function globeBind(){
@@ -4260,7 +4267,7 @@ function globeBind(){
       return p.matrixTransform(m.inverse());
     }
     const box = svg.getBoundingClientRect();
-    return { x: (e.clientX - box.left) * (1000 / (box.width || 1)), y: (e.clientY - box.top) * (610 / (box.height || 1)) };
+    return { x: (e.clientX - box.left) * (GLOBE.VW / (box.width || 1)), y: (e.clientY - box.top) * (GLOBE.VH / (box.height || 1)) };
   };
 
   svg.addEventListener('pointermove', (e) => {
