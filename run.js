@@ -454,6 +454,87 @@ function isThin(job) {
   return false;
 }
 
+/* ---- what belongs on this board --------------------------------------------
+
+   isOffBoard() is a hard no. roleScore() ranks everything that survives.
+
+   They are separate because the $100k target cannot be a filter. Most postings
+   state no salary at all, so a strict rule would drop the majority of a real
+   feed — including the senior roles it was meant to surface. Salary moves a
+   score and never rejects, and an unstated salary scores neutral, because
+   unknown is not the same as low.
+*/
+const OFF_BOARD = [
+  /\b(maintenance|service|field|construction|install(ation)?|repair)\s+(tech|technician|technologist)\b/i,
+  /\btechnician\b/i,
+  /\bmaintenance\s+(associate|assistant|worker|staff|crew|helper)\b/i,
+  /\b(groundskeeper|porter|janitor|custodian|housekeep\w*)\b/i,
+  /\bmake[- ]ready\b/i,
+  /\bturn\s+(tech|crew)\b/i,
+  /\b(plumber|electrician|hvac|landscap\w*)\b/i,
+];
+// QA *specialists* go. QA engineers stay — they are engineers, and a blanket
+// match on "QA" would quietly delete part of the engineering feed.
+const OFF_QA = /\b(quality\s+assurance|qa)\b[^,]*\b(specialist|analyst|associate|inspector|auditor|coordinator|clerk)\b/i;
+// Seniority beats the function: "Director of Maintenance" is a leadership role
+// that happens to own maintenance, not field work.
+const SENIOR_OVERRIDE = /\b(chief|c[toefi]o|vp|vice\s+president|head\s+of|director|principal|staff|manager|supervisor|lead)\b/i;
+
+function isOffBoard(title) {
+  const t = String(title || '');
+  if (OFF_QA.test(t)) return true;
+  if (OFF_BOARD.some((re) => re.test(t))) return !SENIOR_OVERRIDE.test(t);
+  return false;
+}
+
+const GTM = [
+  /\b(sales|seller)\b/i, /\baccount\s+(executive|manager|director)\b/i,
+  /\b(business|corporate)\s+development\b/i, /\bpartnerships?\b/i, /\brevenue\b/i,
+  /\bmarketing\b/i, /\bdemand\s+gen\w*\b/i, /\bgrowth\b/i, /\bcustomer\s+success\b/i,
+  /\bsolutions?\s+(engineer|consultant|architect)\b/i, /\b(gtm|go[- ]to[- ]market)\b/i,
+];
+const ENG = [
+  /\bengineer(ing)?\b/i, /\bdeveloper\b/i, /\bsoftware\b/i, /\barchitect\b/i,
+  /\b(backend|back[- ]end|frontend|front[- ]end|full[- ]?stack)\b/i,
+  /\b(platform|infrastructure|devops|sre|site\s+reliability)\b/i,
+  /\bdata\s+(engineer|scientist|platform)\b/i, /\bsecurity\s+engineer\b/i,
+  /\b(mobile|ios|android)\s+(engineer|developer)\b/i,
+];
+const ADJACENT = [
+  /\bproduct\s+(manager|management|owner|lead)\b/i, /\b(design(er)?|ux|ui)\b/i, /\bdata\s+analyst\b/i,
+];
+const LEVELS = [
+  [/\b(chief|c[toefi]o|founder|co[- ]founder)\b/i, 30],
+  [/\b(vp|vice\s+president|head\s+of|svp|evp)\b/i, 26],
+  [/\bdirector\b/i, 20],
+  [/\b(principal|staff)\b/i, 16],
+  [/\b(senior|sr\.?|lead)\b/i, 12],
+  [/\bmanager\b/i, 10],
+  [/\b(junior|jr\.?|associate|entry|intern)\b/i, -12],
+];
+const anyHit = (list, s) => list.some((re) => re.test(s));
+
+/** Higher is a better fit for this board. Roughly -25 to 100. */
+function roleScore(job) {
+  const title = String(job.title || '');
+  let n = 0;
+  if (anyHit(GTM, title) || anyHit(ENG, title)) n += 40;
+  else if (anyHit(ADJACENT, title)) n += 18;
+  else n -= 10;
+
+  for (const [re, pts] of LEVELS) { if (re.test(title)) { n += pts; break; } }
+
+  const top = Number(job.comp_max) || Number(job.comp_min) || 0;
+  if (!top) n += 0;                        // unstated is not low
+  else if (top >= 250000) n += 30;
+  else if (top >= 175000) n += 25;
+  else if (top >= 130000) n += 20;
+  else if (top >= 100000) n += 15;
+  else if (top >= 70000) n -= 5;
+  else n -= 15;
+  return n;
+}
+
 async function dom(company) {
   const res = await get(company.careersUrl);
   if (!res.ok) throw new Error('dom HTTP ' + res.status);
@@ -887,10 +968,19 @@ async function scrapeOne(company) {
     // Only enforce substance where the adapter could supply it.
     const canJudge = DESCRIBES.has(company.method);
     const solid   = canJudge ? inUS.filter((j) => !isThin(j)) : inUS;
+    // Field and hourly operational work, and QA specialists. This board is for
+    // go-to-market, engineering and leadership; those roles are real jobs, just
+    // not ones anyone comes here to find.
+    const onBoard = solid.filter((j) => !isOffBoard(j.title));
 
     return {
       company, ok: true,
-      jobs: solid.map((j) => normalise(j, company)),
+      jobs: onBoard.map((j) => {
+        const row = normalise(j, company);
+        row.score = roleScore(row);   // carried in the feed so the page can rank without rescoring
+        return row;
+      }),
+      offBoard: solid.length - onBoard.length,
       dropped: inUS.length - solid.length + (named.length - inUS.length),
       junk: present.length - named.length,
       thin: inUS.length - solid.length,
@@ -1022,6 +1112,9 @@ const carriedRaw = previous.filter((j) => !scrapedIds.has(j.company_id));
 // would be deleted on the first run after this change.
 const carried = carriedRaw.filter((j) => {
   if (isNotAJob(j.title)) return false;
+  // Apply the same rule to carried rows, or roles scraped before this filter
+  // existed would live on in the feed forever.
+  if (isOffBoard(j.title)) return false;
   if (!isUS(j.location, j.title)) return false;
   if (DESCRIBES.has(j.source) && isThin({ description: j.description })) return false;
   return true;
