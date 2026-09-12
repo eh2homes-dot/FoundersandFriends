@@ -335,12 +335,14 @@ textarea:focus{outline:none;border-color:var(--purple)}
       <p class="sig-sub">Ranked by clicks and applications, normalised per day live.</p>
       <pre id="rep-top" class="rep-out">Loading…</pre>
       <button class="btn act" type="button" data-repcopy="rep-top">Copy</button>
+      <button class="btn" type="button" data-reppdf="rep-top" data-reptitle="Top Roles by Engagement">Download PDF</button>
     </div>
     <div class="sig-card">
       <h3>Movement brief</h3>
       <p class="sig-sub">What opened, what closed, and which companies moved.</p>
       <pre id="rep-brief" class="rep-out">Loading…</pre>
       <button class="btn act" type="button" data-repcopy="rep-brief">Copy</button>
+      <button class="btn" type="button" data-reppdf="rep-brief" data-reptitle="Hiring Movement Brief">Download PDF</button>
     </div>
   </div>
 
@@ -596,6 +598,130 @@ function setView(next) {
 
 /* ---------- reports ---------- */
 
+/* PDF via the browser's own print-to-PDF rather than a PDF library.
+   A library would mean a CDN script on an admin page that currently loads
+   nothing external, plus its own font handling and page-break logic. The print
+   path gives real selectable text, correct pagination, and working page
+   numbers for no dependency at all — and this codebase has no build step to
+   bundle one into.
+
+   The report arrives as plain text, so it is parsed back into structure here:
+   numbered entries become rows, indented lines become their detail, ALL-CAPS
+   and bracketed lines become headings and callouts. Rendering it as one <pre>
+   would technically work and would look like a terminal dump. */
+function reportToHtml(text) {
+  const out = [];
+  let inList = false;
+  const closeList = () => { if (inList) { out.push('</ol>'); inList = false; } };
+
+  for (const raw of String(text).split('\n')) {
+    const line = raw.replace(/\s+$/, '');
+    if (!line.trim()) { closeList(); continue; }
+
+    // A bracketed line is a warning from the report itself — the thin-sample
+    // and failed-scrape notices. They matter more than anything around them.
+    if (/^\s*\[/.test(line)) {
+      closeList();
+      out.push('<p class="callout">' + esc(line.trim().replace(/^\[|\]$/g, '')) + '</p>');
+      continue;
+    }
+    // Numbered entry: "1. Senior Engineer — Roofstock"
+    const num = line.match(/^(\d+)\.\s+(.*)$/);
+    if (num) {
+      if (!inList) { out.push('<ol class="entries">'); inList = true; }
+      const [title, company] = num[2].split(' — ');
+      out.push('<li><span class="e-title">' + esc(title) + '</span>' +
+        (company ? '<span class="e-co">' + esc(company) + '</span>' : '') + '</li>');
+      continue;
+    }
+    // Indented continuation belongs to the entry above it.
+    if (/^\s{2,}/.test(raw) && inList) {
+      out.push('<li class="detail">' + esc(line.trim()) + '</li>');
+      continue;
+    }
+    if (/^\s{2,}/.test(raw)) { out.push('<p class="detail-row">' + esc(line.trim()) + '</p>'); continue; }
+    // A short line ending in a colon is a section heading.
+    if (/:$/.test(line.trim()) && line.trim().length < 48) {
+      closeList();
+      out.push('<h2>' + esc(line.trim().replace(/:$/, '')) + '</h2>');
+      continue;
+    }
+    closeList();
+    out.push('<p>' + esc(line.trim()) + '</p>');
+  }
+  closeList();
+  return out.join('\n');
+}
+
+function printReport(title, text) {
+  const now = new Date();
+  const stamp = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const body = reportToHtml(text);
+
+  const doc = `<!doctype html><html><head><meta charset="utf-8">
+<title>${esc(title)} — Founders &amp; Friends</title>
+<style>
+  /* @page owns the paper margins and the running footer. Doing this in CSS
+     rather than in markup is what keeps the footer on every page instead of
+     only the last one. */
+  @page { size: letter; margin: 22mm 20mm 20mm; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:11pt/1.55 Georgia,'Times New Roman',serif; color:#12101a; }
+  header { border-bottom:2px solid #12101a; padding-bottom:10px; margin-bottom:22px; }
+  .mark { font:600 10pt/1 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+          letter-spacing:.18em; text-transform:uppercase; color:#4a4458; }
+  h1 { font-size:20pt; margin:9px 0 4px; font-weight:600; letter-spacing:-.01em; }
+  .meta { font:9.5pt/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:#6a6478; }
+  h2 { font:600 9.5pt/1 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+       letter-spacing:.14em; text-transform:uppercase; color:#4a4458;
+       margin:22px 0 9px; padding-bottom:5px; border-bottom:1px solid #d8d4e0;
+       /* Never leave a heading stranded at the foot of a page. */
+       break-after:avoid; page-break-after:avoid; }
+  p { margin:0 0 7px; }
+  ol.entries { list-style:none; margin:0 0 4px; padding:0; counter-reset:e; }
+  ol.entries > li { break-inside:avoid; page-break-inside:avoid; }
+  ol.entries > li:not(.detail) {
+    counter-increment:e; position:relative; padding:7px 0 0 30px;
+    border-top:1px solid #ebe8f0; }
+  ol.entries > li:not(.detail)::before {
+    content:counter(e); position:absolute; left:0; top:7px;
+    font:600 9pt/1.5 -apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:#8a8398; }
+  .e-title { display:block; font-size:11.5pt; font-weight:600; }
+  .e-co { display:block; font:9.5pt/1.5 -apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:#6a6478; }
+  li.detail, .detail-row {
+    list-style:none; margin:1px 0 9px 30px;
+    font:9.5pt/1.5 -apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:#6a6478; }
+  .callout { margin:14px 0; padding:10px 13px; background:#fdf6e6;
+             border-left:3px solid #c9962c; font-size:10pt; color:#5c4a1a; }
+  footer { position:fixed; bottom:-14mm; left:0; right:0;
+           font:8.5pt/1 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+           color:#8a8398; display:flex; justify-content:space-between; }
+</style></head><body>
+<header>
+  <div class="mark">Founders &amp; Friends</div>
+  <h1>${esc(title)}</h1>
+  <div class="meta">${repDays}-day window · Generated ${esc(stamp)}</div>
+</header>
+${body}
+<footer><span>propertyandtechnologyjobs.com</span><span>${esc(stamp)}</span></footer>
+</body></html>`;
+
+  // A hidden iframe rather than window.open: a popup blocker will silently
+  // swallow the new window and the button will look broken.
+  const old = document.getElementById('rep-print');
+  if (old) old.remove();
+  const f = document.createElement('iframe');
+  f.id = 'rep-print';
+  f.setAttribute('aria-hidden', 'true');
+  f.style.cssText = 'position:fixed;width:0;height:0;border:0;left:-9999px';
+  document.body.appendChild(f);
+  const d = f.contentWindow.document;
+  d.open(); d.write(doc); d.close();
+  f.onload = () => { f.contentWindow.focus(); f.contentWindow.print(); };
+  // Some browsers fire load before the write lands; this covers both.
+  setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (_) {} }, 250);
+}
+
 let repDays = 14;
 let repLoaded = false;
 
@@ -632,6 +758,11 @@ document.addEventListener('click', (e) => {
     loadReports();
   }
   if (e.target.id === 'rep-refresh') loadReports();
+
+  const pdf = e.target.closest('[data-reppdf]');
+  if (pdf) {
+    printReport(pdf.dataset.reptitle, $(pdf.dataset.reppdf).textContent);
+  }
 
   const c = e.target.closest('[data-repcopy]');
   if (c) {
