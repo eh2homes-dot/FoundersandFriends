@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V52" />
+<meta name="ff-build" content="RING-V58" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -265,7 +265,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
-#globe{display:block;width:100%;max-width:1920px;height:auto;max-height:min(60vh,700px);
+#globe{display:block;width:100%;max-width:1920px;height:auto;max-height:min(66vh,980px);
   margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
@@ -420,7 +420,12 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 .hub-cards{
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:14px;margin-top:22px;padding-bottom:30px;
+  gap:14px;padding-bottom:30px;
+  /* Measured against the viewport, not a fixed gap: the globes are width-bound
+     on a laptop, so on a short screen there is nothing left to grow into and
+     the cards have to be pushed down instead. This is what keeps them off the
+     first screen without shrinking anything above them. */
+  margin-top:max(22px,15vh);
   /* Full content width, not the 900px measure the headline uses — otherwise
      the cards stop short of the board below and the page looks lopsided. */
   max-width:none;
@@ -3995,15 +4000,23 @@ function globeBuild(){
     if (GLOBE.LABELS && c.ly != null){
       const cx = GLOBE.cxOf(c.hub);
       const side = c.x < cx ? -1 : 1;
-      // Beside the node, not in a shared column. A column puts every label at
-      // the same x, so a node at the top of the ring — which sits near the
-      // centre line — ends up with its name hundreds of pixels away and a long
-      // rule pointing at it. Hugging the node keeps name and number together,
-      // and the vertical spacing pass below is what stops them colliding.
+      // Outside the ring at the label's own height, rather than beside its own
+      // node. Beside the node fails near the top and bottom of the circle:
+      // those nodes sit close to the centre line, so their names reach across
+      // and land behind whichever node is next round — which is exactly what
+      // put "Opendoor" underneath its neighbour. Following the ring's outline
+      // keeps every label clear of every node, and still close to its own,
+      // because its own node is on that outline too.
       const name0 = c.name.length > GLOBE.LABEL_MAX
         ? c.name.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : c.name;
       const textW = name0.length * 7.6;   // approx advance at 14.5px
-      let lx = c.x + side * (r + 12);
+      const dyc = c.ly - GLOBE.CY;
+      // Floor the horizontal reach: at the very top of the circle the outline
+      // is almost on the centre line, which would drop the label over the pole.
+      const reach = Math.max(
+        Math.sqrt(Math.max(0, GLOBE.RCX * GLOBE.RCX - dyc * dyc)),
+        GLOBE.RCX * 0.5);
+      let lx = cx + side * (reach + r + 16);
       // Keep the text on the canvas: a name hanging off the edge is worse than
       // one sitting slightly further from its node.
       if (side < 0) lx = Math.max(lx, textW + 6);
