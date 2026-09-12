@@ -1398,6 +1398,86 @@ async function syncSheet(env, { dryRun = false } = {}) {
   };
 }
 
+/* ===========================================================================
+   EXPORT — the board writes to the sheet, not the reverse.
+
+   D1 is the record. The sheet is a readable backup of it: every company, every
+   resolved careers URL and ATS method, and every role the scraper has seen.
+
+   Pulled rather than pushed. A Worker cannot authenticate to Google Sheets
+   without a service-account key, which would mean storing a private key here
+   and signing JWTs on every run. An Apps Script inside the sheet already runs
+   as its owner, so it can just fetch these endpoints and write the rows.
+
+   Direction matters: with the sheet also syncing INTO D1 on a schedule, the
+   two would overwrite each other daily and neither would be trustworthy. The
+   sheet-to-D1 sync is still available at /api/companies/sync for a one-off
+   import of a hand-curated roster, but it is deliberately off the cron.
+   =========================================================================== */
+
+const csvCell = (v) => {
+  const s = v === null || v === undefined ? '' : String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+};
+const toCsv = (headers, rows) =>
+  [headers.join(','), ...rows.map((r) => r.map(csvCell).join(','))].join('\n');
+
+async function exportData(request, env) {
+  if (!adminAuthed(request, env)) {
+    return new Response(JSON.stringify({ error: 'admin only' }), { status: 401, headers: JSON_HEADERS });
+  }
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+
+  const url = new URL(request.url);
+  const what = url.searchParams.get('what') || 'companies';
+  const asCsv = url.searchParams.get('format') === 'csv';
+
+  let headers = [], rows = [];
+
+  if (what === 'companies') {
+    const r = await env.DB.prepare(
+      `SELECT id, name, hub, careers_url, website, state, segment,
+              method, ats_slug, ats_site, active, added_by, updated_at
+         FROM companies ORDER BY name`).all();
+    headers = ['id', 'name', 'hub', 'careers_url', 'website', 'state', 'segment',
+               'ats_method', 'ats_slug', 'ats_site', 'active', 'source', 'updated_at'];
+    rows = (r.results || []).map((c) => [
+      c.id, c.name, c.hub, c.careers_url, c.website, c.state, c.segment,
+      c.method, c.ats_slug, c.ats_site, c.active, c.added_by, c.updated_at,
+    ]);
+  } else if (what === 'jobs') {
+    // Every role the scraper has seen, open and closed. closed_at empty means
+    // still open — the backup is the history, not just today's snapshot.
+    const r = await env.DB.prepare(
+      `SELECT company, hub, title, level, location, first_seen, closed_at, days_open
+         FROM job_history ORDER BY first_seen DESC LIMIT 20000`).all();
+    headers = ['company', 'hub', 'title', 'level', 'location', 'first_seen', 'closed_at', 'days_open'];
+    rows = (r.results || []).map((j) => [
+      j.company, j.hub, j.title, j.level, j.location, j.first_seen, j.closed_at, j.days_open,
+    ]);
+  } else if (what === 'clicks') {
+    const r = await env.DB.prepare(
+      `SELECT company, job_title, hub, COUNT(*) AS clicks, MAX(clicked_at) AS last_click
+         FROM job_clicks WHERE job_title IS NOT NULL
+        GROUP BY company, job_title, hub ORDER BY clicks DESC LIMIT 5000`).all();
+    headers = ['company', 'title', 'hub', 'clicks', 'last_click'];
+    rows = (r.results || []).map((c) => [c.company, c.job_title, c.hub, c.clicks, c.last_click]);
+  } else {
+    return new Response(JSON.stringify({ error: 'what must be companies, jobs or clicks' }),
+      { status: 400, headers: JSON_HEADERS });
+  }
+
+  if (asCsv) {
+    return new Response(toCsv(headers, rows), {
+      headers: {
+        'content-type': 'text/csv; charset=utf-8',
+        'content-disposition': `attachment; filename="${what}.csv"`,
+      },
+    });
+  }
+  return new Response(JSON.stringify({ what, headers, rows, count: rows.length }), { headers: JSON_HEADERS });
+}
+
 /** Park a company without losing it. */
 async function setCompanyActive(request, env) {
   if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
@@ -2084,16 +2164,11 @@ async function runScheduledReports(env, { days = 7 } = {}) {
 export default {
   /* Cron entry point. Schedule lives in wrangler.jsonc. */
   async scheduled(event, env, ctx) {
-    // Two schedules on one handler, told apart by cron expression. The weekly
-    // one emails; the daily one only syncs, because a daily email nobody asked
-    // for is how a useful report becomes a filtered one.
-    if (event.cron === '0 13 * * 1') {
-      ctx.waitUntil(runScheduledReports(env, { days: 7 }));
-    } else {
-      ctx.waitUntil(syncSheet(env).then((r) => {
-        if (!r.ok) console.error('sheet sync failed:', r.error);
-      }));
-    }
+    // Only the weekly report is scheduled. The sheet is written FROM the board
+    // by an Apps Script that pulls /api/export, so there is nothing to push on
+    // a timer here — and a sheet-to-D1 sync on the same schedule would fight
+    // it, each overwriting the other's work once a day.
+    ctx.waitUntil(runScheduledReports(env, { days: 7 }));
   },
 
   async fetch(request, env) {
@@ -2127,6 +2202,7 @@ export default {
     if (pathname === '/api/companies/feed' && request.method === 'GET')  return companiesForScraper(request, env);
     if (pathname === '/api/companies'      && request.method === 'GET')  return listCompanies(request, env);
     if (pathname === '/api/companies'      && request.method === 'POST') return saveCompany(request, env);
+    if (pathname === '/api/export'         && request.method === 'GET')  return exportData(request, env);
     if (pathname === '/api/companies/sync' && request.method === 'POST') {
       if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'admin only' }), { status: 401, headers: JSON_HEADERS });
       const dryRun = new URL(request.url).searchParams.get('dry') === '1';
