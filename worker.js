@@ -1259,6 +1259,145 @@ async function saveCompany(request, env) {
   }
 }
 
+/* ===========================================================================
+   SYNCING THE SYNDEO SHEET
+
+   The sheet is published as CSV, so no Google credentials are involved — but
+   that also means anyone with the link can read it. Keep nothing private in it.
+
+   Existing values win on conflict. The sheet is the roster; D1 is where the
+   ATS method, slug and site get resolved by discovery. Letting a mostly-empty
+   sheet column overwrite a resolved method would undo that work on every run,
+   which is why every ATS field uses COALESCE(new, existing) rather than a
+   straight assignment.
+   =========================================================================== */
+
+/** RFC4180-ish parser. Fields can contain commas, quotes and newlines — the
+ *  sheet's Classifier Notes hold multi-line JSON error blobs, so a split(',')
+ *  would shred half the rows. */
+function parseCsv(text) {
+  const rows = [];
+  let row = [], field = '', quoted = false;
+  const src = String(text).replace(/\r\n?/g, '\n');
+
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (quoted) {
+      if (c === '"') {
+        if (src[i + 1] === '"') { field += '"'; i++; }
+        else quoted = false;
+      } else field += c;
+      continue;
+    }
+    if (c === '"') { quoted = true; continue; }
+    if (c === ',') { row.push(field); field = ''; continue; }
+    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; continue; }
+    field += c;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+const HUB_FROM_SHEET = (v) => {
+  const s = String(v || '').trim().toLowerCase();
+  if (s === 'opco' || s === 'proptech') return s;
+  return null;   // UNKNOWN and blank both mean "not decided yet"
+};
+
+async function syncSheet(env, { dryRun = false } = {}) {
+  if (!env.DB) return { ok: false, error: 'No database configured.' };
+  const url = env.SYNDEO_SHEET_CSV;
+  if (!url) return { ok: false, error: 'Set SYNDEO_SHEET_CSV to the published CSV link.' };
+
+  let csv;
+  try {
+    const res = await fetch(url, { headers: { 'user-agent': 'FoundersAndFriends/1.0' } });
+    if (!res.ok) return { ok: false, error: `Sheet fetch failed: HTTP ${res.status}` };
+    csv = await res.text();
+  } catch (err) {
+    return { ok: false, error: 'Sheet fetch failed: ' + err.message };
+  }
+
+  const rows = parseCsv(csv);
+  if (rows.length < 2) return { ok: false, error: 'Sheet looks empty.' };
+
+  const head = rows[0].map((h) => h.trim().toLowerCase());
+  const col = (...names) => {
+    for (const n of names) { const i = head.indexOf(n); if (i !== -1) return i; }
+    return -1;
+  };
+  const iName = col('company name', 'company');
+  const iSite = col('website url', 'website');
+  const iCareers = col('careers page url', 'careers url');
+  const iState = col('state');
+  const iSeg = col('industry segment', 'segment');
+  const iHub = col('hub');
+  const iAts = col('detected ats', 'ats');
+  const iSlug = col('ats slug');
+
+  if (iName === -1 || iCareers === -1) {
+    return { ok: false, error: 'Sheet needs at least "Company Name" and "Careers Page URL" columns.' };
+  }
+
+  let added = 0, updated = 0, skipped = 0, noHub = 0, noAts = 0;
+  const problems = [];
+
+  for (const r of rows.slice(1)) {
+    const name = (r[iName] || '').trim();
+    let careers = (r[iCareers] || '').trim();
+    // Blank spacer rows are normal in a hand-kept sheet, not an error.
+    if (!name || !careers) { skipped++; continue; }
+    if (!/^https?:\/\//i.test(careers)) careers = 'https://' + careers.replace(/^\/+/, '');
+    try { new URL(careers); } catch { problems.push(`${name}: unusable careers URL`); skipped++; continue; }
+
+    const hub = iHub === -1 ? null : HUB_FROM_SHEET(r[iHub]);
+    const method = iAts === -1 ? null : (clean(r[iAts], 30) || null);
+    if (!hub) noHub++;
+    if (!method) noAts++;
+
+    const id = slugify(name);
+    if (dryRun) { added++; continue; }
+
+    try {
+      const before = await env.DB.prepare('SELECT id FROM companies WHERE id = ?1').bind(id).first();
+      await env.DB.prepare(
+        `INSERT INTO companies
+           (id, name, hub, careers_url, website, state, segment, method, ats_slug, added_by)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,'sheet')
+         ON CONFLICT(id) DO UPDATE SET
+           name=?2,
+           hub=COALESCE(?3, hub),
+           careers_url=?4,
+           website=COALESCE(?5, website),
+           state=COALESCE(?6, state),
+           segment=COALESCE(?7, segment),
+           method=COALESCE(?8, method),
+           ats_slug=COALESCE(?9, ats_slug),
+           updated_at=datetime('now')`
+      ).bind(
+        id, clean(name, 120), hub, clean(careers, 500),
+        iSite === -1 ? null : (clean(r[iSite], 300) || null),
+        iState === -1 ? null : (clean(r[iState], 60) || null),
+        iSeg === -1 ? null : (clean(r[iSeg], 120) || null),
+        method,
+        iSlug === -1 ? null : (clean(r[iSlug], 200) || null)
+      ).run();
+      if (before) updated++; else added++;
+    } catch (err) {
+      problems.push(`${name}: ${err.message}`);
+    }
+  }
+
+  return {
+    ok: true, dryRun,
+    rows: rows.length - 1, added, updated, skipped,
+    // Named separately because they are the difference between a roster and a
+    // working scrape: a company with no method is stored and never scraped.
+    missing_hub: noHub, missing_ats: noAts,
+    problems: problems.slice(0, 20),
+  };
+}
+
 /** Park a company without losing it. */
 async function setCompanyActive(request, env) {
   if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
@@ -1945,7 +2084,16 @@ async function runScheduledReports(env, { days = 7 } = {}) {
 export default {
   /* Cron entry point. Schedule lives in wrangler.jsonc. */
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runScheduledReports(env, { days: 7 }));
+    // Two schedules on one handler, told apart by cron expression. The weekly
+    // one emails; the daily one only syncs, because a daily email nobody asked
+    // for is how a useful report becomes a filtered one.
+    if (event.cron === '0 13 * * 1') {
+      ctx.waitUntil(runScheduledReports(env, { days: 7 }));
+    } else {
+      ctx.waitUntil(syncSheet(env).then((r) => {
+        if (!r.ok) console.error('sheet sync failed:', r.error);
+      }));
+    }
   },
 
   async fetch(request, env) {
@@ -1979,6 +2127,12 @@ export default {
     if (pathname === '/api/companies/feed' && request.method === 'GET')  return companiesForScraper(request, env);
     if (pathname === '/api/companies'      && request.method === 'GET')  return listCompanies(request, env);
     if (pathname === '/api/companies'      && request.method === 'POST') return saveCompany(request, env);
+    if (pathname === '/api/companies/sync' && request.method === 'POST') {
+      if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'admin only' }), { status: 401, headers: JSON_HEADERS });
+      const dryRun = new URL(request.url).searchParams.get('dry') === '1';
+      const out = await syncSheet(env, { dryRun });
+      return new Response(JSON.stringify(out), { status: out.ok ? 200 : 500, headers: JSON_HEADERS });
+    }
     if (pathname === '/api/companies/active' && request.method === 'POST') return setCompanyActive(request, env);
     if (pathname === '/api/companies/detected' && request.method === 'POST') return recordDetection(request, env);
 
