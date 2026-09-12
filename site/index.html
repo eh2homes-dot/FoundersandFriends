@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V3" />
+<meta name="ff-build" content="RING-V4" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -262,10 +262,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-ring{fill:none;stroke:url(#g-ring-grad);stroke-width:1.2}
 
 /* threads */
-.g-thread{fill:none;stroke-width:1;opacity:.2;transition:opacity .3s,stroke-width .3s}
+.g-thread{fill:none;stroke-width:1.7;opacity:.26;transition:opacity .3s,stroke-width .3s}
 .g-thread.opco{stroke:#00FF88}
 .g-thread.proptech{stroke:#A98FEC}
-.g-thread.is-lit{opacity:1;stroke-width:2.2}
+.g-thread.is-lit{opacity:1;stroke-width:3.2}
 .g-thread.opco.is-lit{filter:drop-shadow(0 0 5px rgba(0,255,136,.8))}
 .g-thread.proptech.is-lit{filter:drop-shadow(0 0 5px rgba(169,143,236,.85))}
 
@@ -291,11 +291,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-co.opco .core{stroke:#00FF88;filter:drop-shadow(0 0 6px rgba(0,255,136,.45))}
 .g-co.proptech .core{stroke:#8B5CF0;filter:drop-shadow(0 0 6px rgba(127,77,224,.6))}
 .g-co .pulse{fill:none;stroke-width:1.2;transform-box:fill-box;transform-origin:center;
-  animation:g-pulse 6.5s ease-out infinite}
+  animation:g-pulse 11s ease-out infinite}
 .g-co.opco .pulse{stroke:#00FF88}
 .g-co.proptech .pulse{stroke:#A98FEC}
 @keyframes g-pulse{0%{transform:scale(1);opacity:.6}65%,100%{transform:scale(1.85);opacity:0}}
-.g-co .n{font-family:var(--mono);font-size:10.5px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.g-co .n{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .g-co .lbl{font-family:var(--body);font-size:15px;font-weight:600;fill:var(--ink-soft)}
 .co-lead{stroke-width:1;opacity:.28;transition:opacity .25s}
 .g-co.opco .co-lead{stroke:rgba(0,255,136,.55)}
@@ -3578,10 +3578,35 @@ function globeBuild(){
     // Sorted by company, so each company's jobs sit together on the orbit
     // opposite it and the threads run out like spokes rather than crossing.
     const all = globeSlots(side);
-    // Spread whatever is showing across the rings rather than filling the outer
-    // one first, so a short feed still reads as a globe.
-    const step = all.length / Math.max(1, sample.length);
-    const pts = sample.map((_, i) => all[Math.min(all.length - 1, Math.floor(i * step))]);
+    // Give every orbit its share. Stepping evenly through one flat list looks
+    // even but is not: the outer orbit crosses far more latitude lines than the
+    // inner ones, so it owns most of the slots and most of the dots land on it,
+    // leaving the middle of the sphere bare. Quota the orbits instead, then
+    // space the dots evenly around each one.
+    const byOrbit = new Map();
+    for (const s of all){
+      if (!byOrbit.has(s.ro)) byOrbit.set(s.ro, []);
+      byOrbit.get(s.ro).push(s);
+    }
+    const rings = [...byOrbit.values()];
+    const pts = [];
+    if (rings.length){
+      const base = Math.floor(sample.length / rings.length);
+      const extra = sample.length % rings.length;
+      rings.forEach((ring, ri) => {
+        const q = Math.min(base + (ri < extra ? 1 : 0), ring.length);
+        for (let k = 0; k < q; k++) pts.push(ring[Math.floor(k * ring.length / q)]);
+      });
+      // A small orbit can undershoot its quota; top up from whatever is unused
+      // so no role silently loses its dot.
+      if (pts.length < sample.length){
+        const used = new Set(pts);
+        for (const s of all){
+          if (pts.length >= sample.length) break;
+          if (!used.has(s)) { pts.push(s); used.add(s); }
+        }
+      }
+    }
 
     sample.forEach((s, i) => {
       const p = pts[i];
@@ -3593,7 +3618,7 @@ function globeBuild(){
         phase: globeHash(roles.length) * Math.PI * 2,
         bend: 0.35 + globeHash(roles.length + 17) * 1.15,
         speed: 0.5 + globeHash(roles.length + 7) * 0.5,
-        period: 9000 + globeHash(roles.length + 31) * 7000,   // one pass every 9–16s
+        period: 17000 + globeHash(roles.length + 31) * 11000,  // one pass every 17–28s
         start: globeHash(roles.length + 53),
         pull: { x: 0, y: 0 },
       });
@@ -3630,7 +3655,7 @@ function globeBuild(){
   // threads and their sparks
   for (const L of links){
     L.path = el('path', { class: 'g-thread ' + L.hub, 'data-key': L.from.key });
-    L.dot = el('circle', { class: 'g-spark ' + L.hub, r: 2 });
+    L.dot = el('circle', { class: 'g-spark ' + L.hub, r: 2.6 });
     gThreads.append(L.path);
     gSparks.append(L.dot);
   }
@@ -3649,7 +3674,9 @@ function globeBuild(){
 
   // company nodes, labelled outward from the ring
   cos.forEach((c, i) => {
-    const r = Math.min(17, 9.5 + Math.sqrt(c.count) * 1.25);
+    // Ceiling is spacing, not taste: 42 nodes around the oval sit ~41px apart
+    // at the horizon, so a 19px radius (38px across) is the most that fits.
+    const r = Math.min(19, 11.5 + Math.sqrt(c.count) * 1.35);
     const g = el('g', {
       class: 'g-co ' + c.hub, 'data-key': c.key,
       tabindex: '0', role: 'button',
@@ -3721,7 +3748,7 @@ function globeThread(L, time, still){
   const gy = CY + Math.sin(ca) * R * 0.88;
 
   // A gentle drift so the bundle breathes, plus the pointer's tug.
-  const sway = still ? 0 : Math.sin(time * 0.00022 * L.speed + L.phase) * 3 * L.bend;
+  const sway = still ? 0 : Math.sin(time * 0.00012 * L.speed + L.phase) * 3 * L.bend;
   const dx = gx - a.x, dy = gy - a.y;
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len, ny = dx / len;
@@ -3779,7 +3806,7 @@ function globeStep(time, once){
   // The meridians narrow and widen as the sphere turns. A full turn takes a
   // minute and a half — slow enough to read as a globe, not a spinner.
   if (!still && globeState.mers.length){
-    const ph = time / 90000 * Math.PI * 2;
+    const ph = time / 150000 * Math.PI * 2;
     const step = Math.PI / globeState.mers.length;
     globeState.mers.forEach((el, i) => {
       el.setAttribute('rx', (GLOBE.R * Math.abs(Math.sin(ph + i * step))).toFixed(1));
