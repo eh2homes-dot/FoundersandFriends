@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V67" />
+<meta name="ff-build" content="RING-V68" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -261,7 +261,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    One sphere split down the axis: operators on the left, technology on the
    right. Roles sit inside their own half; the companies hiring them sit on the
    outer ring, and a thread runs from every role to its company. */
-.orbits{margin-top:clamp(6px,1vh,14px);position:relative}
+/* A line's worth of air between the sub-line and the globes. The canvas has
+   its own top padding for the labels, but that is inside the SVG — this is the
+   gap between the text block and the picture. */
+.orbits{margin-top:clamp(22px,3.2vh,38px);position:relative}
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
