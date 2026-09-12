@@ -261,11 +261,8 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-axis{stroke-width:1}
 
 /* the outer circle the companies ride on */
-/* The rail each side's companies sit on. One straight line per side, so the
-   nodes, their labels and their counts all share a column. */
-.g-ring{fill:none;stroke-width:1.2;opacity:.42}
-.g-ring.opco{stroke:rgba(0,255,136,.5)}
-.g-ring.proptech{stroke:rgba(169,143,236,.6)}
+/* The circle the companies sit on, one unbroken stroke the whole way round. */
+.g-ring{fill:none;stroke:url(#g-ring-grad);stroke-width:1.2}
 
 /* threads */
 .g-thread{fill:none;stroke-width:1;opacity:.2;transition:opacity .3s,stroke-width .3s}
@@ -303,6 +300,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @keyframes g-pulse{0%{transform:scale(1);opacity:.6}65%,100%{transform:scale(1.85);opacity:0}}
 .g-co .n{font-family:var(--mono);font-size:10.5px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .g-co .lbl{font-family:var(--body);font-size:15px;font-weight:600;fill:var(--ink-soft)}
+.co-lead{stroke-width:1;opacity:.28;transition:opacity .25s}
+.g-co.opco .co-lead{stroke:rgba(0,255,136,.55)}
+.g-co.proptech .co-lead{stroke:rgba(169,143,236,.65)}
+.g-co.is-lit .co-lead{opacity:.95}
 .g-co .sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;fill:var(--ink-dim)}
 .g-co.opco.is-lit .core{fill:#00FF88}
 .g-co.proptech.is-lit .core{fill:#8B5CF0}
@@ -1390,8 +1391,7 @@ a.foot-line:hover{color:var(--green)}
           <!-- The halo sits outside the sphere, so it has to be drawn before
                anything that should appear in front of it. -->
           <circle class="g-atmo" cx="500" cy="290" r="207" fill="url(#g-atmo)"/>
-          <line class="g-ring opco"     x1="282" y1="58" x2="282" y2="522"/>
-          <line class="g-ring proptech" x1="718" y1="58" x2="718" y2="522"/>
+          <circle class="g-ring" cx="500" cy="290" r="218"/>
 
           <g class="g-hemi opco" data-goto="opco">
             <circle class="g-half" cx="500" cy="290" r="190" clip-path="url(#g-clip-l)"/>
@@ -3448,17 +3448,17 @@ const GLOBE = {
   RC: 218,         // how far out the company rail sits. Tight to the sphere:
                    // at this distance the nodes clear the limb by 13px and
                    // their pulse rings just reach it.
-  REACH: 215,      // half the rail's height
   LATS: 9,         // wireframe density
   MERS: 22,
-  MAX_COS: 12,     // per side — past this the labels collide
+  MAX_COS: 9,      // per side. On a circle this close in, more than nine
+                   // cannot be spaced evenly without the labels colliding.
+  ARC_MAX: 96,     // degrees of arc each side uses
+  ARC_STEP: 13,    // degrees between companies when there are only a few
   MAX_ROLES: 36,   // per side — every slot the rings below provide
   ORBITS: [150, 116, 84, 56],   // concentric orbits the jobs ride on
   ROW_SLOTS: 20,   // slots on the outer orbit, which set the horizontal lines
   ORBIT_SPAN: 82,  // degrees above and below the horizon the outer orbit uses —
                    // the small gap at the poles keeps the axis readable
-  ARC_MAX: 136,    // degrees of ring each side may use
-  ARC_STEP: 16,    // degrees between companies when there are only a few
 };
 
 const globeState = {
@@ -3560,18 +3560,21 @@ function globeBuild(){
     const shown = ranked.slice(0, GLOBE.MAX_COS);
     if (!shown.length) continue;
 
-    // Companies on a straight rail, top to bottom in rank order. They used to
-    // ride a circle, but on a circle the first and last swing 145px in towards
-    // the axis, so the top and bottom ones sat visibly out of line with the
-    // rest. On a rail every node shares one x and the column reads true.
+    // Companies on the circle, in equal steps around it. Equal steps of angle,
+    // not of height: on a circle those are different, and spacing by height
+    // left uneven gaps along the arc. The arc is kept shallow so the first and
+    // last do not swing far in towards the axis.
     const n = shown.length;
-    const reach = n >= 5 ? GLOBE.REACH : Math.min(GLOBE.REACH, (n - 1) * 24);
-    const sideCos = shown.map(([name, list], i) => ({
-      key: 'c:' + name, name, hub: h, side, rank: i,
-      count: list.length,
-      x: CX + side * RC,
-      y: CY + (n === 1 ? 0 : -reach + (i / (n - 1)) * reach * 2),
-    }));
+    const span = n > 1 ? Math.min(GLOBE.ARC_MAX, (n - 1) * GLOBE.ARC_STEP) : 0;
+    const sideCos = shown.map(([name, list], i) => {
+      const rel = n === 1 ? 0 : -span / 2 + (i / (n - 1)) * span;
+      const rad = (side > 0 ? rel : 180 - rel) * Math.PI / 180;
+      return {
+        key: 'c:' + name, name, hub: h, side, rank: i,
+        count: list.length,
+        x: CX + Math.cos(rad) * RC, y: CY + Math.sin(rad) * RC,
+      };
+    });
     cos.push(...sideCos);
 
     // One role from each company in turn, so a single busy company cannot
@@ -3651,10 +3654,20 @@ function globeBuild(){
     num.textContent = c.count;
     g.append(num);
 
-    // Every label on a side starts at the same x. With the nodes on a rail at
-    // one x too, the node, its name and its count all line up in one column.
-    const lx = GLOBE.CX + c.side * (GLOBE.RC + 32);
+    // The nodes bow with the circle, but the labels stay in one column so the
+    // names and counts still line up. A hairline carries each label back to
+    // its node, which is what keeps the two reading as one thing.
+    const lx = GLOBE.CX + c.side * (GLOBE.RC + 34);
     const anchor = c.side > 0 ? 'start' : 'end';
+    const leadFrom = c.x + c.side * (r + 5);
+    const leadTo = lx - c.side * 9;
+    if (Math.abs(leadTo - leadFrom) > 5){
+      g.append(el('line', {
+        class: 'co-lead',
+        x1: leadFrom.toFixed(1), y1: c.y.toFixed(1),
+        x2: leadTo.toFixed(1),   y2: c.y.toFixed(1),
+      }));
+    }
     const name = c.name.length > 24 ? c.name.slice(0, 23).trimEnd() + '…' : c.name;
     const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.y - 1).toFixed(1), 'text-anchor': anchor });
     lbl.textContent = name;
