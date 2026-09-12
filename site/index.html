@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V22" />
+<meta name="ff-build" content="RING-V23" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -290,6 +290,31 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    routed; on demand, one at a time, the same line is information. The outside
    run stays visible so the sphere still reads as connected to the ring. */
 .g-thread-in{opacity:0;pointer-events:none;transition:opacity .25s}
+
+/* The native <title> tooltip gave a grey OS box after a delay and showed only
+   one line. This is the job card in miniature: title, company, location, pay —
+   enough to decide whether to click, which is the point of a preview. */
+.g-peek{
+  position:absolute;z-index:6;pointer-events:none;opacity:0;
+  transform:translate(-50%,-100%) translateY(-14px);
+  transition:opacity .16s ease-out;
+  min-width:210px;max-width:300px;padding:12px 14px;border-radius:12px;
+  border:1px solid var(--line-2);background:rgba(9,5,20,.96);
+  backdrop-filter:blur(12px);box-shadow:0 14px 40px rgba(0,0,0,.6);
+}
+.g-peek.is-on{opacity:1}
+.g-peek .pk-title{display:block;font-size:14px;line-height:1.3;color:#fff;margin-bottom:5px}
+.g-peek .pk-line{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-dim);line-height:1.6}
+.g-peek .pk-comp{display:block;margin-top:7px;font-family:var(--mono);font-size:11px;color:var(--green)}
+.g-peek.proptech .pk-comp{color:#C4B0FF}
+.g-peek .pk-go{display:block;margin-top:8px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+/* The arrow keeps the card tied to the dot it describes. */
+.g-peek::after{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;
+  transform:translateX(-50%) rotate(45deg);background:rgba(9,5,20,.96);
+  border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+@media(max-width:640px){ .g-peek{display:none} }
 .g-thread.is-lit{opacity:1;stroke-width:3.2}
 .g-thread-in.is-lit{opacity:1}
 .g-thread.opco.is-lit{filter:drop-shadow(0 0 5px rgba(0,255,136,.8))}
@@ -1356,6 +1381,10 @@ a.foot-line:hover{color:var(--green)}
            company. Built from the feed, so it can never show a company that is
            not really contributing roles. -->
       <div class="orbits" id="orbits" hidden>
+        <!-- Hover preview. One element reused for every dot rather than one
+             per role: 126 hidden cards would be 126 more nodes on every frame
+             of an animation that already redraws every thread. -->
+        <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
         <svg id="globe" viewBox="0 0 1000 610" role="img" aria-label="Open roles by hub, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
@@ -3729,9 +3758,10 @@ function globeBuild(){
     const g = el('g', { class: 'g-role ' + n.hub, 'data-key': n.key });
     g.append(el('circle', { class: 'halo', cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: 8.5 }));
     g.append(el('circle', { class: 'core', cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: 4.6 }));
-    const t = el('title');
-    t.textContent = `${n.job.title} — ${n.job.company}`;
-    g.append(t);
+    // No <title> here — the browser would show its own tooltip on top of the
+    // card. The accessible name carries the same text for screen readers.
+    g.setAttribute('role', 'img');
+    g.setAttribute('aria-label', `${n.job.title} at ${n.job.company}`);
     n.g = g;
     gRoles.append(g);
   }
@@ -3913,6 +3943,47 @@ function globeRelated(key){
   return set;
 }
 
+/* The hover preview. Only role dots get one — a company node's number already
+   says what it is, and a card there would cover the ring.
+
+   Positioned in page pixels rather than SVG units: the SVG scales with the
+   viewport, so a card sized in viewBox units would grow and shrink with it and
+   the text would come out a different size on every screen. */
+function globePeek(key, svg){
+  const box = $('g-peek');
+  if (!box) return;
+
+  const role = key && key.startsWith('j:')
+    ? (globeState.roles || []).find(r => r.key === key) : null;
+
+  if (!role){ box.classList.remove('is-on'); box.setAttribute('aria-hidden', 'true'); return; }
+
+  const j = role.job;
+  const comp = compRange(j);
+  box.className = 'g-peek is-on ' + role.hub;
+  box.setAttribute('aria-hidden', 'false');
+  box.innerHTML =
+    `<span class="pk-title">${esc(j.title)}</span>` +
+    `<span class="pk-line">${esc(j.company)}</span>` +
+    `<span class="pk-line">${esc(j.location)}${j.type ? ' · ' + esc(j.type) : ''}</span>` +
+    (comp ? `<span class="pk-comp">${comp}</span>` : '') +
+    `<span class="pk-go">Click to open</span>`;
+
+  // viewBox units → page pixels, so the card tracks the dot at any zoom.
+  const rect = svg.getBoundingClientRect();
+  const host = svg.parentElement.getBoundingClientRect();
+  const sx = rect.width / 1000, sy = rect.height / 610;
+  let left = (rect.left - host.left) + role.x * sx;
+  const top = (rect.top - host.top) + role.y * sy - 9 * sy;
+
+  // Keep it on screen: a card hanging off the edge is worse than an offset one.
+  const half = box.offsetWidth / 2 || 120;
+  left = Math.max(half + 6, Math.min(host.width - half - 6, left));
+
+  box.style.left = left + 'px';
+  box.style.top = top + 'px';
+}
+
 function globeFocus(key){
   // A click is holding this trace lit on its way to the list; a stray
   // pointermove must not put it out before it has been seen.
@@ -4029,11 +4100,14 @@ function globeBind(){
   svg.addEventListener('pointermove', (e) => {
     const p = toLocal(e);
     Object.assign(globeState.pointer, { x: p.x, y: p.y, inside: true });
-    globeFocus(e.target.closest?.('[data-key]')?.dataset.key || null);
+    const key = e.target.closest?.('[data-key]')?.dataset.key || null;
+    globeFocus(key);
+    globePeek(key, svg);
   });
   svg.addEventListener('pointerleave', () => {
     globeState.pointer.inside = false;
     globeFocus(null);
+    globePeek(null, svg);
   });
 
   svg.addEventListener('click', (e) => {
