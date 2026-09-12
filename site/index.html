@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V85" />
+<meta name="ff-build" content="RING-V87" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3722,6 +3722,7 @@ const GLOBE = {
   // exactly as it appears in the feed.
   LABEL_HINTS: {
     'Funnel Leasing':  'above',
+    'Zillow Group':    'above',
     'Luxury Presence': 'below',
     'Ownwell':         'left',
     'HomeLight':       'left',
@@ -4012,18 +4013,32 @@ function globeBuild(){
           { side: out,  dy: (below ? -1 : 1) * GLOBE.LABEL_LINE },
         ];
 
-        // A named preference goes to the front of the queue. It still has to
-        // pass every collision check, so a hint that no longer fits is ignored
-        // rather than allowed to overlap something.
+        // A named preference goes to the front of the queue — as several
+        // positions in that direction, not one. A single position is easily
+        // blocked by a neighbour, and then the hint silently does nothing,
+        // which looks like it was ignored. Offering the same direction a row
+        // further out and slipped to either side gives it a real chance of
+        // taking effect while still passing every collision check.
         const hint = GLOBE.LABEL_HINTS[c.name];
         if (hint){
-          const above = { mid: true, dx: 0, dy: -(c.r + GLOBE.LABEL_PAD + 11) };
-          const under = { mid: true, dx: 0, dy:  (c.r + GLOBE.LABEL_PAD + 11) };
-          const pick = hint === 'above' ? above
-            : hint === 'below' ? under
-            : hint === 'left'  ? { side: -1, dy: 0 }
-            : hint === 'right' ? { side:  1, dy: 0 } : null;
-          if (pick) cands.unshift(pick);
+          const base = c.r + GLOBE.LABEL_PAD + 11;
+          const vert = (sign) => [
+            { mid: true, dx: 0, dy: sign * base },
+            { mid: true, dx: 0, dy: sign * (base + GLOBE.LABEL_LINE) },
+            { mid: true, dx: out * SLIP, dy: sign * base },
+            { mid: true, dx: -out * SLIP, dy: sign * base },
+            { mid: true, dx: 0, dy: sign * (base + GLOBE.LABEL_LINE * 2) },
+          ];
+          const horiz = (side) => [
+            { side, dy: 0 },
+            { side, dy: -GLOBE.LABEL_LINE },
+            { side, dy:  GLOBE.LABEL_LINE },
+          ];
+          const pick = hint === 'above' ? vert(-1)
+            : hint === 'below' ? vert(1)
+            : hint === 'left'  ? horiz(-1)
+            : hint === 'right' ? horiz(1) : null;
+          if (pick) cands.unshift(...pick);
         }
 
         let chosen = null;
