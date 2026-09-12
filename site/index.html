@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V93" />
+<meta name="ff-build" content="RING-V94" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3725,14 +3725,13 @@ const GLOBE = {
   // to the left", and ['left', -1] means "beside it on the left, one notch
   // higher". A sideways nudge only applies to 'above' and 'below', where the
   // label is centred on the node and therefore has somewhere to slide.
-  LABEL_HINTS: {
-    'Funnel Leasing':  ['above', 0, -4],
-    'Zillow Group':    ['right', -1],
-    // Both below their node, so the pair reads the same way.
-    'Luxury Presence': 'below',
-    'Ownwell':         'left',
-    'HomeLight':       'below',
-  },
+  // Empty on purpose. Every entry here was written to patch a placement rule
+  // that has since been replaced: with labels radiating along each node's own
+  // bearing, a hint pinning one of them to 'below' or 'left' pulls it out of
+  // that pattern and makes it the odd one out — which is what the bottom of
+  // the PropTech globe looked like. Add an entry only when the radial rule
+  // genuinely gets a company wrong, not to fine-tune one that looks fine.
+  LABEL_HINTS: {},
   LABEL_NOTCH: 9,  // one nudge step for a hint
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
                    // scales to 1.85x and the core has a drop shadow, so the
