@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V83" />
+<meta name="ff-build" content="RING-V85" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -288,6 +288,25 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-lat,.g-mer{fill:none;stroke:url(#g-mesh-grad);stroke-width:.9;opacity:1;
   vector-effect:non-scaling-stroke}
 .g-atmo,.g-shade{pointer-events:none}
+
+/* ---------- the orbital system ---------- */
+.orb{transform-box:view-box}
+.orb-path{fill:none;stroke-width:1;opacity:var(--fade);
+  stroke-dasharray:2 9;animation:orb-drift var(--spin) linear infinite var(--dir)}
+.orb.opco .orb-path{stroke:rgba(0,255,136,.5)}
+.orb.proptech .orb-path{stroke:rgba(169,143,236,.55)}
+/* The dash offset is the rotation: turning the whole ellipse would make it
+   wobble, because a tilted ellipse is not symmetric about its own centre. */
+@keyframes orb-drift{to{stroke-dashoffset:-220}}
+.orb-dot{opacity:.9;animation:orb-breathe 4.5s ease-in-out infinite}
+.orb.opco .orb-dot{fill:#00FF88;filter:drop-shadow(0 0 5px rgba(0,255,136,.9))}
+.orb.proptech .orb-dot{fill:#C4B0FF;filter:drop-shadow(0 0 5px rgba(169,143,236,.95))}
+@keyframes orb-breathe{0%,100%{opacity:.35}50%{opacity:1}}
+/* Motion is decoration; anyone who has asked for less of it gets a still
+   picture rather than a broken one. */
+@media(prefers-reduced-motion:reduce){
+  .orb-path,.orb-dot{animation:none}
+}
 .g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1.2;opacity:.85}
 
 /* the jobs' orbit — a slow drift in the dashes gives it motion without
@@ -1487,6 +1506,7 @@ a.foot-line:hover{color:var(--green)}
             <g class="g-hemi opco" data-goto="opco">
               <circle class="g-half" cx="455" cy="390" r="186"/>
             </g>
+            <g class="g-orbitals" data-cx="455" pointer-events="none"></g>
             <g class="g-mesh" data-cx="455" pointer-events="none"></g>
             <g pointer-events="none">
               <circle class="g-rim" cx="455" cy="390" r="186"/>
@@ -1503,6 +1523,7 @@ a.foot-line:hover{color:var(--green)}
             <g class="g-hemi proptech" data-goto="proptech">
               <circle class="g-half" cx="1395" cy="390" r="186"/>
             </g>
+            <g class="g-orbitals" data-cx="1395" pointer-events="none"></g>
             <g class="g-mesh" data-cx="1395" pointer-events="none"></g>
             <g pointer-events="none">
               <circle class="g-rim" cx="1395" cy="390" r="186"/>
@@ -3694,6 +3715,17 @@ const GLOBE = {
                    // rather than two, so this is a line height plus breathing
                    // room — which is also what lets more labels stay level
                    // with their own node instead of being pushed off it.
+  // Per-company label placement, for the handful the resolver gets wrong.
+  // 'above' | 'below' | 'left' | 'right'. A hint is tried FIRST; if it is
+  // blocked the automatic order takes over, so a stale hint can never break
+  // the layout — it just stops having an effect. Add a company here by name
+  // exactly as it appears in the feed.
+  LABEL_HINTS: {
+    'Funnel Leasing':  'above',
+    'Luxury Presence': 'below',
+    'Ownwell':         'left',
+    'HomeLight':       'left',
+  },
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
                    // scales to 1.85x and the core has a drop shadow, so the
                    // circle takes up noticeably more room than r suggests.
@@ -3979,6 +4011,20 @@ function globeBuild(){
           { side: out,  dy: (below ? 1 : -1) * GLOBE.LABEL_LINE },
           { side: out,  dy: (below ? -1 : 1) * GLOBE.LABEL_LINE },
         ];
+
+        // A named preference goes to the front of the queue. It still has to
+        // pass every collision check, so a hint that no longer fits is ignored
+        // rather than allowed to overlap something.
+        const hint = GLOBE.LABEL_HINTS[c.name];
+        if (hint){
+          const above = { mid: true, dx: 0, dy: -(c.r + GLOBE.LABEL_PAD + 11) };
+          const under = { mid: true, dx: 0, dy:  (c.r + GLOBE.LABEL_PAD + 11) };
+          const pick = hint === 'above' ? above
+            : hint === 'below' ? under
+            : hint === 'left'  ? { side: -1, dy: 0 }
+            : hint === 'right' ? { side:  1, dy: 0 } : null;
+          if (pick) cands.unshift(pick);
+        }
 
         let chosen = null;
         for (const cand of cands){
@@ -4407,6 +4453,57 @@ function globeLatFor(x, y, hub){
    own horizontal line crosses the inner circle — an intersection of two drawn
    lines rather than a dot floating on one. Fainter lines are added between
    them for the web, and the meridians are animated to give the turn. */
+/* The orbital system around each globe: concentric tilted ellipses in the band
+   between the sphere and the company ring, each with a pulse point running its
+   circuit.
+
+   They live INSIDE the company ring on purpose. Outside it is where the labels
+   are, and a moving ring crossing a company name would make the names harder to
+   read — which is the one thing the last dozen builds have been protecting. The
+   band between the sphere's rim and the ring is otherwise empty apart from the
+   threads, so this is where the decoration can go without costing anything.
+
+   Built once. The motion is CSS and SMIL, so it costs nothing per frame in the
+   rAF loop that is already redrawing every thread. */
+function globeOrbitals(){
+  const hosts = [...document.querySelectorAll('#globe .g-orbitals')];
+  if (!hosts.length) return;
+  const { CY, R, RCX } = GLOBE;
+
+  // Four tracks spread across the gap between the sphere's rim and the ring.
+  const TRACKS = [
+    { f: 0.26, ry: 0.30, tilt: -22, dur: 44, dir: 1 },
+    { f: 0.48, ry: 0.44, tilt:  14, dur: 63, dir: -1 },
+    { f: 0.70, ry: 0.26, tilt:  38, dur: 52, dir: 1 },
+    { f: 0.90, ry: 0.58, tilt:  -8, dur: 78, dir: -1 },
+  ];
+
+  for (const host of hosts){
+    if (host.children.length) continue;
+    const cx = Number(host.dataset.cx);
+    const hub = cx === GLOBE.cxOf('proptech') ? 'proptech' : 'opco';
+    const band = RCX - R;                       // the empty ring of space
+
+    host.innerHTML = TRACKS.map((t, i) => {
+      const rx = (R + band * t.f).toFixed(1);
+      const ry = (Number(rx) * t.ry).toFixed(1);
+      // An ellipse as a path, centred on the origin, so the pulse point can be
+      // animated along the very same geometry the ring is drawn from — two
+      // separate definitions would drift apart the moment either changed.
+      const d = `M ${-rx},0 a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
+      const spin = (t.dir > 0 ? '' : '-') + (t.dur * 2.6).toFixed(0);
+      return `<g class="orb ${hub}" transform="translate(${cx} ${CY}) rotate(${t.tilt})"
+                 style="--spin:${Math.abs(Number(spin))}s;--dir:${t.dir > 0 ? 'normal' : 'reverse'};--fade:${(0.5 - i * 0.07).toFixed(2)}">
+          <path class="orb-path" d="${d}"/>
+          <circle class="orb-dot" r="${(2.8 - i * 0.3).toFixed(1)}">
+            <animateMotion dur="${t.dur}s" repeatCount="indefinite" path="${d}"
+              keyPoints="${t.dir > 0 ? '0;1' : '1;0'}" keyTimes="0;1" calcMode="linear"/>
+          </circle>
+        </g>`;
+    }).join('');
+  }
+}
+
 function globeMesh(){
   const worlds = [...document.querySelectorAll('#globe .g-mesh')];
   if (!worlds.length) return;
@@ -4418,6 +4515,8 @@ function globeMesh(){
       .map((r, i) => `<circle class="g-orbit${i ? ' inner' : ''}" cx="${cx}" cy="${GLOBE.CY}" r="${r}"/>`)
       .join('');
   });
+
+  globeOrbitals();
 
   const { CY, R, MERS } = GLOBE;
   const rows = globeRows();
