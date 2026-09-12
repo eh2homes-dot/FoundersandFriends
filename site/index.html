@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V58" />
+<meta name="ff-build" content="RING-V63" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -363,15 +363,23 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @keyframes g-pulse{0%{transform:scale(1);opacity:.6}65%,100%{transform:scale(1.85);opacity:0}}
 .g-co .n{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .g-co .lbl{font-family:var(--body);font-size:14.5px;font-weight:600;fill:var(--ink-soft)}
-.co-lead{fill:none;stroke-width:1;opacity:.28;transition:opacity .25s}
-.g-co.opco .co-lead{stroke:rgba(0,255,136,.55)}
-.g-co.proptech .co-lead{stroke:rgba(169,143,236,.65)}
-.g-co.is-lit .co-lead{opacity:.95}
+/* The lead is what says which name belongs to which node. At .28 it was
+   invisible against the background, so three labels stacked in a column read
+   as unattached text. It carries the hub's colour now rather than a grey. */
+.co-lead{fill:none;stroke-width:1.2;opacity:.5;transition:opacity .25s,stroke-width .25s}
+.g-co.opco .co-lead{stroke:rgba(0,255,136,.75)}
+.g-co.proptech .co-lead{stroke:rgba(169,143,236,.85)}
+.g-co.is-lit .co-lead{opacity:1;stroke-width:1.8}
 .g-co .sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;fill:var(--ink-dim)}
 .g-co.opco.is-lit .core{fill:#00FF88}
 .g-co.proptech.is-lit .core{fill:#8B5CF0}
 .g-co.opco.is-lit .n{fill:#07040F}
 .g-co.is-lit .lbl{fill:#fff}
+/* Dim every other name while one is traced, so the one you are pointing at is
+   unmistakable even when its label sits three rows up a column. */
+#globe.is-focused .g-co:not(.is-lit) .lbl,
+#globe.is-focused .g-co:not(.is-lit) .sub,
+#globe.is-focused .g-co:not(.is-lit) .co-lead{opacity:.22}
 .g-co:focus{outline:none}
 .g-co:focus-visible .core{stroke:#fff;stroke-width:3}
 
@@ -399,9 +407,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbit-more{display:flex;justify-content:center}
 .orbit-more[hidden]{display:none}
 .all-cos{
-  display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border-radius:100px;
+  display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border-radius:11px;
   cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--ink-soft);background:rgba(11,6,24,.7);border:1px solid var(--line-2);
+  color:var(--ink-soft);background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.28);
   transition:border-color .2s,color .2s,background .2s,transform .2s,box-shadow .2s;
 }
 .all-cos::after{content:"→";opacity:.7}
@@ -1416,7 +1424,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
-        <svg id="globe" viewBox="0 0 1800 716" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
+        <svg id="globe" viewBox="0 0 1800 744" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(0,255,136,.035)"/>
@@ -1483,7 +1491,7 @@ a.foot-line:hover{color:var(--green)}
               <line class="g-axis" x1="440" y1="156" x2="440" y2="544" stroke="url(#g-axis-grad)"/>
             </g>
             <circle class="g-shade" cx="440" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label opco" x="440" y="700">OpCo</text>
+            <text class="hemi-label opco" x="440" y="730">OpCo</text>
           </g>
 
           <g class="g-world" data-hub="proptech">
@@ -1499,7 +1507,7 @@ a.foot-line:hover{color:var(--green)}
               <line class="g-axis" x1="1360" y1="156" x2="1360" y2="544" stroke="url(#g-axis-grad)"/>
             </g>
             <circle class="g-shade" cx="1360" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label proptech" x="1360" y="700">PropTech</text>
+            <text class="hemi-label proptech" x="1360" y="730">PropTech</text>
           </g>
 
           <g id="g-threads"></g>
@@ -3637,7 +3645,7 @@ const GLOBE = {
   // so the only way to make each sphere bigger is to make the space it sits in
   // smaller. The centres come together and the label columns tighten with
   // them — 1800 is the floor before the two inner columns of text meet.
-  VW: 1800, VH: 716,          // the canvas
+  VW: 1800, VH: 744,          // the canvas
   CY: 350,
   CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
   cxOf: (hub) => (hub === 'proptech' ? 1360 : 440),
@@ -3898,8 +3906,32 @@ function globeBuild(){
     for (const h of ['opco', 'proptech']){
       const cx = GLOBE.cxOf(h);
       const mine = cos.filter(c => c.hub === h);
-      settle(mine.filter(c => c.x < cx));
-      settle(mine.filter(c => c.x >= cx));
+      // The node at the very top of the circle, and the one at the very
+      // bottom, get their label centred above and below them instead of in a
+      // side column. They sit on the centre line, so a column throws their
+      // name right across the globe — which is what left "Invitation Ho…"
+      // stranded with nothing pointing at it. Only these two per globe: any
+      // more and centred labels start overlapping each other.
+      const byY = [...mine].sort((a, b) => a.y - b.y);
+      const capTop = byY[0], capBottom = byY[byY.length - 1];
+      if (capTop){ capTop.lx = capTop.x; capTop.ly = capTop.y - 34; capTop.anchor = 'middle'; }
+      if (capBottom && capBottom !== capTop){
+        capBottom.lx = capBottom.x; capBottom.ly = capBottom.y + 42; capBottom.anchor = 'middle';
+      }
+
+      for (const side of [-1, 1]){
+        const col = mine.filter(c => c.anchor !== 'middle' && (side < 0 ? c.x < cx : c.x >= cx));
+        settle(col);
+        // One x for the whole column. Following the ring's outline put every
+        // label a different distance out, and near the poles the outline moves
+        // fast enough that neighbours stepped in and out — a ragged edge.
+        // Sharing an x squares the column up. It has to clear the ring's widest
+        // point, or a label beside an equator node would sit on top of it, so
+        // the polar labels end up further from their nodes than before. That is
+        // the cost of the straight edge, and the lead lines carry the link.
+        const lx = cx + side * (GLOBE.RCX + 22 + 16);
+        col.forEach(c => { c.lx = lx; });
+      }
     }
   }
 
@@ -4000,33 +4032,22 @@ function globeBuild(){
     if (GLOBE.LABELS && c.ly != null){
       const cx = GLOBE.cxOf(c.hub);
       const side = c.x < cx ? -1 : 1;
-      // Outside the ring at the label's own height, rather than beside its own
-      // node. Beside the node fails near the top and bottom of the circle:
-      // those nodes sit close to the centre line, so their names reach across
-      // and land behind whichever node is next round — which is exactly what
-      // put "Opendoor" underneath its neighbour. Following the ring's outline
-      // keeps every label clear of every node, and still close to its own,
-      // because its own node is on that outline too.
+      // Column x, or the node's own x for the two polar caps.
+      const mid0 = c.anchor === 'middle';
+      const anchor = mid0 ? 'middle' : (side > 0 ? 'start' : 'end');
       const name0 = c.name.length > GLOBE.LABEL_MAX
         ? c.name.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : c.name;
       const textW = name0.length * 7.6;   // approx advance at 14.5px
-      const dyc = c.ly - GLOBE.CY;
-      // Floor the horizontal reach: at the very top of the circle the outline
-      // is almost on the centre line, which would drop the label over the pole.
-      const reach = Math.max(
-        Math.sqrt(Math.max(0, GLOBE.RCX * GLOBE.RCX - dyc * dyc)),
-        GLOBE.RCX * 0.5);
-      let lx = cx + side * (reach + r + 16);
+      let lx = c.lx;
       // Keep the text on the canvas: a name hanging off the edge is worse than
       // one sitting slightly further from its node.
-      if (side < 0) lx = Math.max(lx, textW + 6);
+      if (mid0) lx = Math.min(GLOBE.VW - textW / 2 - 6, Math.max(textW / 2 + 6, lx));
+      else if (side < 0) lx = Math.max(lx, textW + 6);
       else lx = Math.min(lx, GLOBE.VW - textW - 6);
-      const anchor = side > 0 ? 'start' : 'end';
-      // An elbow, not a straight line: once a label has been nudged off its
-      // node's height a horizontal rule points at the wrong row.
-      // Only draw a lead where the label has actually been pushed off its
-      // node's height. Sitting beside it, a rule would just be a stray dash.
-      if (Math.abs(c.ly - c.y) > 3){
+      // An elbow where the label has been pushed off its node's height. The
+      // polar caps sit directly above or below their node, so a lead there
+      // would be a stray dash across the name.
+      if (!mid0 && Math.abs(c.ly - c.y) > 3){
         const x0 = c.x + side * (r + 3);
         const x1 = lx - side * 6;
         const mid = x0 + (x1 - x0) * 0.45;
