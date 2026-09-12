@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V12" />
+<meta name="ff-build" content="RING-V13" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -265,7 +265,13 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-thread{fill:none;stroke-width:1.7;opacity:.2;transition:opacity .3s,stroke-width .3s}
 .g-thread.opco{stroke:#00FF88}
 .g-thread.proptech{stroke:#A98FEC}
+/* The stretch inside the sphere stays hidden until you pick a dot or a node.
+   126 threads crossing the interior at once is noise whichever way they are
+   routed; on demand, one at a time, the same line is information. The outside
+   run stays visible so the sphere still reads as connected to the ring. */
+.g-thread-in{opacity:0;pointer-events:none;transition:opacity .25s}
 .g-thread.is-lit{opacity:1;stroke-width:3.2}
+.g-thread-in.is-lit{opacity:1}
 .g-thread.opco.is-lit{filter:drop-shadow(0 0 5px rgba(0,255,136,.8))}
 .g-thread.proptech.is-lit{filter:drop-shadow(0 0 5px rgba(169,143,236,.85))}
 
@@ -3685,9 +3691,10 @@ function globeBuild(){
   // which is what lets a single thread be followed across a crowded sphere.
   const otherHub = (h) => (h === 'opco' ? 'proptech' : 'opco');
   for (const L of links){
+    L.inner = el('path', { class: 'g-thread g-thread-in ' + otherHub(L.hub), 'data-key': L.from.key });
     L.path = el('path', { class: 'g-thread ' + otherHub(L.hub), 'data-key': L.from.key });
     L.dot = el('circle', { class: 'g-spark ' + otherHub(L.hub), r: 2.6 });
-    gThreads.append(L.path);
+    gThreads.append(L.inner, L.path);
     gSparks.append(L.dot);
   }
 
@@ -3796,8 +3803,13 @@ function globeThread(L, time, still){
   const c2y = gy + (gy - CY) * 0.1;
 
   const f = (v) => v.toFixed(1);
-  return `M ${f(a.x)} ${f(a.y)} C ${f(c1x)} ${f(c1y)}, ${f(c2x)} ${f(c2y)}, ${f(gx)} ${f(gy)}`
-       + ` S ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
+  // Two halves, not one path: the run inside the sphere and the run out to the
+  // node. Splitting them is what lets the interior hide while the outside stays
+  // visible — a single path can only be shown or hidden as a whole.
+  return {
+    inner: `M ${f(a.x)} ${f(a.y)} C ${f(c1x)} ${f(c1y)}, ${f(c2x)} ${f(c2y)}, ${f(gx)} ${f(gy)}`,
+    outer: `M ${f(gx)} ${f(gy)} Q ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`,
+  };
 }
 
 function globeStep(time, once){
@@ -3818,9 +3830,12 @@ function globeStep(time, once){
     }
     L.pull.x += (tx - L.pull.x) * 0.06;
     L.pull.y += (ty - L.pull.y) * 0.06;
-    L.path.setAttribute('d', globeThread(L, time, still));
+    const seg = globeThread(L, time, still);
+    L.inner.setAttribute('d', seg.inner);
+    L.path.setAttribute('d', seg.outer);
 
-    // the spark travelling role → company
+    // The spark now rides the outer half only — it would otherwise travel
+    // invisibly inside the sphere for the first part of every pass.
     const total = L.path.getTotalLength?.() || 0;
     if (total){
       const t = still ? 0.5 : (L.start + time / L.period) % 1;
@@ -3881,6 +3896,7 @@ function globeFocus(key){
   for (const L of globeState.links){
     const on = lit ? lit.has('l:' + L.from.key) : false;
     L.path.classList.toggle('is-lit', on);
+    L.inner.classList.toggle('is-lit', on);
     L.dot.classList.toggle('lit', on);
   }
   for (const n of [...globeState.roles, ...globeState.cos]){
