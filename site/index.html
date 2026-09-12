@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V17" />
+<meta name="ff-build" content="RING-V18" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -214,11 +214,14 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   .admin-link{padding:8px 13px;font-size:11px}
 }
 
-/* ---------- HERO ---------- */
-.board-hero{padding:60px 5vw 0;max-width:1240px;margin:0 auto}
+/* ---------- HERO ----------
+   The hero and the globe share one screen. Everything here is sized against
+   the viewport rather than fixed, so the headline gives way as the window
+   gets shorter instead of pushing the globe below the fold. */
+.board-hero{padding:clamp(18px,3.4vh,44px) 5vw 0;max-width:1240px;margin:0 auto}
 .hero-inner{max-width:900px;padding-bottom:0}
 .board-hero h1{
-  font-size:clamp(2.3rem,6vw,4rem);line-height:1.03;margin-top:20px;color:#fff;
+  font-size:clamp(1.9rem,4.4vw,3.3rem);line-height:1.04;margin-top:clamp(8px,1.4vh,18px);color:#fff;
   text-shadow:0 2px 26px rgba(7,4,15,.9);
 }
 .board-hero h1 .accent{
@@ -226,7 +229,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
 }
-.hero-sub{margin-top:22px;font-size:clamp(1rem,1.5vw,1.15rem);line-height:1.7;color:var(--ink-soft);max-width:56ch}
+.hero-sub{margin-top:clamp(8px,1.4vh,18px);font-size:clamp(.95rem,1.3vw,1.08rem);line-height:1.55;color:var(--ink-soft);max-width:56ch}
+/* Under about 800px tall there is not room for both the sub-line and a globe
+   worth looking at. The headline already carries the message, so the sub-line
+   is the thing that goes. */
+@media(max-height:800px){ .hero-sub{display:none} }
 
 
 /* ---------- hub cards under the hero ---------- */
@@ -234,9 +241,12 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    One sphere split down the axis: operators on the left, technology on the
    right. Roles sit inside their own half; the companies hiring them sit on the
    outer ring, and a thread runs from every role to its company. */
-.orbits{margin-top:18px}
+.orbits{margin-top:clamp(6px,1.2vh,16px)}
 .orbits[hidden]{display:none}
-#globe{display:block;width:100%;max-width:1180px;height:auto;margin:0 auto;overflow:visible}
+/* Cap by height, not just width: on a short wide window the 1000x610 viewBox
+   would otherwise scale to the width and run off the bottom of the screen. */
+#globe{display:block;width:100%;max-width:1180px;height:auto;max-height:min(66vh,700px);
+  margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
    on the wrapper and the canvas only — the nodes inside keep their own
