@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V34" />
+<meta name="ff-build" content="RING-V36" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -395,6 +395,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hemi-label{text-anchor:middle;font-family:var(--mono);font-size:13px;letter-spacing:.24em;text-transform:uppercase}
 .hemi-label.opco{fill:#00FF88}
 .hemi-label.proptech{fill:#A98FEC}
+/* The seam. Faint on purpose — it should read as a division of one sphere,
+   not as two objects sitting next to each other. */
+.g-divide{stroke:rgba(190,200,235,.22);stroke-width:1;stroke-dasharray:3 7;pointer-events:none}
 
 .orbit-more{display:flex;justify-content:center;margin-top:14px}
 .orbit-more[hidden]{display:none}
@@ -1482,8 +1485,10 @@ a.foot-line:hover{color:var(--green)}
           <g id="g-roles"></g>
           <g id="g-cos"></g>
 
-          <!-- No OpCo / PropTech labels: roles from both hubs are mixed across
-               the whole sphere now, so naming the halves would be wrong. -->
+          <!-- The halves mean something again, so they are named. -->
+          <line class="g-divide" x1="500" y1="134" x2="500" y2="446"/>
+          <text class="hemi-label opco"     x="330" y="600">OpCo</text>
+          <text class="hemi-label proptech" x="670" y="600">PropTech</text>
         </svg>
         <!-- The status line lives under the globe now: it carries the same
              counts the old caption did, so running both was saying the same
@@ -3405,7 +3410,107 @@ async function fetchJobs() {
   const rows = Array.isArray(data) ? data : data.jobs;
   if (!Array.isArray(rows)) throw new Error('Expected an array of jobs');
 
-  return { jobs: rows.map(mapRow), generatedAt: Array.isArray(data) ? null : data.generated_at };
+  const mapped = rows.map(mapRow);
+  const kept = mapped.filter(j => !roleReject(j));
+  // Strongest first, so the ring and the list both lead with the roles this
+  // board exists for rather than whatever the scraper happened to find last.
+  kept.sort((a, b) => roleScore(b) - roleScore(a));
+  return {
+    jobs: kept,
+    dropped: mapped.length - kept.length,
+    generatedAt: Array.isArray(data) ? null : data.generated_at,
+  };
+}
+
+/* ---------- which roles belong on this board ----------
+
+   Two separate questions, deliberately kept apart:
+
+     roleReject(job)  a hard no — field and hourly operational work, and QA
+                      specialists. These never appear.
+     roleScore(job)   a rank for everything else.
+
+   Salary is scored, never rejected. "$100k and up" cannot be a filter when
+   most postings state no salary at all: a strict rule would drop the majority
+   of a real feed, including the senior roles it was meant to surface. An
+   unstated salary scores neutral, because unknown is not the same as low.
+
+   This runs in the page, on the feed the scraper already wrote. It belongs in
+   run.js eventually, so rejected roles never reach jobs.json — but here it is
+   changeable without waiting for a scrape, which is what a new rule set needs.
+*/
+const ROLE_OPERATIONAL = [
+  /\b(maintenance|service|field|construction|install(ation)?|repair)\s+(tech|technician|technologist)\b/i,
+  /\btechnician\b/i,
+  /\bmaintenance\s+(associate|assistant|worker|staff|crew|helper)\b/i,
+  /\b(groundskeeper|porter|janitor|custodian|housekeep\w*)\b/i,
+  /\bmake[- ]ready\b/i,
+  /\bturn\s+(tech|crew)\b/i,
+  /\b(plumber|electrician|hvac|landscap\w*)\b/i,
+];
+// QA *specialists* go. QA engineers stay — they are engineers, and a blanket
+// match on "QA" would quietly delete part of the engineering feed.
+const ROLE_QA = /\b(quality\s+assurance|qa)\b[^,]*\b(specialist|analyst|associate|inspector|auditor|coordinator|clerk)\b/i;
+// Seniority beats the function: "Director of Maintenance" is a leadership role
+// that happens to own maintenance, not field work.
+const ROLE_SENIOR = /\b(chief|c[toefi]o|vp|vice\s+president|head\s+of|director|principal|staff|manager|supervisor|lead)\b/i;
+
+const ROLE_GTM = [
+  /\b(sales|seller)\b/i, /\baccount\s+(executive|manager|director)\b/i,
+  /\b(business|corporate)\s+development\b/i, /\bpartnerships?\b/i, /\brevenue\b/i,
+  /\bmarketing\b/i, /\bdemand\s+gen\w*\b/i, /\bgrowth\b/i, /\bcustomer\s+success\b/i,
+  /\bsolutions?\s+(engineer|consultant|architect)\b/i, /\b(gtm|go[- ]to[- ]market)\b/i,
+];
+const ROLE_ENG = [
+  /\bengineer(ing)?\b/i, /\bdeveloper\b/i, /\bsoftware\b/i, /\barchitect\b/i,
+  /\b(backend|back[- ]end|frontend|front[- ]end|full[- ]?stack)\b/i,
+  /\b(platform|infrastructure|devops|sre|site\s+reliability)\b/i,
+  /\bdata\s+(engineer|scientist|platform)\b/i, /\bsecurity\s+engineer\b/i,
+  /\b(mobile|ios|android)\s+(engineer|developer)\b/i,
+];
+const ROLE_ADJACENT = [
+  /\bproduct\s+(manager|management|owner|lead)\b/i, /\b(design(er)?|ux|ui)\b/i, /\bdata\s+analyst\b/i,
+];
+const ROLE_LEVEL = [
+  [/\b(chief|c[toefi]o|founder|co[- ]founder)\b/i, 30],
+  [/\b(vp|vice\s+president|head\s+of|svp|evp)\b/i, 26],
+  [/\bdirector\b/i, 20],
+  [/\b(principal|staff)\b/i, 16],
+  [/\b(senior|sr\.?|lead)\b/i, 12],
+  [/\bmanager\b/i, 10],
+  [/\b(junior|jr\.?|associate|entry|intern)\b/i, -12],
+];
+const roleHit = (list, s) => list.some(re => re.test(s));
+
+function roleReject(job){
+  const title = String(job?.title || '');
+  if (!title.trim()) return 'no title';
+  if (ROLE_QA.test(title)) return 'QA specialist';
+  if (ROLE_OPERATIONAL.some(re => re.test(title))){
+    return ROLE_SENIOR.test(title) ? null : 'operational role';
+  }
+  return null;
+}
+
+function roleScore(job){
+  const title = String(job?.title || '');
+  let n = 0;
+  if (roleHit(ROLE_GTM, title) || roleHit(ROLE_ENG, title)) n += 40;
+  else if (roleHit(ROLE_ADJACENT, title)) n += 18;
+  else n -= 10;
+
+  for (const [re, pts] of ROLE_LEVEL){ if (re.test(title)){ n += pts; break; } }
+
+  // Top of the band: that is what the posting competes on.
+  const top = Number(job?.max) || Number(job?.min) || 0;
+  if (!top) n += 0;                       // unstated ≠ low
+  else if (top >= 250000) n += 30;
+  else if (top >= 175000) n += 25;
+  else if (top >= 130000) n += 20;
+  else if (top >= 100000) n += 15;
+  else if (top >= 70000) n -= 5;
+  else n -= 15;
+  return n;
 }
 
 function setStatus(state, html, retry) {
@@ -3537,6 +3642,7 @@ const GLOBE = {
                    // companies: three roles each, rather than some on two and
                    // some on three.
   ORBITS: [136, 118, 100, 82, 64, 46],   // drawn as rings; no longer where roles sit
+  AXIS_GAP: 11,    // px of clear space either side of the divide
   MIN_GAP: 19,     // px between role dots. A dot is 9px across with a 17px
                    // halo, and 63 dots in half a 137px disc can hold ~23px
                    // apart at best, so 19 leaves room without forcing a grid
@@ -3590,25 +3696,28 @@ function globeRows(){
    So: generate exactly as many points as there are roles, never sub-sample, and
    relax them apart until nothing collides. The seed is a golden-ratio sequence,
    which spreads without clumping; the relaxation then guarantees the gap. */
-function globeSlots(want){
+function globeSlots(want, side){
   const n = Math.max(1, want);
-  const key = 'slots:' + n;
+  const key = 'slots' + side + ':' + n;
   if (globeState[key]) return globeState[key];
-  const { CX, CY, R, MIN_GAP } = GLOBE;
+  const { CX, CY, R, MIN_GAP, AXIS_GAP } = GLOBE;
   const lim = R * 0.88;
   const PHI = 0.6180339887;
 
-  // Radius by sqrt so density is even centre to rim, bearing by the golden
-  // ratio so successive points land far apart instead of in a line.
+  // Half a disc, not a whole one: the sphere is split down the middle, OpCo on
+  // the left and PropTech on the right. Radius by sqrt so density is even from
+  // centre to rim; bearing by the golden ratio across this side's 180 degrees,
+  // so successive points land far apart instead of in a line.
   const pts = [];
   for (let k = 0; k < n; k++){
     const rr = lim * Math.sqrt((k + 0.5) / n);
-    const a = 2 * Math.PI * ((k * PHI) % 1);
+    const frac = (k * PHI) % 1;
+    const a = (side > 0 ? -90 + 180 * frac : 90 + 180 * frac) * Math.PI / 180;
     pts.push({ dx: Math.cos(a) * rr, dy: Math.sin(a) * rr });
   }
 
-  // Relax: push apart anything closer than MIN_GAP, then pull back inside the
-  // rim. One set across the whole disc, so nothing collides at the centre.
+  // Relax: push apart anything closer than MIN_GAP, then pull everything back
+  // inside the rim and off the centre line.
   for (let pass = 0; pass < 12; pass++){
     for (let i = 0; i < n; i++){
       for (let j = i + 1; j < n; j++){
@@ -3623,12 +3732,15 @@ function globeSlots(want){
     for (const q of pts){
       const d = Math.hypot(q.dx, q.dy);
       if (d > lim){ q.dx *= lim / d; q.dy *= lim / d; }
+      // The halves are relaxed separately, so this gap is what stops a green
+      // dot and a purple one colliding across the divide.
+      if (side * q.dx < AXIS_GAP) q.dx = side * AXIS_GAP;
     }
   }
 
   const out = pts.map(q => ({
     x: CX + q.dx, y: CY + q.dy, ro: Math.hypot(q.dx, q.dy),
-    rel: Math.atan2(q.dy, q.dx) * 180 / Math.PI,
+    rel: globeRel(CX + q.dx, CY + q.dy, side),
   }));
   out.sort((a, b) => a.rel - b.rel || b.ro - a.ro);
   globeState[key] = out;
@@ -3697,52 +3809,46 @@ function globeBuild(){
     picks.push(...sample.map(s => ({ job: s.job, co: s.co, hub: h })));
   }
 
-  // Companies ride the whole oval rather than one arc per hub, and the two
-  // hubs are interleaved in proportion so neither clumps: 20 operators against
-  // 22 vendors gives a near-alternating ring instead of a green half and a
-  // purple half. Roles stay split left and right inside the sphere — only the
-  // outer ring mixes, which is what keeps the picture balanced while the
-  // hemispheres still mean something.
+  // Each hub owns half the ring: OpCo down the left, PropTech down the right,
+  // matching the half of the sphere its roles sit in. A company's thread then
+  // never crosses the divide — which is what makes the split readable rather
+  // than just colour-coded.
   if (cos.length){
-    const opco = cos.filter(c => c.hub === 'opco');
-    const tech = cos.filter(c => c.hub === 'proptech');
-    const A = opco.length, B = tech.length;
-    const order = [];
-    let a = 0, b = 0;
-    while (a < A || b < B){
-      // Take from whichever hub is furthest behind its share of the ring.
-      if (b >= B || (a < A && (a + 0.5) / A <= (b + 0.5) / B)) order.push(opco[a++]);
-      else order.push(tech[b++]);
-    }
-    // Equal steps of angle, starting at the top. Equal angle, not equal height:
-    // on an oval those are different, and stepping by height leaves the sides
-    // crowded and the top and bottom bare.
-    order.forEach((c, i) => {
-      const rad = (-90 + (i / order.length) * 360) * Math.PI / 180;
-      c.x = CX + Math.cos(rad) * RCX;
-      c.y = CY + Math.sin(rad) * RCY;
-    });
+    const place = (list, from, to) => {
+      const n = list.length;
+      list.forEach((c, i) => {
+        const f = n === 1 ? 0.5 : i / (n - 1);
+        const rad = (from + (to - from) * f) * Math.PI / 180;
+        c.x = GLOBE.CX + Math.cos(rad) * GLOBE.RCX;
+        c.y = GLOBE.CY + Math.sin(rad) * GLOBE.RCY;
+      });
+    };
+    // Leave a few degrees clear at the poles so the two halves read as two
+    // arcs rather than one unbroken ring.
+    place(cos.filter(c => c.hub === 'opco'), 264, 96);
+    place(cos.filter(c => c.hub === 'proptech'), -84, 84);
   }
 
-  // Roles sit near the bearing of the company they belong to. Both hubs still
-  // cover the whole sphere — the ring alternates green and purple, so the dots
-  // inherit that alternation — but a company's three roles land together, on
-  // the side facing its node. That is what turns the threads back into short
-  // radial stems instead of long arcs sweeping across the interior looking for
-  // their node, which is the tangle. Grouping alone is not enough; they have to
-  // be grouped in the right PLACE.
-  {
+  // Roles sit on their hub's side of the sphere, and within it near the bearing
+  // of the company they belong to. Both together are what keep the threads
+  // short and radial: the side decides which half, the bearing decides where in
+  // it, and a thread never has to cross the middle to reach its node.
+  for (const [h, side] of [['opco', -1], ['proptech', 1]]){
+    const mine = picks.filter(s => s.hub === h);
+    if (!mine.length) continue;
+
     const groups = new Map();
-    for (const s of picks){
+    for (const s of mine){
       if (!groups.has(s.co.key)) groups.set(s.co.key, []);
       groups.get(s.co.key).push(s);
     }
-    const bearing = (c) => Math.atan2(c.y - GLOBE.CY, c.x - GLOBE.CX) * 180 / Math.PI;
-    const ordered = [...groups.values()].sort((g1, g2) => bearing(g1[0].co) - bearing(g2[0].co));
-    const flat = ordered.flat();
-    const pts = globeSlots(flat.length);   // already sorted by bearing
+    const bearing = (c) => globeRel(c.x, c.y, side);
+    const flat = [...groups.values()]
+      .sort((g1, g2) => bearing(g1[0].co) - bearing(g2[0].co))
+      .flat();
+
+    const pts = globeSlots(flat.length, side);   // already sorted by bearing
     flat.forEach((s, i) => {
-      const h = s.hub;
       const p = pts[i];
       if (!p) return;
       const role = { key: 'j:' + s.job.id, job: s.job, hub: h, x: p.x, y: p.y };
@@ -3752,7 +3858,7 @@ function globeBuild(){
         phase: globeHash(roles.length) * Math.PI * 2,
         bend: 0.35 + globeHash(roles.length + 17) * 1.15,
         speed: 0.5 + globeHash(roles.length + 7) * 0.5,
-        period: 17000 + globeHash(roles.length + 31) * 11000,  // one pass every 17–28s
+        period: 17000 + globeHash(roles.length + 31) * 11000,
         start: globeHash(roles.length + 53),
         pull: { x: 0, y: 0 },
       });
