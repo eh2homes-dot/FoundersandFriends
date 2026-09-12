@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V24" />
+<meta name="ff-build" content="RING-V26" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -105,6 +105,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 }
 .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
 .eyebrow.green{color:var(--green)}
+.eyebrow:empty{display:none}
 
 .laser-rule{
   height:1px;border:0;opacity:.45;
@@ -224,12 +225,13 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   font-size:clamp(1.5rem,3.4vw,2.6rem);line-height:1.08;margin-top:clamp(4px,1vh,14px);color:#fff;
   text-shadow:0 2px 26px rgba(7,4,15,.9);
 }
-/* One line from 980px up. The headline runs about 64 characters, so the size
-   is capped against viewport width rather than a fixed rem: at 2.45vw it fits
-   the line on any width in this range. Below 980 it wraps as before — forcing
-   one line on a phone would shrink the type to nothing. */
+/* One line from 980px up, for BOTH hubs. The cap is sized against the longer
+   of the two headlines (~69 characters), not whichever one happens to be
+   showing — sizing for the shorter one is what pushed the PropTech line off
+   the right edge, since nowrap cannot shrink text to fit. Below 980 it wraps:
+   forcing one line on a phone would shrink the type to nothing. */
 @media(min-width:980px){
-  .board-hero h1{white-space:nowrap;font-size:min(2.45vw,2.5rem)}
+  .board-hero h1{white-space:nowrap;font-size:min(2.25vw,2.4rem)}
 }
 .board-hero h1 .accent{
   background:linear-gradient(100deg,var(--green) 0%,var(--silver-bright) 46%,var(--purple-text) 100%);
@@ -1729,7 +1731,7 @@ const PROPTECH_JOBS = [
 const HUBS = {
   opco: {
     label: 'OpCo Hub',
-    eyebrow: 'SFR Operator Careers',
+    eyebrow: '',
     h1: 'Build a career in <span class="accent">scattered site rental property</span> and technology.',
     sub: 'Go-to-market, engineering and leadership roles at the operators running single-family rental at scale.',
     jobs: JOBS,
@@ -1737,7 +1739,7 @@ const HUBS = {
   proptech: {
     label: 'PropTech Hub',
     eyebrow: 'PropTech Careers',
-    h1: 'Explore career opportunities with the <span class="accent">technology companies</span> serving scattered-site real estate.',
+    h1: 'Build a career with the <span class="accent">technology companies</span> serving rental property.',
     sub: 'Go-to-market, engineering and leadership roles at the software companies selling into SFR and multifamily.',
     jobs: PROPTECH_JOBS,
   },
