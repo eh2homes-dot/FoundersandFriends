@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V9" />
+<meta name="ff-build" content="RING-V11" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -1413,8 +1413,8 @@ a.foot-line:hover{color:var(--green)}
           <g id="g-roles"></g>
           <g id="g-cos"></g>
 
-          <text class="hemi-label opco"     x="330" y="600">OpCo</text>
-          <text class="hemi-label proptech" x="670" y="600">PropTech</text>
+          <!-- No OpCo / PropTech labels: roles from both hubs are mixed across
+               the whole sphere now, so naming the halves would be wrong. -->
         </svg>
         <p class="orbit-hint" id="orbit-hint"></p>
         <!-- The globe only has room for the busiest companies each side. This
@@ -3457,7 +3457,6 @@ const GLOBE = {
                    // companies: three roles each, rather than some on two and
                    // some on three.
   ORBITS: [136, 118, 100, 82, 64, 46],   // drawn as rings; no longer where roles sit
-  AXIS_GAP: 15,    // px of clear space either side of the centre line
   MIN_GAP: 19,     // px between role dots. A dot is 9px across with a 17px
                    // halo, and 63 dots in half a 137px disc can hold ~23px
                    // apart at best, so 19 leaves room without forcing a grid
@@ -3511,26 +3510,25 @@ function globeRows(){
    So: generate exactly as many points as there are roles, never sub-sample, and
    relax them apart until nothing collides. The seed is a golden-ratio sequence,
    which spreads without clumping; the relaxation then guarantees the gap. */
-function globeSlots(side, want){
+function globeSlots(want){
   const n = Math.max(1, want);
-  const key = 'slots' + side + ':' + n;
+  const key = 'slots:' + n;
   if (globeState[key]) return globeState[key];
-  const { CX, CY, R, AXIS_GAP, MIN_GAP } = GLOBE;
+  const { CX, CY, R, MIN_GAP } = GLOBE;
   const lim = R * 0.88;
   const PHI = 0.6180339887;
 
-  // Seed: radius by sqrt so density is even from centre to rim, bearing by the
-  // golden ratio so successive points land far apart instead of in a line.
+  // Radius by sqrt so density is even centre to rim, bearing by the golden
+  // ratio so successive points land far apart instead of in a line.
   const pts = [];
   for (let k = 0; k < n; k++){
     const rr = lim * Math.sqrt((k + 0.5) / n);
-    const frac = (k * PHI) % 1;
-    const a = (side > 0 ? -90 + 180 * frac : 90 + 180 * frac) * Math.PI / 180;
+    const a = 2 * Math.PI * ((k * PHI) % 1);
     pts.push({ dx: Math.cos(a) * rr, dy: Math.sin(a) * rr });
   }
 
-  // Relax: push apart anything closer than MIN_GAP, then pull everything back
-  // inside the rim and off the centre line. Twelve passes settles this size.
+  // Relax: push apart anything closer than MIN_GAP, then pull back inside the
+  // rim. One set across the whole disc, so nothing collides at the centre.
   for (let pass = 0; pass < 12; pass++){
     for (let i = 0; i < n; i++){
       for (let j = i + 1; j < n; j++){
@@ -3545,16 +3543,13 @@ function globeSlots(side, want){
     for (const q of pts){
       const d = Math.hypot(q.dx, q.dy);
       if (d > lim){ q.dx *= lim / d; q.dy *= lim / d; }
-      if (side * q.dx < AXIS_GAP) q.dx = side * AXIS_GAP;
     }
   }
 
-  const out = pts.map(q => {
-    const px = CX + q.dx, py = CY + q.dy;
-    return { x: px, y: py, ro: Math.hypot(q.dx, q.dy), rel: globeRel(px, py, side) };
-  });
-  // By bearing, so each company's three roles sit in one band and its threads
-  // fan out together rather than crossing the sphere separately.
+  const out = pts.map(q => ({
+    x: CX + q.dx, y: CY + q.dy, ro: Math.hypot(q.dx, q.dy),
+    rel: Math.atan2(q.dy, q.dx) * 180 / Math.PI,
+  }));
   out.sort((a, b) => a.rel - b.rel || b.ro - a.ro);
   globeState[key] = out;
   return out;
@@ -3575,7 +3570,7 @@ function globeBuild(){
   const [gThreads, gSparks, gRoles, gCos] = layers;
   layers.forEach(l => { l.innerHTML = ''; });
 
-  const roles = [], cos = [], links = [];
+  const roles = [], cos = [], links = [], picks = [];
   let hiddenCos = 0;
 
   for (const [h, side] of [['opco', -1], ['proptech', 1]]){
@@ -3619,14 +3614,25 @@ function globeBuild(){
       if (!took) break;
     }
     sample.sort((a, b) => a.co.rank - b.co.rank);
+    picks.push(...sample.map(s => ({ job: s.job, co: s.co, hub: h })));
+  }
 
-    // Sorted by company, so each company's jobs sit together on the orbit
-    // opposite it and the threads run out like spokes rather than crossing.
-    // Ask for exactly as many slots as there are roles: no sub-sampling, so
-    // the even spread that was generated is the even spread that gets used.
-    const pts = globeSlots(side, sample.length);
-
-    sample.forEach((s, i) => {
+  // Roles cover the whole sphere with both hubs mixed, so green and purple
+  // alternate everywhere instead of sitting in two solid halves. Interleave the
+  // hubs in proportion first, then lay them onto slots ordered by bearing —
+  // that ordering is what makes neighbouring dots differ in colour.
+  {
+    const A = picks.filter(s => s.hub === 'opco');
+    const B = picks.filter(s => s.hub === 'proptech');
+    const order = [];
+    let ai = 0, bi = 0;
+    while (ai < A.length || bi < B.length){
+      if (bi >= B.length || (ai < A.length && (ai + 0.5) / A.length <= (bi + 0.5) / B.length)) order.push(A[ai++]);
+      else order.push(B[bi++]);
+    }
+    const pts = globeSlots(order.length);
+    order.forEach((s, i) => {
+      const h = s.hub;
       const p = pts[i];
       if (!p) return;
       const role = { key: 'j:' + s.job.id, job: s.job, hub: h, x: p.x, y: p.y };
