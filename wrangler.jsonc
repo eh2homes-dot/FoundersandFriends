@@ -36,10 +36,12 @@
     "enabled": true
   },
 
-  // Monday 13:00 UTC — 8am ET, 9am during daylight saving. Cron has no
-  // timezone, so this drifts by an hour twice a year; an inbox report is not
-  // worth a second worker to correct that.
+  // Cron has no timezone, so these drift by an hour twice a year. Not worth a
+  // second worker to correct for a sheet sync and an inbox report.
   "triggers": {
-    "crons": ["0 13 * * 1"]
+    "crons": [
+      "0 13 * * 1",   // Monday 13:00 UTC — the weekly report email
+      "0 11 * * *"    // daily 11:00 UTC — pull the Syndeo sheet into D1
+    ]
   }
 }
