@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V26" />
+<meta name="ff-build" content="RING-V30" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -231,7 +231,8 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    the right edge, since nowrap cannot shrink text to fit. Below 980 it wraps:
    forcing one line on a phone would shrink the type to nothing. */
 @media(min-width:980px){
-  .board-hero h1{white-space:nowrap;font-size:min(2.25vw,2.4rem)}
+  .board-hero h1{font-size:min(2.45vw,2.6rem)}
+  .board-hero h1.one-line{white-space:nowrap}
 }
 .board-hero h1 .accent{
   background:linear-gradient(100deg,var(--green) 0%,var(--silver-bright) 46%,var(--purple-text) 100%);
@@ -1733,14 +1734,14 @@ const HUBS = {
     label: 'OpCo Hub',
     eyebrow: '',
     h1: 'Build a career in <span class="accent">scattered site rental property</span> and technology.',
-    sub: 'Go-to-market, engineering and leadership roles at the operators running single-family rental at scale.',
+    sub: "Roles across the nation's leading SFR operators — leasing, maintenance, asset management, and leadership.",
     jobs: JOBS,
   },
   proptech: {
     label: 'PropTech Hub',
-    eyebrow: 'PropTech Careers',
-    h1: 'Build a career with the <span class="accent">technology companies</span> serving rental property.',
-    sub: 'Go-to-market, engineering and leadership roles at the software companies selling into SFR and multifamily.',
+    eyebrow: '',
+    h1: 'Explore career opportunities with the <span class="accent">technology companies</span> serving scattered-site real estate.',
+    sub: 'Roles at the software and service companies selling into SFR and multifamily operators — sales, product, engineering, customer success, and leadership.',
     jobs: PROPTECH_JOBS,
   },
 };
@@ -3281,7 +3282,11 @@ function setHub(next){
   const H = HUBS[hub];
 
   $('hero-eyebrow').textContent = H.eyebrow;
-  $('hero-h1').innerHTML = H.h1;
+  const h1El = $('hero-h1');
+  h1El.innerHTML = H.h1;
+  // Only hold one line if the line is short enough to hold. Measured from the
+  // text, so new copy does not need the rule changed to go with it.
+  h1El.classList.toggle('one-line', h1El.textContent.trim().length <= 70);
   $('hero-sub').textContent = H.sub;
 
   document.querySelectorAll('[data-hub]').forEach(b => {
