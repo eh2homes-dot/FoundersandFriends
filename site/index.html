@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V13" />
+<meta name="ff-build" content="RING-V14" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -237,6 +237,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbits{margin-top:18px}
 .orbits[hidden]{display:none}
 #globe{display:block;width:100%;max-width:1180px;height:auto;margin:0 auto;overflow:visible}
+/* Nothing here draws a border, so the blue rectangle around the globe is the
+   browser's own focus ring landing on the container after a click. Suppress it
+   on the wrapper and the canvas only — the nodes inside keep their own
+   focus-visible styling, so keyboard users are unaffected. */
+.orbits:focus,.orbits:focus-visible,#globe:focus,#globe:focus-visible{outline:none;box-shadow:none}
 
 .g-hemi{cursor:pointer}
 .g-half{transition:opacity .4s}
