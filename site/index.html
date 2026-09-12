@@ -1384,14 +1384,14 @@ a.foot-line:hover{color:var(--green)}
 
           <!-- The halo sits outside the sphere, so it has to be drawn before
                anything that should appear in front of it. -->
-          <circle class="g-atmo" cx="500" cy="290" r="140" fill="url(#g-atmo)"/>
+          <circle class="g-atmo" cx="500" cy="290" r="170" fill="url(#g-atmo)"/>
           <ellipse class="g-ring" cx="500" cy="290" rx="418" ry="262"/>
 
           <g class="g-hemi opco" data-goto="opco">
-            <circle class="g-half" cx="500" cy="290" r="128" clip-path="url(#g-clip-l)"/>
+            <circle class="g-half" cx="500" cy="290" r="156" clip-path="url(#g-clip-l)"/>
           </g>
           <g class="g-hemi proptech" data-goto="proptech">
-            <circle class="g-half" cx="500" cy="290" r="128" clip-path="url(#g-clip-r)"/>
+            <circle class="g-half" cx="500" cy="290" r="156" clip-path="url(#g-clip-r)"/>
           </g>
 
           <!-- The wireframe is built in JS: the meridians have to be redrawn
@@ -1399,13 +1399,13 @@ a.foot-line:hover{color:var(--green)}
                ellipses here would only duplicate that. -->
           <g id="g-mesh" pointer-events="none"></g>
           <g pointer-events="none">
-            <circle class="g-rim" cx="500" cy="290" r="128"/>
+            <circle class="g-rim" cx="500" cy="290" r="156"/>
             <g id="g-orbits"></g>
-            <line class="g-axis" x1="500" y1="154" x2="500" y2="426" stroke="url(#g-axis-grad)"/>
+            <line class="g-axis" x1="500" y1="126" x2="500" y2="454" stroke="url(#g-axis-grad)"/>
           </g>
           <!-- Laid over the wireframe but under the jobs, so the sphere reads
                as a solid volume without dimming the data. -->
-          <circle class="g-shade" cx="500" cy="290" r="128" fill="url(#g-shade)" pointer-events="none"/>
+          <circle class="g-shade" cx="500" cy="290" r="156" fill="url(#g-shade)" pointer-events="none"/>
 
           <g id="g-threads"></g>
           <g id="g-sparks"></g>
@@ -3430,17 +3430,26 @@ function wireHubCards(){
 
 const GLOBE = {
   CX: 500, CY: 290,
-  R: 128,          // the sphere — small against the ring, so the ring reads as
-                   // the main shape and the globe as its centre
+  R: 156,          // the sphere — still smaller than the ring, so the ring
+                   // stays the main shape, but with enough presence to hold
+                   // the centre. The ceiling is the ring itself: the oval
+                   // clears 272px vertically, and the threads need room to
+                   // fan out of the sphere before they reach a node.
   RCX: 418,        // the companies ride a wide oval, not a circle: the viewBox
-  RCY: 262,        // is landscape, so a circle wastes the sides and crowds the
+  RCY: 272,        // is landscape, so a circle wastes the sides and crowds the
                    // top. Separate radii let the nodes sit evenly all the way
                    // round without the labels colliding.
-  MAX_COS: 12,     // per side, so the ring carries ~24 nodes the whole way round
-  ARC_MAX: 168,    // degrees of arc each side uses — the full half, near enough
-  ARC_STEP: 15,    // degrees between companies when there are only a few
+  MAX_COS: 21,     // per hub, so up to 42 nodes share the full ring. The
+                   // ceiling is spacing, not taste: 42 nodes over 360 degrees
+                   // puts adjacent centres ~41px apart at the horizon, where
+                   // the oval is steepest and the gap is tightest. A 17px node
+                   // plus its pulse needs ~38px. Past ~46 total they touch.
+  // ARC_MAX / ARC_STEP are unused now that companies ring the whole oval
+  // rather than sitting in one arc per hub. Kept for the labelled layout.
+  ARC_MAX: 168,
+  ARC_STEP: 15,
   MAX_ROLES: 22,   // per side — every slot the rings and parallels provide
-  ORBITS: [101, 78, 57, 38],    // concentric orbits the jobs ride on
+  ORBITS: [123, 95, 69, 46],    // concentric orbits the jobs ride on
   LAT_STEP: 10,    // degrees between parallels
   MERS: 18,        // meridians
   LABELS: false,   // company names in a side column — see the note in globeBuild
@@ -3541,21 +3550,12 @@ function globeBuild(){
     const shown = ranked.slice(0, GLOBE.MAX_COS);
     if (!shown.length) continue;
 
-    // Companies on the circle, in equal steps around it. Equal steps of angle,
-    // not of height: on a circle those are different, and spacing by height
-    // left uneven gaps along the arc. The arc is kept shallow so the first and
-    // last do not swing far in towards the axis.
-    const n = shown.length;
-    const span = n > 1 ? Math.min(GLOBE.ARC_MAX, (n - 1) * GLOBE.ARC_STEP) : 0;
-    const sideCos = shown.map(([name, list], i) => {
-      const rel = n === 1 ? 0 : -span / 2 + (i / (n - 1)) * span;
-      const rad = (side > 0 ? rel : 180 - rel) * Math.PI / 180;
-      return {
-        key: 'c:' + name, name, hub: h, side, rank: i,
-        count: list.length,
-        x: CX + Math.cos(rad) * RCX, y: CY + Math.sin(rad) * RCY,
-      };
-    });
+    // Positions are assigned after both hubs are collected — the ring mixes
+    // them, so neither can be placed until both are known.
+    const sideCos = shown.map(([name, list], i) => ({
+      key: 'c:' + name, name, hub: h, side, rank: i,
+      count: list.length, x: 0, y: 0,
+    }));
     cos.push(...sideCos);
 
     // One role from each company in turn, so a single busy company cannot
@@ -3628,7 +3628,7 @@ function globeBuild(){
       'aria-label': `${c.name}, ${c.count} open ${c.count === 1 ? 'role' : 'roles'}. Show on the board.`,
     });
     const pulse = el('circle', { class: 'pulse', cx: c.x.toFixed(1), cy: c.y.toFixed(1), r: (r + 1).toFixed(1) });
-    pulse.style.animationDelay = (i * 0.55).toFixed(2) + 's';
+    pulse.style.animationDelay = ((i % 10) * 0.55).toFixed(2) + 's';
     g.append(pulse);
     g.append(el('circle', { class: 'core', cx: c.x.toFixed(1), cy: c.y.toFixed(1), r: r.toFixed(1) }));
     const num = el('text', { class: 'n', x: c.x.toFixed(1), y: c.y.toFixed(1) });
@@ -3669,6 +3669,33 @@ function globeBuild(){
     c.g = g;
     gCos.append(g);
   });
+
+  // Companies ride the whole oval rather than one arc per hub, and the two
+  // hubs are interleaved in proportion so neither clumps: 20 operators against
+  // 22 vendors gives a near-alternating ring instead of a green half and a
+  // purple half. Roles stay split left and right inside the sphere — only the
+  // outer ring mixes, which is what keeps the picture balanced while the
+  // hemispheres still mean something.
+  if (cos.length){
+    const opco = cos.filter(c => c.hub === 'opco');
+    const tech = cos.filter(c => c.hub === 'proptech');
+    const A = opco.length, B = tech.length;
+    const order = [];
+    let a = 0, b = 0;
+    while (a < A || b < B){
+      // Take from whichever hub is furthest behind its share of the ring.
+      if (b >= B || (a < A && (a + 0.5) / A <= (b + 0.5) / B)) order.push(opco[a++]);
+      else order.push(tech[b++]);
+    }
+    // Equal steps of angle, starting at the top. Equal angle, not equal height:
+    // on an oval those are different, and stepping by height leaves the sides
+    // crowded and the top and bottom bare.
+    order.forEach((c, i) => {
+      const rad = (-90 + (i / order.length) * 360) * Math.PI / 180;
+      c.x = CX + Math.cos(rad) * RCX;
+      c.y = CY + Math.sin(rad) * RCY;
+    });
+  }
 
   Object.assign(globeState, { roles, cos, links, hiddenCos, focus: null });
   globeMesh();                       // latitudes follow the job rows
