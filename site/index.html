@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V94" />
+<meta name="ff-build" content="RING-V95" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -292,14 +292,17 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* ---------- the orbital system ---------- */
 .orb-path{fill:none;stroke-width:1.6;opacity:var(--fade);
   stroke-dasharray:3 10;animation:orb-drift var(--spin) linear infinite var(--dir)}
-.orb.opco .orb-path{stroke:rgba(0,255,136,.85);filter:drop-shadow(0 0 4px rgba(0,255,136,.45))}
-.orb.proptech .orb-path{stroke:rgba(196,176,255,.9);filter:drop-shadow(0 0 4px rgba(169,143,236,.5))}
+/* White rather than the hub colour: the tracks are structure, not data. In
+   green and purple they competed with the role dots and the company nodes,
+   which are the two things on this picture that actually mean something. */
+.orb.opco .orb-path,
+.orb.proptech .orb-path{stroke:rgba(232,238,255,.72);filter:drop-shadow(0 0 4px rgba(200,215,255,.35))}
 /* The dash offset is the rotation: turning the whole ellipse would make it
    wobble, because a tilted ellipse is not symmetric about its own centre. */
 @keyframes orb-drift{to{stroke-dashoffset:-220}}
 .orb-dot{opacity:1;animation:orb-breathe 4.5s ease-in-out infinite}
-.orb.opco .orb-dot{fill:#00FF88;filter:drop-shadow(0 0 5px rgba(0,255,136,.9))}
-.orb.proptech .orb-dot{fill:#C4B0FF;filter:drop-shadow(0 0 5px rgba(169,143,236,.95))}
+.orb.opco .orb-dot,
+.orb.proptech .orb-dot{fill:#F2F6FF;filter:drop-shadow(0 0 6px rgba(226,236,255,.9))}
 @keyframes orb-breathe{0%,100%{opacity:.55}50%{opacity:1}}
 /* Motion is decoration; anyone who has asked for less of it gets a still
    picture rather than a broken one. */
