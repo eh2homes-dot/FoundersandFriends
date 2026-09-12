@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V11" />
+<meta name="ff-build" content="RING-V12" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3617,38 +3617,6 @@ function globeBuild(){
     picks.push(...sample.map(s => ({ job: s.job, co: s.co, hub: h })));
   }
 
-  // Roles cover the whole sphere with both hubs mixed, so green and purple
-  // alternate everywhere instead of sitting in two solid halves. Interleave the
-  // hubs in proportion first, then lay them onto slots ordered by bearing —
-  // that ordering is what makes neighbouring dots differ in colour.
-  {
-    const A = picks.filter(s => s.hub === 'opco');
-    const B = picks.filter(s => s.hub === 'proptech');
-    const order = [];
-    let ai = 0, bi = 0;
-    while (ai < A.length || bi < B.length){
-      if (bi >= B.length || (ai < A.length && (ai + 0.5) / A.length <= (bi + 0.5) / B.length)) order.push(A[ai++]);
-      else order.push(B[bi++]);
-    }
-    const pts = globeSlots(order.length);
-    order.forEach((s, i) => {
-      const h = s.hub;
-      const p = pts[i];
-      if (!p) return;
-      const role = { key: 'j:' + s.job.id, job: s.job, hub: h, x: p.x, y: p.y };
-      roles.push(role);
-      links.push({
-        key: 'l:' + s.job.id, from: role, to: s.co, hub: h,
-        phase: globeHash(roles.length) * Math.PI * 2,
-        bend: 0.35 + globeHash(roles.length + 17) * 1.15,
-        speed: 0.5 + globeHash(roles.length + 7) * 0.5,
-        period: 17000 + globeHash(roles.length + 31) * 11000,  // one pass every 17–28s
-        start: globeHash(roles.length + 53),
-        pull: { x: 0, y: 0 },
-      });
-    });
-  }
-
   // Companies ride the whole oval rather than one arc per hub, and the two
   // hubs are interleaved in proportion so neither clumps: 20 operators against
   // 22 vendors gives a near-alternating ring instead of a green half and a
@@ -3673,6 +3641,41 @@ function globeBuild(){
       const rad = (-90 + (i / order.length) * 360) * Math.PI / 180;
       c.x = CX + Math.cos(rad) * RCX;
       c.y = CY + Math.sin(rad) * RCY;
+    });
+  }
+
+  // Roles sit near the bearing of the company they belong to. Both hubs still
+  // cover the whole sphere — the ring alternates green and purple, so the dots
+  // inherit that alternation — but a company's three roles land together, on
+  // the side facing its node. That is what turns the threads back into short
+  // radial stems instead of long arcs sweeping across the interior looking for
+  // their node, which is the tangle. Grouping alone is not enough; they have to
+  // be grouped in the right PLACE.
+  {
+    const groups = new Map();
+    for (const s of picks){
+      if (!groups.has(s.co.key)) groups.set(s.co.key, []);
+      groups.get(s.co.key).push(s);
+    }
+    const bearing = (c) => Math.atan2(c.y - GLOBE.CY, c.x - GLOBE.CX) * 180 / Math.PI;
+    const ordered = [...groups.values()].sort((g1, g2) => bearing(g1[0].co) - bearing(g2[0].co));
+    const flat = ordered.flat();
+    const pts = globeSlots(flat.length);   // already sorted by bearing
+    flat.forEach((s, i) => {
+      const h = s.hub;
+      const p = pts[i];
+      if (!p) return;
+      const role = { key: 'j:' + s.job.id, job: s.job, hub: h, x: p.x, y: p.y };
+      roles.push(role);
+      links.push({
+        key: 'l:' + s.job.id, from: role, to: s.co, hub: h,
+        phase: globeHash(roles.length) * Math.PI * 2,
+        bend: 0.35 + globeHash(roles.length + 17) * 1.15,
+        speed: 0.5 + globeHash(roles.length + 7) * 0.5,
+        period: 17000 + globeHash(roles.length + 31) * 11000,  // one pass every 17–28s
+        start: globeHash(roles.length + 53),
+        pull: { x: 0, y: 0 },
+      });
     });
   }
 
@@ -3786,7 +3789,7 @@ function globeThread(L, time, still){
   // straight from the dot is what made these read as cut lines.
   const ja = Math.atan2(a.y - CY, a.x - CX);
   const ar = Math.hypot(a.x - CX, a.y - CY);
-  const lift = Math.min(46, len * 0.42);
+  const lift = Math.min(30, len * 0.3);
   const c1x = a.x + Math.cos(ja) * lift + nx * sway + L.pull.x * 0.6;
   const c1y = a.y + Math.sin(ja) * lift + ny * sway + L.pull.y * 0.6;
   const c2x = gx + (gx - CX) * 0.1;
