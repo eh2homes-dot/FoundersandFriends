@@ -11,6 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
+<meta name="ff-build" content="RING-V3" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3599,6 +3600,33 @@ function globeBuild(){
     });
   }
 
+  // Companies ride the whole oval rather than one arc per hub, and the two
+  // hubs are interleaved in proportion so neither clumps: 20 operators against
+  // 22 vendors gives a near-alternating ring instead of a green half and a
+  // purple half. Roles stay split left and right inside the sphere — only the
+  // outer ring mixes, which is what keeps the picture balanced while the
+  // hemispheres still mean something.
+  if (cos.length){
+    const opco = cos.filter(c => c.hub === 'opco');
+    const tech = cos.filter(c => c.hub === 'proptech');
+    const A = opco.length, B = tech.length;
+    const order = [];
+    let a = 0, b = 0;
+    while (a < A || b < B){
+      // Take from whichever hub is furthest behind its share of the ring.
+      if (b >= B || (a < A && (a + 0.5) / A <= (b + 0.5) / B)) order.push(opco[a++]);
+      else order.push(tech[b++]);
+    }
+    // Equal steps of angle, starting at the top. Equal angle, not equal height:
+    // on an oval those are different, and stepping by height leaves the sides
+    // crowded and the top and bottom bare.
+    order.forEach((c, i) => {
+      const rad = (-90 + (i / order.length) * 360) * Math.PI / 180;
+      c.x = CX + Math.cos(rad) * RCX;
+      c.y = CY + Math.sin(rad) * RCY;
+    });
+  }
+
   // threads and their sparks
   for (const L of links){
     L.path = el('path', { class: 'g-thread ' + L.hub, 'data-key': L.from.key });
@@ -3669,33 +3697,6 @@ function globeBuild(){
     c.g = g;
     gCos.append(g);
   });
-
-  // Companies ride the whole oval rather than one arc per hub, and the two
-  // hubs are interleaved in proportion so neither clumps: 20 operators against
-  // 22 vendors gives a near-alternating ring instead of a green half and a
-  // purple half. Roles stay split left and right inside the sphere — only the
-  // outer ring mixes, which is what keeps the picture balanced while the
-  // hemispheres still mean something.
-  if (cos.length){
-    const opco = cos.filter(c => c.hub === 'opco');
-    const tech = cos.filter(c => c.hub === 'proptech');
-    const A = opco.length, B = tech.length;
-    const order = [];
-    let a = 0, b = 0;
-    while (a < A || b < B){
-      // Take from whichever hub is furthest behind its share of the ring.
-      if (b >= B || (a < A && (a + 0.5) / A <= (b + 0.5) / B)) order.push(opco[a++]);
-      else order.push(tech[b++]);
-    }
-    // Equal steps of angle, starting at the top. Equal angle, not equal height:
-    // on an oval those are different, and stepping by height leaves the sides
-    // crowded and the top and bottom bare.
-    order.forEach((c, i) => {
-      const rad = (-90 + (i / order.length) * 360) * Math.PI / 180;
-      c.x = CX + Math.cos(rad) * RCX;
-      c.y = CY + Math.sin(rad) * RCY;
-    });
-  }
 
   Object.assign(globeState, { roles, cos, links, hiddenCos, focus: null });
   globeMesh();                       // latitudes follow the job rows
