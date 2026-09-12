@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V72" />
+<meta name="ff-build" content="RING-V76" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -365,7 +365,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-co.proptech .pulse{stroke:#A98FEC}
 @keyframes g-pulse{0%{transform:scale(1);opacity:.6}65%,100%{transform:scale(1.85);opacity:0}}
 .g-co .n{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
-.g-co .lbl{font-family:var(--body);font-size:16.5px;font-weight:600;fill:var(--ink-soft)}
+.g-co .lbl{font-family:var(--body);font-size:19px;font-weight:600;fill:var(--ink-soft);dominant-baseline:central}
 /* The lead is what says which name belongs to which node. At .28 it was
    invisible against the background, so three labels stacked in a column read
    as unattached text. It carries the hub's colour now rather than a grey. */
@@ -3696,9 +3696,11 @@ const GLOBE = {
                    // with their own node instead of being pushed off it.
   LABEL_PAD: 12,   // px from the edge of a node to the start of its name.
                    // The same for every node — that regularity is the point.
-  LABEL_MAX: 14,   // characters before a name is truncated. The two globes'
-                   // facing labels are what run out of room first: at 14 the
-                   // widest pair still clears by ~18px, at 16 they overlap.
+  LABEL_LINE: 25,  // one row of label text, used when one has to step aside
+  LABEL_MAX: 12,   // characters before a name is truncated. The two globes'
+                   // facing labels are what run out of room first: there are
+                   // 258px of clear span between them, so 129px per label —
+                   // which at 19px type is 12 characters, not 14.
 };
 
 const globeState = {
@@ -3887,8 +3889,8 @@ function globeBuild(){
   // are.
   if (GLOBE.LABELS && cos.length){
     const PAD = GLOBE.LABEL_PAD;
-    const LH = 11;                       // half a line of text, for hit testing
-    const CHAR = 8.6;                    // approx advance at 16.5px
+    const LH = 13;                       // half a line of text, for hit testing
+    const CHAR = 9.9;                    // approx advance at 19px
 
     const placed = [];   // shared across both globes: their facing labels meet
                          // in the middle of the canvas, so a per-globe list
@@ -3941,10 +3943,20 @@ function globeBuild(){
         const cands = [
           { side: out,  dy: 0 },                                // outward, level
           { side: -out, dy: 0 },                                // the other side
-          { mid: true,  dy: below ? c.r + 24 : -(c.r + 20) },   // under or over
-          { mid: true,  dy: below ? -(c.r + 20) : c.r + 24 },
-          { side: out,  dy: below ? 20 : -20 },
-          { side: out,  dy: below ? -20 : 20 },
+          // Same visual gap as a label beside a node: the pad is measured from
+          // the circle's edge, plus half a line because the text is centred on
+          // this y. The old 24-above / 20-below pair was asymmetric and did not
+          // match the beside gap, so a stacked name sat at a different distance
+          // from its circle than its neighbours did from theirs.
+          { mid: true,  dy: (below ? 1 : -1) * (c.r + GLOBE.LABEL_PAD + 10) },
+          { mid: true,  dy: (below ? -1 : 1) * (c.r + GLOBE.LABEL_PAD + 10) },
+          // Last resort: beside the node but one row off. Exactly one line, so
+          // a displaced label still lands on the same rhythm as the level ones
+          // rather than at an arbitrary 20px. Anything using these gets a lead
+          // line, since a name beside a circle it is not level with otherwise
+          // looks like it belongs to nothing.
+          { side: out,  dy: (below ? 1 : -1) * GLOBE.LABEL_LINE },
+          { side: out,  dy: (below ? -1 : 1) * GLOBE.LABEL_LINE },
         ];
 
         let chosen = null;
@@ -3952,7 +3964,7 @@ function globeBuild(){
           const ly = c.y + cand.dy;
           const lx = cand.mid ? c.x : c.x + cand.side * (c.r + PAD);
           const x0 = cand.mid ? lx - c.tw / 2 : (cand.side < 0 ? lx - c.tw : lx);
-          const box = { x0, x1: x0 + c.tw, y0: ly - LH, y1: ly + LH };
+          const box = { x0, x1: x0 + c.tw, y0: ly - LH, y1: ly + LH };   // centred on ly, matching dominant-baseline:central
           if (!onCanvas(box)) continue;
           if (hitsNode(box, c)) continue;
           if (hitsLabel(box)) continue;
@@ -4078,7 +4090,7 @@ function globeBuild(){
       const anchor = mid0 ? 'middle' : (side > 0 ? 'start' : 'end');
       const name0 = c.name.length > GLOBE.LABEL_MAX
         ? c.name.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : c.name;
-      const textW = name0.length * 8.6;   // approx advance at 16.5px
+      const textW = name0.length * 9.9;   // approx advance at 19px
       let lx = c.lx;
       // Keep the text on the canvas: a name hanging off the edge is worse than
       // one sitting slightly further from its node.
@@ -4088,7 +4100,7 @@ function globeBuild(){
       // An elbow where the label has been pushed off its node's height. The
       // polar caps sit directly above or below their node, so a lead there
       // would be a stray dash across the name.
-      if (!mid0 && Math.abs(c.ly - c.y) > 3){
+      if (!mid0 && Math.abs(c.ly - c.y) > 2){
         const x0 = c.x + side * (r + 3);
         const x1 = lx - side * 6;
         const mid = x0 + (x1 - x0) * 0.45;
@@ -4100,7 +4112,7 @@ function globeBuild(){
         }));
       }
       const name = name0;
-      const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.ly - 1).toFixed(1), 'text-anchor': anchor });
+      const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: c.ly.toFixed(1), 'text-anchor': anchor });
       lbl.textContent = name;
       // No count line: the number is already inside the node, so printing it
       // again under the name said the same thing twice and cost every label a
