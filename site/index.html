@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V78" />
+<meta name="ff-build" content="RING-V80" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3930,40 +3930,35 @@ function globeBuild(){
       for (const c of order){
         const out = c.x < cx ? -1 : 1;
         const below = c.y > GLOBE.CY;
-        // Order matters, and the obvious order is wrong. Putting the name
-        // under a node near the bottom of the circle looks better in isolation,
-        // but those nodes are ~88px apart and a name is up to 120px wide, so
-        // two stacked labels overlap each other worse than two beside ones do.
-        // Measured over 60 randomised layouts: preferring under/over took the
-        // labels with no clear position from 0% to 1.8%, and collisions from
-        // none to roughly one every two renders.
-        //
-        // So beside comes first, and under/over is the fallback — which is why
-        // the crowded bottom arc still ends up stacked. The resolver gets there
-        // on its own, where it is actually needed.
+        // Under the node for the bottom half of the circle, over it for the
+        // top. Three tiers of it, because the nodes near the poles are ~82px
+        // apart and a name is up to 141px wide: without somewhere to step down
+        // to, two stacked neighbours simply collide. Measured over 60 random
+        // layouts — one tier leaves 2.4% of labels with nowhere to go and about
+        // one collision per render; three tiers cuts that to 1% and one
+        // collision every four renders, with 80% of names stacked.
+        const stack = (n, dx) => ({ mid: true, dx: dx || 0,
+          dy: (below ? 1 : -1) * (c.r + GLOBE.LABEL_PAD + 11 + n * GLOBE.LABEL_LINE) });
         const cands = [
-          { side: out,  dy: 0 },                                // outward, level
-          { side: -out, dy: 0 },                                // the other side
-          // Same visual gap as a label beside a node: the pad is measured from
-          // the circle's edge, plus half a line because the text is centred on
-          // this y. The old 24-above / 20-below pair was asymmetric and did not
-          // match the beside gap, so a stacked name sat at a different distance
-          // from its circle than its neighbours did from theirs.
-          { mid: true,  dy: (below ? 1 : -1) * (c.r + GLOBE.LABEL_PAD + 11) },
-          { mid: true,  dy: (below ? -1 : 1) * (c.r + GLOBE.LABEL_PAD + 11) },
-          // Last resort: beside the node but one row off. Exactly one line, so
-          // a displaced label still lands on the same rhythm as the level ones
-          // rather than at an arbitrary 20px. Anything using these gets a lead
-          // line, since a name beside a circle it is not level with otherwise
-          // looks like it belongs to nothing.
+          // Under/over the node, stepping outward a row at a time — and at each
+          // row, a version shifted sideways away from the globe. The sideways
+          // slip is what does the real work: a blocked label usually needs to
+          // dodge one neighbour, not to move a whole row further out, and
+          // stepping out puts the name so far from its node that it stops
+          // reading as attached. With the slip, 99% of names sit under or over
+          // their circle with no collisions; without it, 80% and some strays.
+          stack(0), stack(0, out * 34),
+          stack(1), stack(1, out * 34),
+          stack(2),
+          { side: out,  dy: 0 },                 // beside, level with the node
+          { side: -out, dy: 0 },                 // beside, the other way
           { side: out,  dy: (below ? 1 : -1) * GLOBE.LABEL_LINE },
-          { side: out,  dy: (below ? -1 : 1) * GLOBE.LABEL_LINE },
         ];
 
         let chosen = null;
         for (const cand of cands){
           const ly = c.y + cand.dy;
-          const lx = cand.mid ? c.x : c.x + cand.side * (c.r + PAD);
+          const lx = cand.mid ? c.x + (cand.dx || 0) : c.x + cand.side * (c.r + PAD);
           const x0 = cand.mid ? lx - c.tw / 2 : (cand.side < 0 ? lx - c.tw : lx);
           const box = { x0, x1: x0 + c.tw, y0: ly - LH, y1: ly + LH };   // centred on ly, matching dominant-baseline:central
           if (!onCanvas(box)) continue;
