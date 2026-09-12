@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V36" />
+<meta name="ff-build" content="RING-V37" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -362,12 +362,12 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-co.proptech .pulse{stroke:#A98FEC}
 @keyframes g-pulse{0%{transform:scale(1);opacity:.6}65%,100%{transform:scale(1.85);opacity:0}}
 .g-co .n{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
-.g-co .lbl{font-family:var(--body);font-size:15px;font-weight:600;fill:var(--ink-soft)}
-.co-lead{stroke-width:1;opacity:.28;transition:opacity .25s}
+.g-co .lbl{font-family:var(--body);font-size:12.5px;font-weight:600;fill:var(--ink-soft)}
+.co-lead{fill:none;stroke-width:1;opacity:.28;transition:opacity .25s}
 .g-co.opco .co-lead{stroke:rgba(0,255,136,.55)}
 .g-co.proptech .co-lead{stroke:rgba(169,143,236,.65)}
 .g-co.is-lit .co-lead{opacity:.95}
-.g-co .sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;fill:var(--ink-dim)}
+.g-co .sub{font-family:var(--mono);font-size:9px;letter-spacing:.06em;fill:var(--ink-dim)}
 .g-co.opco.is-lit .core{fill:#00FF88}
 .g-co.proptech.is-lit .core{fill:#8B5CF0}
 .g-co.opco.is-lit .n{fill:#07040F}
@@ -3621,7 +3621,7 @@ const GLOBE = {
                    // the centre. The ceiling is the ring itself: the oval
                    // clears 272px vertically, and the threads need room to
                    // fan out of the sphere before they reach a node.
-  RCX: 418,        // the companies ride a wide oval, not a circle: the viewBox
+  RCX: 336,        // the companies ride a wide oval, not a circle: the viewBox
   RCY: 272,        // is landscape, so a circle wastes the sides and crowds the
                    // top. Separate radii let the nodes sit evenly all the way
                    // round without the labels colliding.
@@ -3649,7 +3649,9 @@ const GLOBE = {
   LAT_STEP: 7,     // degrees between parallels — closer spacing is what
                    // creates the extra slots, since a slot is a crossing
   MERS: 18,        // meridians
-  LABELS: false,   // company names in a side column — see the note in globeBuild
+  LABELS: true,    // company names beside the ring
+  LABEL_GAP: 16,   // minimum px between two labels, vertically
+  LABEL_MAX: 20,   // characters before a name is truncated
 };
 
 const globeState = {
@@ -3829,6 +3831,42 @@ function globeBuild(){
     place(cos.filter(c => c.hub === 'proptech'), -84, 84);
   }
 
+  // Labels: a name beside each node, nudged apart until none overlap.
+  //
+  // The node positions cannot be changed — they carry the meaning — so the
+  // labels move instead. Near the top and bottom of each arc consecutive nodes
+  // are only a few pixels apart vertically, so their names would sit on top of
+  // each other; this pushes them apart, keeps them inside the frame, and leaves
+  // a lead line back to the node each one belongs to.
+  if (GLOBE.LABELS && cos.length){
+    const settle = (list) => {
+      if (!list.length) return;
+      const gap = GLOBE.LABEL_GAP;
+      list.forEach(c => { c.ly = c.y; });
+      list.sort((a, b) => a.ly - b.ly);
+      // Down the column, then back up: one pass in a single direction piles
+      // everything against whichever end it started from.
+      for (let pass = 0; pass < 3; pass++){
+        for (let i = 1; i < list.length; i++){
+          const d = list[i].ly - list[i - 1].ly;
+          if (d < gap) list[i].ly = list[i - 1].ly + gap;
+        }
+        for (let i = list.length - 2; i >= 0; i--){
+          const d = list[i + 1].ly - list[i].ly;
+          if (d < gap) list[i].ly = list[i + 1].ly - gap;
+        }
+      }
+      // Keep the whole column on the canvas.
+      const top = list[0].ly, bottom = list[list.length - 1].ly;
+      const span = bottom - top;
+      const fitTop = Math.max(14, Math.min(top, 596 - span));
+      const shift = fitTop - top;
+      if (shift) list.forEach(c => { c.ly += shift; });
+    };
+    settle(cos.filter(c => c.hub === 'opco'));
+    settle(cos.filter(c => c.hub === 'proptech'));
+  }
+
   // Roles sit on their hub's side of the sphere, and within it near the bearing
   // of the company they belong to. Both together are what keep the threads
   // short and radial: the side decides which half, the bearing decides where in
@@ -3918,22 +3956,25 @@ function globeBuild(){
     // a wide oval runs past the edge of the viewBox. Names live in the hover
     // title instead; the count stays inside the node. Set LABELS true to bring
     // the column back (and drop ARC_MAX to about 140 if you do).
-    if (GLOBE.LABELS){
-      const lx = GLOBE.CX + c.side * (GLOBE.RCX + 34);
-      const anchor = c.side > 0 ? 'start' : 'end';
-      const leadFrom = c.x + c.side * (r + 5);
-      const leadTo = lx - c.side * 9;
-      if (Math.abs(leadTo - leadFrom) > 5){
-        g.append(el('line', {
-          class: 'co-lead',
-          x1: leadFrom.toFixed(1), y1: c.y.toFixed(1),
-          x2: leadTo.toFixed(1),   y2: c.y.toFixed(1),
-        }));
-      }
-      const name = c.name.length > 24 ? c.name.slice(0, 23).trimEnd() + '…' : c.name;
-      const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.y - 1).toFixed(1), 'text-anchor': anchor });
+    if (GLOBE.LABELS && c.ly != null){
+      const side = c.hub === 'opco' ? -1 : 1;
+      const lx = GLOBE.CX + side * (GLOBE.RCX + 30);
+      const anchor = side > 0 ? 'start' : 'end';
+      // An elbow, not a straight line: once a label has been nudged off its
+      // node's height a horizontal rule points at the wrong row.
+      const x0 = c.x + side * (r + 4);
+      const x1 = lx - side * 8;
+      g.append(el('path', {
+        class: 'co-lead',
+        d: `M ${x0.toFixed(1)} ${c.y.toFixed(1)} L ${((x0 + x1) / 2).toFixed(1)} ${c.y.toFixed(1)}`
+         + ` L ${((x0 + x1) / 2).toFixed(1)} ${c.ly.toFixed(1)} L ${x1.toFixed(1)} ${c.ly.toFixed(1)}`,
+        fill: 'none',
+      }));
+      const max = GLOBE.LABEL_MAX;
+      const name = c.name.length > max ? c.name.slice(0, max - 1).trimEnd() + '…' : c.name;
+      const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.ly - 1).toFixed(1), 'text-anchor': anchor });
       lbl.textContent = name;
-      const sub = el('text', { class: 'sub', x: lx.toFixed(1), y: (c.y + 13).toFixed(1), 'text-anchor': anchor });
+      const sub = el('text', { class: 'sub', x: lx.toFixed(1), y: (c.ly + 11).toFixed(1), 'text-anchor': anchor });
       sub.textContent = c.count === 1 ? '1 role' : c.count + ' roles';
       g.append(lbl, sub);
     }
