@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V20" />
+<meta name="ff-build" content="RING-V21" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -221,8 +221,15 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .board-hero{padding:clamp(12px,2.4vh,32px) 5vw 0;max-width:1240px;margin:0 auto}
 .hero-inner{max-width:900px;padding-bottom:0}
 .board-hero h1{
-  font-size:clamp(1.7rem,3.8vw,2.9rem);line-height:1.05;margin-top:clamp(4px,1vh,14px);color:#fff;
+  font-size:clamp(1.5rem,3.4vw,2.6rem);line-height:1.08;margin-top:clamp(4px,1vh,14px);color:#fff;
   text-shadow:0 2px 26px rgba(7,4,15,.9);
+}
+/* One line from 980px up. The headline runs about 64 characters, so the size
+   is capped against viewport width rather than a fixed rem: at 2.45vw it fits
+   the line on any width in this range. Below 980 it wraps as before — forcing
+   one line on a phone would shrink the type to nothing. */
+@media(min-width:980px){
+  .board-hero h1{white-space:nowrap;font-size:min(2.45vw,2.5rem)}
 }
 .board-hero h1 .accent{
   background:linear-gradient(100deg,var(--green) 0%,var(--silver-bright) 46%,var(--purple-text) 100%);
@@ -230,10 +237,8 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   -webkit-text-fill-color:transparent;color:transparent;
 }
 .hero-sub{margin-top:clamp(8px,1.4vh,18px);font-size:clamp(.95rem,1.3vw,1.08rem);line-height:1.55;color:var(--ink-soft);max-width:56ch}
-/* Under about 800px tall there is not room for both the sub-line and a globe
-   worth looking at. The headline already carries the message, so the sub-line
-   is the thing that goes. */
-@media(max-height:860px){ .hero-sub{display:none} }
+/* The sub-line stays. Collapsing the headline to one line frees the row it
+   needs, so the trade that removed it no longer applies. */
 
 
 /* ---------- hub cards under the hero ---------- */
@@ -241,11 +246,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    One sphere split down the axis: operators on the left, technology on the
    right. Roles sit inside their own half; the companies hiring them sit on the
    outer ring, and a thread runs from every role to its company. */
-.orbits{margin-top:clamp(6px,1.2vh,16px)}
+.orbits{margin-top:clamp(10px,1.8vh,22px)}
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
-#globe{display:block;width:100%;max-width:1180px;height:auto;max-height:min(74vh,780px);
+#globe{display:block;width:100%;max-width:1180px;height:auto;max-height:min(68vh,720px);
   margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
