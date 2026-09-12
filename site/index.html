@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V42" />
+<meta name="ff-build" content="RING-V43" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -219,7 +219,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    The hero and the globe share one screen. Everything here is sized against
    the viewport rather than fixed, so the headline gives way as the window
    gets shorter instead of pushing the globe below the fold. */
-.board-hero{padding:clamp(12px,2.4vh,32px) 5vw 0;max-width:1240px;margin:0 auto}
+.board-hero{padding:clamp(10px,1.8vh,24px) 3.5vw 0;max-width:1920px;margin:0 auto}
 .hero-inner{max-width:900px;padding-bottom:0}
 .board-hero h1{
   font-size:clamp(1.5rem,3.4vw,2.6rem);line-height:1.08;margin-top:clamp(4px,1vh,14px);color:#fff;
@@ -248,7 +248,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
 }
-.hero-sub{margin-top:clamp(8px,1.4vh,18px);font-size:clamp(.95rem,1.15vw,1.02rem);line-height:1.5;color:var(--ink-soft);
+.hero-sub{margin-top:clamp(6px,1vh,13px);font-size:clamp(.95rem,1.15vw,1.02rem);line-height:1.5;color:var(--ink-soft);
   /* A measure again, but a wide one — without it the line runs the full column
      and strands a single word on the second row. */
   max-width:78ch;text-wrap:balance}
@@ -261,11 +261,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    One sphere split down the axis: operators on the left, technology on the
    right. Roles sit inside their own half; the companies hiring them sit on the
    outer ring, and a thread runs from every role to its company. */
-.orbits{margin-top:clamp(10px,1.8vh,22px);position:relative}
+.orbits{margin-top:clamp(6px,1vh,14px);position:relative}
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
-#globe{display:block;width:100%;max-width:1780px;height:auto;max-height:min(70vh,760px);
+#globe{display:block;width:100%;max-width:1920px;height:auto;max-height:min(74vh,820px);
   margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
@@ -396,7 +396,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hemi-label.opco{fill:#00FF88}
 .hemi-label.proptech{fill:#A98FEC}
 
-.orbit-more{display:flex;justify-content:center;margin-top:14px}
+.orbit-more{display:flex;justify-content:center;margin-top:10px}
 .orbit-more[hidden]{display:none}
 .all-cos{
   display:inline-flex;align-items:center;gap:10px;padding:11px 22px;border-radius:100px;
@@ -411,8 +411,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 }
 .all-cos:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 
+.orbit-hint:empty{display:none}
 .orbit-hint{
-  text-align:center;margin-top:10px;min-height:20px;
+  text-align:center;margin-top:8px;min-height:0;
   font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-dim);
 }
 @media(max-width:640px){.orbits{display:none}}
@@ -807,7 +808,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #board-view[data-view="list"] .orbits,
 #board-view[data-view="list"] .hub-cards{display:none}
 #board-view[data-view="list"] .board-hero .laser-rule{margin-top:34px}
-.orbits > .data-status{margin:18px auto 8px;max-width:980px;justify-content:center}
+.orbits > .data-status{margin:10px auto 4px;max-width:980px;justify-content:center}
 
 .stat-line{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
