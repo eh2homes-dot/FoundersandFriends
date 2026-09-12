@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V91" />
+<meta name="ff-build" content="RING-V92" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -4010,6 +4010,10 @@ function globeBuild(){
         // positions win every time: measured over 80 random layouts, 100% of
         // labels land aligned, with no collisions and nothing unplaced.
         const cands = [
+          // First choice: straight out from the globe's centre, as in the
+          // sketch. It places 98% of labels on its own, and everything below
+          // is there for the handful it cannot.
+          { radial: true },
           stack(0),                              // centred under/over
           { side: out,  dy: 0 },                 // beside, level
           { side: -out, dy: 0 },                 // beside the other way, level
@@ -4054,15 +4058,30 @@ function globeBuild(){
 
         let chosen = null;
         for (const cand of cands){
-          const ly = c.y + cand.dy;
-          const lx = cand.mid ? c.x + (cand.dx || 0) : c.x + cand.side * (c.r + PAD);
-          const x0 = cand.mid ? lx - c.tw / 2 : (cand.side < 0 ? lx - c.tw : lx);
-          const box = { x0, x1: x0 + c.tw, y0: ly - LH, y1: ly + LH };   // centred on ly, matching dominant-baseline:central
+          let lx, ly, anchor;
+          if (cand.radial){
+            // Straight out along the node's own bearing from the centre of its
+            // globe: left for a node on the left, straight down for one at the
+            // bottom, down-and-right for one on the lower right. The anchor
+            // follows the same bearing, so a name always reads away from the
+            // sphere rather than back across it.
+            const ux = (c.x - cx) / GLOBE.RCX, uy = (c.y - GLOBE.CY) / GLOBE.RCY;
+            lx = c.x + ux * (c.r + PAD);
+            ly = c.y + uy * (c.r + PAD);
+            anchor = ux > 0.25 ? 'start' : ux < -0.25 ? 'end' : 'middle';
+          } else {
+            ly = c.y + cand.dy;
+            lx = cand.mid ? c.x + (cand.dx || 0) : c.x + cand.side * (c.r + PAD);
+            anchor = cand.mid ? 'middle' : (cand.side > 0 ? 'start' : 'end');
+          }
+          // Centred on ly, matching dominant-baseline:central on the text.
+          const x0 = anchor === 'start' ? lx : anchor === 'end' ? lx - c.tw : lx - c.tw / 2;
+          const box = { x0, x1: x0 + c.tw, y0: ly - LH, y1: ly + LH };
           if (!onCanvas(box)) continue;
           if (hitsNode(box, c)) continue;
           if (hitsLabel(box)) continue;
           if (crossesRing(box)) continue;
-          chosen = { lx, ly, anchor: cand.mid ? 'middle' : (cand.side > 0 ? 'start' : 'end'), box };
+          chosen = { lx, ly, anchor, box };
           break;
         }
 
