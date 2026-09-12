@@ -1624,6 +1624,99 @@ async function countRoles(method, slug) {
   }
 }
 
+/* ===========================================================================
+   ATS DETECTION FOR COMPANIES ALREADY IN THE DATABASE
+
+   The sheet brings in ~100 companies with a careers URL and nothing else. The
+   scraper skips any company with no `method` — "no scrape method set" — so they
+   sit in D1 and never reach the board however many times the scraper runs.
+
+   verifyCompany() has always done this work; it was only ever pointed at newly
+   discovered companies. This points it at the backlog.
+
+   Batched on purpose. Each company costs a page fetch plus an API call to its
+   ATS, and a Worker invocation has a wall-clock budget — a hundred at once
+   would time out halfway and leave no record of how far it got. Twelve a run,
+   every run, clears the backlog within a fortnight of daily crons and leaves
+   the database consistent after every batch.
+   =========================================================================== */
+async function detectCompanies(env, { limit = 12, retry = false } = {}) {
+  if (!env.DB) return { ok: false, error: 'No database configured.' };
+
+  // Companies with a careers page but no resolved ATS. `retry` also revisits
+  // ones tried before and failed — a JavaScript-rendered board today may be a
+  // Greenhouse embed next month.
+  const where = retry
+    ? `careers_url IS NOT NULL AND (method IS NULL OR method = '')`
+    : `careers_url IS NOT NULL AND (method IS NULL OR method = '')
+       AND (detect_tried_at IS NULL OR detect_tried_at < datetime('now', '-14 days'))`;
+
+  let rows;
+  try {
+    rows = await env.DB.prepare(
+      `SELECT id, name, careers_url FROM companies
+        WHERE ${where}
+        ORDER BY active DESC, name
+        LIMIT ?1`).bind(limit).all();
+  } catch (_) {
+    // detect_tried_at may not exist on an older schema; fall back to the
+    // simpler condition rather than failing the whole run.
+    rows = await env.DB.prepare(
+      `SELECT id, name, careers_url FROM companies
+        WHERE careers_url IS NOT NULL AND (method IS NULL OR method = '')
+        ORDER BY active DESC, name LIMIT ?1`).bind(limit).all();
+  }
+
+  const list = rows.results || [];
+  if (!list.length) return { ok: true, checked: 0, resolved: 0, note: 'Nothing left to detect.' };
+
+  let resolved = 0;
+  const found = [], failed = [];
+
+  for (const c of list) {
+    const v = await verifyCompany(c.careers_url);
+
+    // A Workday tenant is a real, usable method even though verifyCompany
+    // cannot count its roles from here — the scraper can. Treat it as found.
+    const method = v.method || null;
+    const usable = !!method;
+
+    try {
+      await env.DB.prepare(
+        `UPDATE companies
+            SET method = COALESCE(?2, method),
+                ats_slug = COALESCE(?3, ats_slug),
+                ats_site = COALESCE(?4, ats_site),
+                detect_tried_at = datetime('now'),
+                detect_error = ?5,
+                updated_at = datetime('now')
+          WHERE id = ?1`
+      ).bind(c.id, method, v.slug || null, v.site || null, usable ? null : (v.error || 'no ATS found')).run();
+    } catch (_) {
+      // Older schema without the detect_* columns: still write what matters.
+      await env.DB.prepare(
+        `UPDATE companies
+            SET method = COALESCE(?2, method), ats_slug = COALESCE(?3, ats_slug),
+                ats_site = COALESCE(?4, ats_site), updated_at = datetime('now')
+          WHERE id = ?1`
+      ).bind(c.id, method, v.slug || null, v.site || null).run();
+    }
+
+    if (usable) { resolved++; found.push({ name: c.name, method, slug: v.slug || v.site || null, roles: v.count ?? null }); }
+    else failed.push({ name: c.name, reason: v.error || 'no ATS found' });
+  }
+
+  return {
+    ok: true,
+    checked: list.length,
+    resolved,
+    // Named, not just counted: "3 of 12" says nothing about which pages are
+    // worth a human look.
+    found,
+    failed: failed.slice(0, 20),
+  };
+}
+
 async function discover(request, env) {
   if (!adminAuthed(request, env)) {
     return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
@@ -2168,7 +2261,16 @@ export default {
     // by an Apps Script that pulls /api/export, so there is nothing to push on
     // a timer here — and a sheet-to-D1 sync on the same schedule would fight
     // it, each overwriting the other's work once a day.
-    ctx.waitUntil(runScheduledReports(env, { days: 7 }));
+    // Monday emails the reports; every day works through the detection
+    // backlog, which is what actually gets new companies onto the board.
+    if (event.cron === '0 13 * * 1') {
+      ctx.waitUntil(runScheduledReports(env, { days: 7 }));
+    } else {
+      ctx.waitUntil(detectCompanies(env, { limit: 12 }).then((r) => {
+        if (!r.ok) console.error('detect failed:', r.error);
+        else console.log(`detect: ${r.resolved}/${r.checked} resolved`);
+      }));
+    }
   },
 
   async fetch(request, env) {
@@ -2213,6 +2315,15 @@ export default {
     if (pathname === '/api/companies/detected' && request.method === 'POST') return recordDetection(request, env);
 
     if (pathname === '/api/discover'      && request.method === 'POST') return discover(request, env);
+    if (pathname === '/api/companies/detect' && request.method === 'POST') {
+      if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'admin only' }), { status: 401, headers: JSON_HEADERS });
+      const q = new URL(request.url).searchParams;
+      const out = await detectCompanies(env, {
+        limit: Math.min(Number(q.get('limit')) || 12, 40),
+        retry: q.get('retry') === '1',
+      });
+      return new Response(JSON.stringify(out), { status: out.ok ? 200 : 500, headers: JSON_HEADERS });
+    }
     if (pathname === '/api/discoveries'   && request.method === 'GET')  return listDiscoveries(request, env);
     if (pathname === '/api/discoveries'   && request.method === 'POST') return reviewDiscovery(request, env);
     if (pathname === '/api/introduce'     && request.method === 'POST') return introduce(request, env);
