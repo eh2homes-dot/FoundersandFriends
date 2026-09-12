@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V80" />
+<meta name="ff-build" content="RING-V81" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3921,6 +3921,20 @@ function globeBuild(){
       const onCanvas = (box) => box.x0 >= 4 && box.x1 <= GLOBE.VW - 4
         && box.y0 >= 6 && box.y1 <= GLOBE.VH - 30;
 
+      // The ring is a drawn line, so a name sitting across it reads as struck
+      // through. A box is clear only if the whole of it is inside the ring or
+      // the whole of it is outside — which is true when the circle's radius
+      // falls outside the range of distances from the centre to the box.
+      const crossesRing = (box) => {
+        const nx = Math.max(box.x0, Math.min(cx, box.x1));
+        const ny = Math.max(box.y0, Math.min(GLOBE.CY, box.y1));
+        const near = Math.hypot(cx - nx, GLOBE.CY - ny);
+        const far = Math.max(
+          Math.hypot(cx - box.x0, GLOBE.CY - box.y0), Math.hypot(cx - box.x1, GLOBE.CY - box.y0),
+          Math.hypot(cx - box.x0, GLOBE.CY - box.y1), Math.hypot(cx - box.x1, GLOBE.CY - box.y1));
+        return near <= GLOBE.RCX && far >= GLOBE.RCX;
+      };
+
       // Outermost first. A node far from the centre has the most room around
       // it, so letting it claim its spot before the crowded ones is what keeps
       // the easy cases looking regular.
@@ -3964,6 +3978,7 @@ function globeBuild(){
           if (!onCanvas(box)) continue;
           if (hitsNode(box, c)) continue;
           if (hitsLabel(box)) continue;
+          if (crossesRing(box)) continue;
           chosen = { lx, ly, anchor: cand.mid ? 'middle' : (cand.side > 0 ? 'start' : 'end'), box };
           break;
         }
