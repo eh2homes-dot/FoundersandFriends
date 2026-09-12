@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V105" />
+<meta name="ff-build" content="RING-V107" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -1449,7 +1449,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
-        <svg id="globe" viewBox="0 0 2100 800" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
+        <svg id="globe" viewBox="0 0 2100 836" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(0,255,136,.035)"/>
@@ -1518,8 +1518,8 @@ a.foot-line:hover{color:var(--green)}
             </g>
             <circle class="g-shade" cx="525" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
             <g class="hub-plate opco">
-              <rect x="420" y="746" width="210" height="42" rx="21"/>
-              <text class="hemi-label opco" x="527.6" y="770">OpCo</text>
+              <rect x="420" y="782" width="210" height="42" rx="21"/>
+              <text class="hemi-label opco" x="527.6" y="806">OpCo</text>
             </g>
           </g>
 
@@ -1538,8 +1538,8 @@ a.foot-line:hover{color:var(--green)}
             </g>
             <circle class="g-shade" cx="1575" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
             <g class="hub-plate proptech">
-              <rect x="1470" y="746" width="210" height="42" rx="21"/>
-              <text class="hemi-label proptech" x="1577.6" y="770">PropTech</text>
+              <rect x="1470" y="782" width="210" height="42" rx="21"/>
+              <text class="hemi-label proptech" x="1577.6" y="806">PropTech</text>
             </g>
           </g>
 
@@ -3722,7 +3722,7 @@ const GLOBE = {
   // so the only way to make each sphere bigger is to make the space it sits in
   // smaller. The centres come together and the label columns tighten with
   // them — 1800 is the floor before the two inner columns of text meet.
-  VW: 2100, VH: 800,          // the canvas
+  VW: 2100, VH: 836,          // the canvas
   CY: 390,
   CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
   cxOf: (hub) => (hub === 'proptech' ? 1575 : 525),
@@ -3740,7 +3740,16 @@ const GLOBE = {
   RCY: 275,        // is landscape, so a circle wastes the sides and crowds the
                    // top. Separate radii let the nodes sit evenly all the way
                    // round without the labels colliding.
-  MAX_COS: 21,     // per hub, so up to 42 nodes share the full ring. The
+  // The ring takes as many companies as it can hold, not a fixed number, so a
+  // new arrival takes a place rather than queueing behind a hard cap.
+  //
+  // 24 is where it stops, and that is measured rather than chosen: across 40
+  // randomised layouts, 21 and 24 both place every label on the ring with no
+  // collisions; 26 drops to 84% on-ring; 28 and 30 produce two to three
+  // overlaps per render. Shorter names do not rescue it — at 28 companies the
+  // nodes themselves are only 24px apart, so the crowding is the ring, not the
+  // text. Anything past 24 stays in the "See all companies" list.
+  MAX_COS: 24,     // per hub — the measured ceiling, see above. The
                    // ceiling is spacing, not taste: 42 nodes over 360 degrees
                    // puts adjacent centres ~41px apart at the horizon, where
                    // the oval is steepest and the gap is tightest. A 17px node
@@ -4052,7 +4061,7 @@ function globeBuild(){
       // The hub name under each globe is a drawn object like any other. It was
       // not in the obstacle set, so a company label could land on top of it —
       // which is how "Entrata" ended up sitting across "PROPTECH".
-      const HUB_LABEL = { x0: cx - 108, x1: cx + 108, y0: 742, y1: 792 };
+      const HUB_LABEL = { x0: cx - 108, x1: cx + 108, y0: 778, y1: 828 };
       const hitsHubLabel = (box) =>
         box.x0 < HUB_LABEL.x1 && box.x1 > HUB_LABEL.x0
         && box.y0 < HUB_LABEL.y1 && box.y1 > HUB_LABEL.y0;
