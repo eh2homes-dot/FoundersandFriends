@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V18" />
+<meta name="ff-build" content="RING-V20" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -218,10 +218,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    The hero and the globe share one screen. Everything here is sized against
    the viewport rather than fixed, so the headline gives way as the window
    gets shorter instead of pushing the globe below the fold. */
-.board-hero{padding:clamp(18px,3.4vh,44px) 5vw 0;max-width:1240px;margin:0 auto}
+.board-hero{padding:clamp(12px,2.4vh,32px) 5vw 0;max-width:1240px;margin:0 auto}
 .hero-inner{max-width:900px;padding-bottom:0}
 .board-hero h1{
-  font-size:clamp(1.9rem,4.4vw,3.3rem);line-height:1.04;margin-top:clamp(8px,1.4vh,18px);color:#fff;
+  font-size:clamp(1.7rem,3.8vw,2.9rem);line-height:1.05;margin-top:clamp(4px,1vh,14px);color:#fff;
   text-shadow:0 2px 26px rgba(7,4,15,.9);
 }
 .board-hero h1 .accent{
@@ -233,7 +233,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* Under about 800px tall there is not room for both the sub-line and a globe
    worth looking at. The headline already carries the message, so the sub-line
    is the thing that goes. */
-@media(max-height:800px){ .hero-sub{display:none} }
+@media(max-height:860px){ .hero-sub{display:none} }
 
 
 /* ---------- hub cards under the hero ---------- */
@@ -245,7 +245,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
-#globe{display:block;width:100%;max-width:1180px;height:auto;max-height:min(66vh,700px);
+#globe{display:block;width:100%;max-width:1180px;height:auto;max-height:min(74vh,780px);
   margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
@@ -1306,6 +1306,15 @@ a.foot-line:hover{color:var(--green)}
   </div>
 
   <div class="header-actions">
+    <!-- Moved up from beneath the hero. The row it used to occupy cost about
+         70px of height, which is the difference between the globe fitting on
+         screen and not. It cannot live inside .orbits: it switches to the list
+         view, and .orbits is hidden there. -->
+    <div class="view-toggle" role="group" aria-label="View">
+      <button type="button" id="v-orbit" data-view="orbit">Orbit</button>
+      <button type="button" id="v-list" data-view="list">List</button>
+    </div>
+
     <a class="promo-badge" href="https://syndeo-main-page.eh2homes.workers.dev/" target="_blank" rel="noopener noreferrer" aria-label="Syndeo (opens in a new tab)">
       <span class="pb-dot" aria-hidden="true"></span>
       <span class="pb-text">Syndeo</span>
@@ -1331,12 +1340,6 @@ a.foot-line:hover{color:var(--green)}
     <!-- Two views, as before: the orbit is the main page, the list is its own
          page for reading every role. Each has its own address (#/ and #/roles)
          so the back button moves between them. -->
-    <div class="view-bar">
-      <div class="view-toggle" role="group" aria-label="View">
-        <button type="button" id="v-orbit" data-view="orbit">Orbit</button>
-        <button type="button" id="v-list" data-view="list">List</button>
-      </div>
-    </div>
 
     <!-- Two doors into the board. Each switches the hub and scrolls to the
            roles. To send visitors to a separate site instead, add an href to
@@ -4074,15 +4077,15 @@ function paintOrbits(){
   document.querySelectorAll('.g-hemi[data-goto]').forEach((g) =>
     g.classList.toggle('is-current', g.dataset.goto === hub));
 
-  // The counts moved into the status line above; repeating them here was the
-  // same sentence twice. What is left is the instruction, which nothing else says.
-  $('orbit-hint').textContent = 'Select a company to see its roles';
+  // No caption under the globe: the status line above already carries the
+  // counts, and the instruction was stating the obvious about a clickable node.
+  $('orbit-hint').textContent = '';
 
   const total = new Set([...(HUBS.opco.jobs || []), ...(HUBS.proptech.jobs || [])].map(j => j.company)).size;
   const shown = globeState.cos.length;
   const btn = $('all-cos');
   if (btn){
-    btn.textContent = `See all ${total} ${total === 1 ? 'company' : 'companies'}`;
+    btn.textContent = 'See all companies';
     // Nothing is hidden when they all fit, so the button would be a detour.
     btn.closest('.orbit-more').hidden = total <= shown;
     const hiddenN = Math.max(0, total - shown);
