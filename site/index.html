@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V100" />
+<meta name="ff-build" content="RING-V101" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -1443,7 +1443,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
-        <svg id="globe" viewBox="0 0 2060 784" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
+        <svg id="globe" viewBox="0 0 2100 784" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(0,255,136,.035)"/>
@@ -1498,37 +1498,37 @@ a.foot-line:hover{color:var(--green)}
                hover card all key off one coordinate space, and splitting them
                would mean three copies of each. -->
           <g class="g-world" data-hub="opco">
-            <circle class="g-atmo" cx="515" cy="390" r="203" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="515" cy="390" r="275"/>
+            <circle class="g-atmo" cx="525" cy="390" r="203" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="525" cy="390" r="275"/>
             <g class="g-hemi opco" data-goto="opco">
-              <circle class="g-half" cx="515" cy="390" r="186"/>
+              <circle class="g-half" cx="525" cy="390" r="186"/>
             </g>
-            <g class="g-orbitals" data-cx="515" pointer-events="none"></g>
-            <g class="g-mesh" data-cx="515" pointer-events="none"></g>
+            <g class="g-orbitals" data-cx="525" pointer-events="none"></g>
+            <g class="g-mesh" data-cx="525" pointer-events="none"></g>
             <g pointer-events="none">
-              <circle class="g-rim" cx="515" cy="390" r="186"/>
-              <g class="g-orbits" data-cx="515"></g>
-              <line class="g-axis" x1="515" y1="196" x2="515" y2="584" stroke="url(#g-axis-grad)"/>
+              <circle class="g-rim" cx="525" cy="390" r="186"/>
+              <g class="g-orbits" data-cx="525"></g>
+              <line class="g-axis" x1="525" y1="196" x2="525" y2="584" stroke="url(#g-axis-grad)"/>
             </g>
-            <circle class="g-shade" cx="515" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label opco" x="515" y="770">OpCo</text>
+            <circle class="g-shade" cx="525" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label opco" x="525" y="770">OpCo</text>
           </g>
 
           <g class="g-world" data-hub="proptech">
-            <circle class="g-atmo" cx="1545" cy="390" r="203" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="1545" cy="390" r="275"/>
+            <circle class="g-atmo" cx="1575" cy="390" r="203" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="1575" cy="390" r="275"/>
             <g class="g-hemi proptech" data-goto="proptech">
-              <circle class="g-half" cx="1545" cy="390" r="186"/>
+              <circle class="g-half" cx="1575" cy="390" r="186"/>
             </g>
-            <g class="g-orbitals" data-cx="1545" pointer-events="none"></g>
-            <g class="g-mesh" data-cx="1545" pointer-events="none"></g>
+            <g class="g-orbitals" data-cx="1575" pointer-events="none"></g>
+            <g class="g-mesh" data-cx="1575" pointer-events="none"></g>
             <g pointer-events="none">
-              <circle class="g-rim" cx="1545" cy="390" r="186"/>
-              <g class="g-orbits" data-cx="1545"></g>
-              <line class="g-axis" x1="1545" y1="196" x2="1545" y2="584" stroke="url(#g-axis-grad)"/>
+              <circle class="g-rim" cx="1575" cy="390" r="186"/>
+              <g class="g-orbits" data-cx="1575"></g>
+              <line class="g-axis" x1="1575" y1="196" x2="1575" y2="584" stroke="url(#g-axis-grad)"/>
             </g>
-            <circle class="g-shade" cx="1545" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label proptech" x="1545" y="770">PropTech</text>
+            <circle class="g-shade" cx="1575" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label proptech" x="1575" y="770">PropTech</text>
           </g>
 
           <g id="g-threads"></g>
@@ -3666,10 +3666,10 @@ const GLOBE = {
   // so the only way to make each sphere bigger is to make the space it sits in
   // smaller. The centres come together and the label columns tighten with
   // them — 1800 is the floor before the two inner columns of text meet.
-  VW: 2060, VH: 784,          // the canvas
+  VW: 2100, VH: 784,          // the canvas
   CY: 390,
   CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
-  cxOf: (hub) => (hub === 'proptech' ? 1545 : 515),
+  cxOf: (hub) => (hub === 'proptech' ? 1575 : 525),
   R: 186,          // the sphere — still smaller than the ring, so the ring
                    // stays the main shape, but with enough presence to hold
                    // the centre. The ceiling is the ring itself: the oval
@@ -3742,11 +3742,11 @@ const GLOBE = {
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
                    // scales to 1.85x and the core has a drop shadow, so the
                    // circle takes up noticeably more room than r suggests.
-  LABEL_PAD: 22,   // px from the edge of a node to the start of its name.
-                   // The label ring's radius is RCX + 19 + this, so pushing it
-                   // out needs canvas width to go with it — at 12 the widest
-                   // names were 8px from the edge. The canvas grew from 1850 to
-                   // 1900 to pay for the extra 10.
+  LABEL_PAD: 32,   // px from the edge of a node to the start of its name. The
+                   // label ring's radius is RCX + 19 + this, so every increase
+                   // needs canvas width to match — the names sit outside the
+                   // ring, and pushing them out pushes them towards the edge.
+                   // 12 → 22 → 32 has taken the canvas 1850 → 1900 → 2100.
                    // The same for every node — that regularity is the point.
   LABEL_LINE: 26,  // one row of label text, used when one has to step aside
   LABEL_MAX: 20,   // characters before a name is truncated. Twenty is what
