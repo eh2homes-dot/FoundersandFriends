@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V48" />
+<meta name="ff-build" content="RING-V50" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -265,7 +265,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
-#globe{display:block;width:100%;max-width:1920px;height:auto;max-height:min(53vh,620px);
+#globe{display:block;width:100%;max-width:1920px;height:auto;max-height:min(60vh,700px);
   margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
@@ -396,7 +396,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hemi-label.opco{fill:#00FF88}
 .hemi-label.proptech{fill:#A98FEC}
 
-.orbit-more{display:flex;justify-content:center;margin-top:6px}
+.orbit-more{display:flex;justify-content:center}
 .orbit-more[hidden]{display:none}
 .all-cos{
   display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border-radius:100px;
@@ -808,7 +808,13 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #board-view[data-view="list"] .orbits,
 #board-view[data-view="list"] .hub-cards{display:none}
 #board-view[data-view="list"] .board-hero .laser-rule{margin-top:34px}
-.orbits > .data-status{margin:12px auto 0;max-width:980px;justify-content:center}
+/* The status and the button sit side by side. They wrap to two rows on a
+   narrow window rather than shrinking — a squeezed status line is unreadable,
+   and below 640px the globes are hidden anyway. */
+.orbit-foot{display:flex;align-items:center;justify-content:center;gap:14px;
+  flex-wrap:wrap;margin:12px auto 0;max-width:1400px}
+.orbit-foot .data-status{margin:0}
+.orbit-foot .orbit-more{margin:0}
 
 .stat-line{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -1495,17 +1501,18 @@ a.foot-line:hover{color:var(--green)}
         <!-- The status line lives under the globe now: it carries the same
              counts the old caption did, so running both was saying the same
              thing twice, once above the picture and once below it. -->
-        <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
-          <span class="ds-dot" aria-hidden="true"></span>
-          <span class="ds-msg"></span>
-        </p>
-        <p class="orbit-hint" id="orbit-hint"></p>
-        <!-- The globe only has room for the busiest companies each side. This
-             is the way to everyone else, and it names the number so the gap is
-             never a surprise. -->
-        <div class="orbit-more">
-          <button type="button" class="all-cos" id="all-cos"></button>
+        <!-- One row, two cards. Stacked they cost two rows of height for two
+             short lines, which is what pushed the button below the fold. -->
+        <div class="orbit-foot">
+          <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
+            <span class="ds-dot" aria-hidden="true"></span>
+            <span class="ds-msg"></span>
+          </p>
+          <div class="orbit-more">
+            <button type="button" class="all-cos" id="all-cos"></button>
+          </div>
         </div>
+        <p class="orbit-hint" id="orbit-hint"></p>
       </div>
 
       <div class="hub-cards">
