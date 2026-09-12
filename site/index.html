@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V43" />
+<meta name="ff-build" content="RING-V46" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -808,7 +808,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #board-view[data-view="list"] .orbits,
 #board-view[data-view="list"] .hub-cards{display:none}
 #board-view[data-view="list"] .board-hero .laser-rule{margin-top:34px}
-.orbits > .data-status{margin:10px auto 4px;max-width:980px;justify-content:center}
+.orbits > .data-status{margin:18px auto 4px;max-width:980px;justify-content:center}
 
 .stat-line{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -1401,7 +1401,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
-        <svg id="globe" viewBox="0 0 2000 700" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
+        <svg id="globe" viewBox="0 0 1800 740" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(0,255,136,.035)"/>
@@ -1456,35 +1456,35 @@ a.foot-line:hover{color:var(--green)}
                hover card all key off one coordinate space, and splitting them
                would mean three copies of each. -->
           <g class="g-world" data-hub="opco">
-            <circle class="g-atmo" cx="500" cy="350" r="203" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="500" cy="350" r="300"/>
+            <circle class="g-atmo" cx="440" cy="350" r="203" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="440" cy="350" r="300"/>
             <g class="g-hemi opco" data-goto="opco">
-              <circle class="g-half" cx="500" cy="350" r="186"/>
+              <circle class="g-half" cx="440" cy="350" r="186"/>
             </g>
-            <g class="g-mesh" data-cx="500" pointer-events="none"></g>
+            <g class="g-mesh" data-cx="440" pointer-events="none"></g>
             <g pointer-events="none">
-              <circle class="g-rim" cx="500" cy="350" r="186"/>
-              <g class="g-orbits" data-cx="500"></g>
-              <line class="g-axis" x1="500" y1="156" x2="500" y2="544" stroke="url(#g-axis-grad)"/>
+              <circle class="g-rim" cx="440" cy="350" r="186"/>
+              <g class="g-orbits" data-cx="440"></g>
+              <line class="g-axis" x1="440" y1="156" x2="440" y2="544" stroke="url(#g-axis-grad)"/>
             </g>
-            <circle class="g-shade" cx="500" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label opco" x="500" y="726">OpCo</text>
+            <circle class="g-shade" cx="440" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label opco" x="440" y="714">OpCo</text>
           </g>
 
           <g class="g-world" data-hub="proptech">
-            <circle class="g-atmo" cx="1500" cy="350" r="203" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="1500" cy="350" r="300"/>
+            <circle class="g-atmo" cx="1360" cy="350" r="203" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="1360" cy="350" r="300"/>
             <g class="g-hemi proptech" data-goto="proptech">
-              <circle class="g-half" cx="1500" cy="350" r="186"/>
+              <circle class="g-half" cx="1360" cy="350" r="186"/>
             </g>
-            <g class="g-mesh" data-cx="1500" pointer-events="none"></g>
+            <g class="g-mesh" data-cx="1360" pointer-events="none"></g>
             <g pointer-events="none">
-              <circle class="g-rim" cx="1500" cy="350" r="186"/>
-              <g class="g-orbits" data-cx="1500"></g>
-              <line class="g-axis" x1="1500" y1="156" x2="1500" y2="544" stroke="url(#g-axis-grad)"/>
+              <circle class="g-rim" cx="1360" cy="350" r="186"/>
+              <g class="g-orbits" data-cx="1360"></g>
+              <line class="g-axis" x1="1360" y1="156" x2="1360" y2="544" stroke="url(#g-axis-grad)"/>
             </g>
-            <circle class="g-shade" cx="1500" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label proptech" x="1500" y="726">PropTech</text>
+            <circle class="g-shade" cx="1360" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label proptech" x="1360" y="714">PropTech</text>
           </g>
 
           <g id="g-threads"></g>
@@ -3617,10 +3617,14 @@ function wireHubCards(){
    ========================================================================== */
 
 const GLOBE = {
-  VW: 2000, VH: 740,          // the canvas
+  // Narrower canvas, same globes: on screen the frame is already full width,
+  // so the only way to make each sphere bigger is to make the space it sits in
+  // smaller. The centres come together and the label columns tighten with
+  // them — 1800 is the floor before the two inner columns of text meet.
+  VW: 1800, VH: 740,          // the canvas
   CY: 350,
   CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
-  cxOf: (hub) => (hub === 'proptech' ? 1500 : 500),
+  cxOf: (hub) => (hub === 'proptech' ? 1360 : 440),
   R: 186,          // the sphere — still smaller than the ring, so the ring
                    // stays the main shape, but with enough presence to hold
                    // the centre. The ceiling is the ring itself: the oval
@@ -3663,7 +3667,7 @@ const GLOBE = {
                    // lines — the name, then the role count 12px below it — so
                    // a 16px gap let the count of one sit on the name of the
                    // next. This is the height of the block, not of a line.
-  LABEL_MAX: 20,   // characters before a name is truncated
+  LABEL_MAX: 16,   // characters before a name is truncated
 };
 
 const globeState = {
@@ -3977,20 +3981,36 @@ function globeBuild(){
     if (GLOBE.LABELS && c.ly != null){
       const cx = GLOBE.cxOf(c.hub);
       const side = c.x < cx ? -1 : 1;
-      const lx = cx + side * (GLOBE.RCX + 26);
+      // Beside the node, not in a shared column. A column puts every label at
+      // the same x, so a node at the top of the ring — which sits near the
+      // centre line — ends up with its name hundreds of pixels away and a long
+      // rule pointing at it. Hugging the node keeps name and number together,
+      // and the vertical spacing pass below is what stops them colliding.
+      const name0 = c.name.length > GLOBE.LABEL_MAX
+        ? c.name.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : c.name;
+      const textW = name0.length * 6.6;
+      let lx = c.x + side * (r + 12);
+      // Keep the text on the canvas: a name hanging off the edge is worse than
+      // one sitting slightly further from its node.
+      if (side < 0) lx = Math.max(lx, textW + 6);
+      else lx = Math.min(lx, GLOBE.VW - textW - 6);
       const anchor = side > 0 ? 'start' : 'end';
       // An elbow, not a straight line: once a label has been nudged off its
       // node's height a horizontal rule points at the wrong row.
-      const x0 = c.x + side * (r + 4);
-      const x1 = lx - side * 8;
-      g.append(el('path', {
-        class: 'co-lead',
-        d: `M ${x0.toFixed(1)} ${c.y.toFixed(1)} L ${((x0 + x1) / 2).toFixed(1)} ${c.y.toFixed(1)}`
-         + ` L ${((x0 + x1) / 2).toFixed(1)} ${c.ly.toFixed(1)} L ${x1.toFixed(1)} ${c.ly.toFixed(1)}`,
-        fill: 'none',
-      }));
-      const max = GLOBE.LABEL_MAX;
-      const name = c.name.length > max ? c.name.slice(0, max - 1).trimEnd() + '…' : c.name;
+      // Only draw a lead where the label has actually been pushed off its
+      // node's height. Sitting beside it, a rule would just be a stray dash.
+      if (Math.abs(c.ly - c.y) > 3){
+        const x0 = c.x + side * (r + 3);
+        const x1 = lx - side * 6;
+        const mid = x0 + (x1 - x0) * 0.45;
+        g.append(el('path', {
+          class: 'co-lead',
+          d: `M ${x0.toFixed(1)} ${c.y.toFixed(1)} L ${mid.toFixed(1)} ${c.y.toFixed(1)}`
+           + ` L ${mid.toFixed(1)} ${c.ly.toFixed(1)} L ${x1.toFixed(1)} ${c.ly.toFixed(1)}`,
+          fill: 'none',
+        }));
+      }
+      const name = name0;
       const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.ly - 1).toFixed(1), 'text-anchor': anchor });
       lbl.textContent = name;
       const sub = el('text', { class: 'sub', x: lx.toFixed(1), y: (c.ly + 11).toFixed(1), 'text-anchor': anchor });
