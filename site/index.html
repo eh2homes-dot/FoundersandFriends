@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V88" />
+<meta name="ff-build" content="RING-V89" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -291,17 +291,17 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 /* ---------- the orbital system ---------- */
 .orb{transform-box:view-box}
-.orb-path{fill:none;stroke-width:1;opacity:var(--fade);
-  stroke-dasharray:2 9;animation:orb-drift var(--spin) linear infinite var(--dir)}
-.orb.opco .orb-path{stroke:rgba(0,255,136,.5)}
-.orb.proptech .orb-path{stroke:rgba(169,143,236,.55)}
+.orb-path{fill:none;stroke-width:1.6;opacity:var(--fade);
+  stroke-dasharray:3 10;animation:orb-drift var(--spin) linear infinite var(--dir)}
+.orb.opco .orb-path{stroke:rgba(0,255,136,.85);filter:drop-shadow(0 0 4px rgba(0,255,136,.45))}
+.orb.proptech .orb-path{stroke:rgba(196,176,255,.9);filter:drop-shadow(0 0 4px rgba(169,143,236,.5))}
 /* The dash offset is the rotation: turning the whole ellipse would make it
    wobble, because a tilted ellipse is not symmetric about its own centre. */
 @keyframes orb-drift{to{stroke-dashoffset:-220}}
-.orb-dot{opacity:.9;animation:orb-breathe 4.5s ease-in-out infinite}
+.orb-dot{opacity:1;animation:orb-breathe 4.5s ease-in-out infinite}
 .orb.opco .orb-dot{fill:#00FF88;filter:drop-shadow(0 0 5px rgba(0,255,136,.9))}
 .orb.proptech .orb-dot{fill:#C4B0FF;filter:drop-shadow(0 0 5px rgba(169,143,236,.95))}
-@keyframes orb-breathe{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes orb-breathe{0%,100%{opacity:.55}50%{opacity:1}}
 /* Motion is decoration; anyone who has asked for less of it gets a still
    picture rather than a broken one. */
 @media(prefers-reduced-motion:reduce){
@@ -4512,11 +4512,14 @@ function globeOrbitals(){
       // animated along the very same geometry the ring is drawn from — two
       // separate definitions would drift apart the moment either changed.
       const d = `M ${-rx},0 a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
-      const spin = (t.dir > 0 ? '' : '-') + (t.dur * 2.6).toFixed(0);
+      // cx/cy on the dot, not just the motion path: if animateMotion does not
+      // run — an old engine, a blocked SMIL implementation — the dot still
+      // draws somewhere sensible instead of collapsing to the group's origin,
+      // which is the middle of the sphere.
       return `<g class="orb ${hub}" transform="translate(${cx} ${CY}) rotate(${t.tilt})"
-                 style="--spin:${Math.abs(Number(spin))}s;--dir:${t.dir > 0 ? 'normal' : 'reverse'};--fade:${(0.5 - i * 0.07).toFixed(2)}">
+                 style="--spin:${(t.dur * 2.6).toFixed(0)}s;--dir:${t.dir > 0 ? 'normal' : 'reverse'};--fade:${(0.85 - i * 0.1).toFixed(2)}">
           <path class="orb-path" d="${d}"/>
-          <circle class="orb-dot" r="${(2.8 - i * 0.3).toFixed(1)}">
+          <circle class="orb-dot" cx="${rx}" cy="0" r="${(3.4 - i * 0.3).toFixed(1)}">
             <animateMotion dur="${t.dur}s" repeatCount="indefinite" path="${d}"
               keyPoints="${t.dir > 0 ? '0;1' : '1;0'}" keyTimes="0;1" calcMode="linear"/>
           </circle>
