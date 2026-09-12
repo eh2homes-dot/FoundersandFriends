@@ -1384,14 +1384,14 @@ a.foot-line:hover{color:var(--green)}
 
           <!-- The halo sits outside the sphere, so it has to be drawn before
                anything that should appear in front of it. -->
-          <circle class="g-atmo" cx="500" cy="290" r="207" fill="url(#g-atmo)"/>
-          <circle class="g-ring" cx="500" cy="290" r="258"/>
+          <circle class="g-atmo" cx="500" cy="290" r="140" fill="url(#g-atmo)"/>
+          <ellipse class="g-ring" cx="500" cy="290" rx="418" ry="262"/>
 
           <g class="g-hemi opco" data-goto="opco">
-            <circle class="g-half" cx="500" cy="290" r="190" clip-path="url(#g-clip-l)"/>
+            <circle class="g-half" cx="500" cy="290" r="128" clip-path="url(#g-clip-l)"/>
           </g>
           <g class="g-hemi proptech" data-goto="proptech">
-            <circle class="g-half" cx="500" cy="290" r="190" clip-path="url(#g-clip-r)"/>
+            <circle class="g-half" cx="500" cy="290" r="128" clip-path="url(#g-clip-r)"/>
           </g>
 
           <!-- The wireframe is built in JS: the meridians have to be redrawn
@@ -1399,13 +1399,13 @@ a.foot-line:hover{color:var(--green)}
                ellipses here would only duplicate that. -->
           <g id="g-mesh" pointer-events="none"></g>
           <g pointer-events="none">
-            <circle class="g-rim" cx="500" cy="290" r="190"/>
+            <circle class="g-rim" cx="500" cy="290" r="128"/>
             <g id="g-orbits"></g>
-            <line class="g-axis" x1="500" y1="92" x2="500" y2="488" stroke="url(#g-axis-grad)"/>
+            <line class="g-axis" x1="500" y1="154" x2="500" y2="426" stroke="url(#g-axis-grad)"/>
           </g>
           <!-- Laid over the wireframe but under the jobs, so the sphere reads
                as a solid volume without dimming the data. -->
-          <circle class="g-shade" cx="500" cy="290" r="190" fill="url(#g-shade)" pointer-events="none"/>
+          <circle class="g-shade" cx="500" cy="290" r="128" fill="url(#g-shade)" pointer-events="none"/>
 
           <g id="g-threads"></g>
           <g id="g-sparks"></g>
@@ -3430,18 +3430,20 @@ function wireHubCards(){
 
 const GLOBE = {
   CX: 500, CY: 290,
-  R: 190,          // the sphere
-  RC: 258,         // how far out the company circle sits. Wide enough that ten
-                   // per side can be spaced evenly around it without their
-                   // labels running into each other.
-  MAX_COS: 10,     // per side. Past this, equal steps around the circle bring
-                   // the rows closer than a label is tall.
-  ARC_MAX: 140,    // degrees of arc each side uses — nearly the whole half
+  R: 128,          // the sphere — small against the ring, so the ring reads as
+                   // the main shape and the globe as its centre
+  RCX: 418,        // the companies ride a wide oval, not a circle: the viewBox
+  RCY: 262,        // is landscape, so a circle wastes the sides and crowds the
+                   // top. Separate radii let the nodes sit evenly all the way
+                   // round without the labels colliding.
+  MAX_COS: 12,     // per side, so the ring carries ~24 nodes the whole way round
+  ARC_MAX: 168,    // degrees of arc each side uses — the full half, near enough
   ARC_STEP: 15,    // degrees between companies when there are only a few
   MAX_ROLES: 22,   // per side — every slot the rings and parallels provide
-  ORBITS: [150, 116, 84, 56],   // concentric orbits the jobs ride on
+  ORBITS: [101, 78, 57, 38],    // concentric orbits the jobs ride on
   LAT_STEP: 10,    // degrees between parallels
   MERS: 18,        // meridians
+  LABELS: false,   // company names in a side column — see the note in globeBuild
 };
 
 const globeState = {
@@ -3512,7 +3514,7 @@ function globeRel(x, y, side){
 }
 
 function globeBuild(){
-  const { CX, CY, RC } = GLOBE;
+  const { CX, CY, RCX, RCY } = GLOBE;
   const layers = ['g-threads', 'g-sparks', 'g-roles', 'g-cos'].map($);
   if (layers.some(l => !l)) return;
   const [gThreads, gSparks, gRoles, gCos] = layers;
@@ -3551,7 +3553,7 @@ function globeBuild(){
       return {
         key: 'c:' + name, name, hub: h, side, rank: i,
         count: list.length,
-        x: CX + Math.cos(rad) * RC, y: CY + Math.sin(rad) * RC,
+        x: CX + Math.cos(rad) * RCX, y: CY + Math.sin(rad) * RCY,
       };
     });
     cos.push(...sideCos);
@@ -3636,25 +3638,34 @@ function globeBuild(){
     // The nodes bow with the circle, but the labels stay in one column so the
     // names and counts still line up. A hairline carries each label back to
     // its node, which is what keeps the two reading as one thing.
-    const lx = GLOBE.CX + c.side * (GLOBE.RC + 34);
-    const anchor = c.side > 0 ? 'start' : 'end';
-    const leadFrom = c.x + c.side * (r + 5);
-    const leadTo = lx - c.side * 9;
-    if (Math.abs(leadTo - leadFrom) > 5){
-      g.append(el('line', {
-        class: 'co-lead',
-        x1: leadFrom.toFixed(1), y1: c.y.toFixed(1),
-        x2: leadTo.toFixed(1),   y2: c.y.toFixed(1),
-      }));
+    // With the nodes spread the whole way round the oval, the old label column
+    // no longer works: two nodes at the top of the ring share almost the same
+    // y, so their names would stack on top of each other, and a label hung off
+    // a wide oval runs past the edge of the viewBox. Names live in the hover
+    // title instead; the count stays inside the node. Set LABELS true to bring
+    // the column back (and drop ARC_MAX to about 140 if you do).
+    if (GLOBE.LABELS){
+      const lx = GLOBE.CX + c.side * (GLOBE.RCX + 34);
+      const anchor = c.side > 0 ? 'start' : 'end';
+      const leadFrom = c.x + c.side * (r + 5);
+      const leadTo = lx - c.side * 9;
+      if (Math.abs(leadTo - leadFrom) > 5){
+        g.append(el('line', {
+          class: 'co-lead',
+          x1: leadFrom.toFixed(1), y1: c.y.toFixed(1),
+          x2: leadTo.toFixed(1),   y2: c.y.toFixed(1),
+        }));
+      }
+      const name = c.name.length > 24 ? c.name.slice(0, 23).trimEnd() + '…' : c.name;
+      const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.y - 1).toFixed(1), 'text-anchor': anchor });
+      lbl.textContent = name;
+      const sub = el('text', { class: 'sub', x: lx.toFixed(1), y: (c.y + 13).toFixed(1), 'text-anchor': anchor });
+      sub.textContent = c.count === 1 ? '1 role' : c.count + ' roles';
+      g.append(lbl, sub);
     }
-    const name = c.name.length > 24 ? c.name.slice(0, 23).trimEnd() + '…' : c.name;
-    const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.y - 1).toFixed(1), 'text-anchor': anchor });
-    lbl.textContent = name;
-    const sub = el('text', { class: 'sub', x: lx.toFixed(1), y: (c.y + 13).toFixed(1), 'text-anchor': anchor });
-    sub.textContent = c.count === 1 ? '1 role' : c.count + ' roles';
     const t = el('title');
-    t.textContent = c.name;
-    g.append(lbl, sub, t);
+    t.textContent = c.name + ' — ' + (c.count === 1 ? '1 role' : c.count + ' roles');
+    g.append(t);
     c.g = g;
     gCos.append(g);
   });
