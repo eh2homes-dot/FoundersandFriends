@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V30" />
+<meta name="ff-build" content="RING-V33" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -224,7 +224,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .board-hero h1{
   font-size:clamp(1.5rem,3.4vw,2.6rem);line-height:1.08;margin-top:clamp(4px,1vh,14px);color:#fff;
   text-shadow:0 2px 26px rgba(7,4,15,.9);
+  /* Even the two lines instead of filling the first and leaving a remnant. */
+  text-wrap:balance;
 }
+
 /* One line from 980px up, for BOTH hubs. The cap is sized against the longer
    of the two headlines (~69 characters), not whichever one happens to be
    showing — sizing for the shorter one is what pushed the PropTech line off
@@ -233,13 +236,22 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @media(min-width:980px){
   .board-hero h1{font-size:min(2.45vw,2.6rem)}
   .board-hero h1.one-line{white-space:nowrap}
+  /* The accent is one phrase with a gradient running through it, so breaking
+     it across lines reads as two differently coloured words. Held together
+     only from 980px up: narrower than that, "scattered site rental property"
+     cannot fit a line at all, and nowrap would push the page sideways rather
+     than wrap. */
+  .board-hero h1 .accent{white-space:nowrap}
 }
 .board-hero h1 .accent{
   background:linear-gradient(100deg,var(--green) 0%,var(--silver-bright) 46%,var(--purple-text) 100%);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
 }
-.hero-sub{margin-top:clamp(8px,1.4vh,18px);font-size:clamp(.95rem,1.15vw,1.02rem);line-height:1.5;color:var(--ink-soft);max-width:none}
+.hero-sub{margin-top:clamp(8px,1.4vh,18px);font-size:clamp(.95rem,1.15vw,1.02rem);line-height:1.5;color:var(--ink-soft);
+  /* A measure again, but a wide one — without it the line runs the full column
+     and strands a single word on the second row. */
+  max-width:78ch;text-wrap:balance}
 /* The sub-line stays. Collapsing the headline to one line frees the row it
    needs, so the trade that removed it no longer applies. */
 
@@ -1734,7 +1746,7 @@ const HUBS = {
     label: 'OpCo Hub',
     eyebrow: '',
     h1: 'Build a career in <span class="accent">scattered site rental property</span> and technology.',
-    sub: "Roles across the nation's leading SFR operators — leasing, maintenance, asset management, and leadership.",
+    sub: "Roles across the nation's leading SFR operators — leasing, asset management, and leadership.",
     jobs: JOBS,
   },
   proptech: {
