@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V16" />
+<meta name="ff-build" content="RING-V17" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -752,7 +752,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #board-view[data-view="list"] .orbits,
 #board-view[data-view="list"] .hub-cards{display:none}
 #board-view[data-view="list"] .board-hero .laser-rule{margin-top:34px}
-.board-hero > .data-status{margin:22px auto 0;max-width:980px}
+.orbits > .data-status{margin:18px auto 8px;max-width:980px;justify-content:center}
 
 .stat-line{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -1327,10 +1327,6 @@ a.foot-line:hover{color:var(--green)}
         <button type="button" id="v-list" data-view="list">List</button>
       </div>
     </div>
-    <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
-      <span class="ds-dot" aria-hidden="true"></span>
-      <span class="ds-msg"></span>
-    </p>
 
     <!-- Two doors into the board. Each switches the hub and scrolls to the
            roles. To send visitors to a separate site instead, add an href to
@@ -1427,6 +1423,13 @@ a.foot-line:hover{color:var(--green)}
           <!-- No OpCo / PropTech labels: roles from both hubs are mixed across
                the whole sphere now, so naming the halves would be wrong. -->
         </svg>
+        <!-- The status line lives under the globe now: it carries the same
+             counts the old caption did, so running both was saying the same
+             thing twice, once above the picture and once below it. -->
+        <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
+          <span class="ds-dot" aria-hidden="true"></span>
+          <span class="ds-msg"></span>
+        </p>
         <p class="orbit-hint" id="orbit-hint"></p>
         <!-- The globe only has room for the busiest companies each side. This
              is the way to everyone else, and it names the number so the gap is
@@ -4061,8 +4064,9 @@ function paintOrbits(){
   document.querySelectorAll('.g-hemi[data-goto]').forEach((g) =>
     g.classList.toggle('is-current', g.dataset.goto === hub));
 
-  $('orbit-hint').textContent =
-    `${o} operator ${o === 1 ? 'role' : 'roles'} · ${pt} technology ${pt === 1 ? 'role' : 'roles'} · select a company to see its roles`;
+  // The counts moved into the status line above; repeating them here was the
+  // same sentence twice. What is left is the instruction, which nothing else says.
+  $('orbit-hint').textContent = 'Select a company to see its roles';
 
   const total = new Set([...(HUBS.opco.jobs || []), ...(HUBS.proptech.jobs || [])].map(j => j.company)).size;
   const shown = globeState.cos.length;
