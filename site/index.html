@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V5" />
+<meta name="ff-build" content="RING-V6" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3456,6 +3456,7 @@ const GLOBE = {
                    // Six orbits at 7 degrees offer 56, so each company shows
                    // two or three.
   ORBITS: [136, 118, 100, 82, 64, 46],   // concentric orbits the jobs ride on
+  JITTER: 11,      // px each role dot is nudged off its exact crossing
   LAT_STEP: 7,     // degrees between parallels — closer spacing is what
                    // creates the extra slots, since a slot is a crossing
   MERS: 18,        // meridians
@@ -3500,7 +3501,7 @@ function globeRows(){
 function globeSlots(side){
   const key = 'slots' + side;
   if (globeState[key]) return globeState[key];
-  const { CX, CY, R, ORBITS } = GLOBE;
+  const { CX, CY, R, ORBITS, JITTER } = GLOBE;
   const out = [];
   for (const RO of ORBITS){
     for (const L of globeRows()){
@@ -3509,7 +3510,20 @@ function globeSlots(side){
       if (!(y2 >= 0) || y2 > RO * RO) continue;
       const y = Math.sqrt(y2), x = Math.sqrt(Math.max(0, RO * RO - y2));
       for (const sy of [-1, 1]){
-        const px = CX + side * x, py = CY + sy * y;
+        // The raw intersections form a lattice, and a lattice reads as arcs:
+        // the eye joins the dots along the orbit they share. A fixed nudge off
+        // each one breaks the rows without losing the underlying spread. The
+        // offset comes from a hash of the slot index, so it is scattered but
+        // identical on every load — a random jitter would make the globe
+        // rearrange itself on each render.
+        const i = out.length;
+        let dx = side * x + (globeHash(i * 2 + 11) - 0.5) * 2 * JITTER;
+        let dy = sy * y + (globeHash(i * 2 + 29) - 0.5) * 2 * JITTER;
+        // Keep it inside the sphere and on its own side of the axis.
+        const d = Math.hypot(dx, dy), lim = R * 0.93;
+        if (d > lim){ dx *= lim / d; dy *= lim / d; }
+        if (side * dx < 10) dx = side * 10;
+        const px = CX + dx, py = CY + dy;
         out.push({ x: px, y: py, ro: RO, rel: globeRel(px, py, side) });
       }
     }
