@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V14" />
+<meta name="ff-build" content="RING-V16" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -252,10 +252,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 /* Every parallel and meridian at one weight and one opacity: a graticule,
    not a drawing with emphasis in it. */
-.g-lat,.g-mer{fill:none;stroke:url(#g-mesh-grad);stroke-width:.7;opacity:.75;
+.g-lat,.g-mer{fill:none;stroke:url(#g-mesh-grad);stroke-width:.9;opacity:1;
   vector-effect:non-scaling-stroke}
 .g-atmo,.g-shade{pointer-events:none}
-.g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1;opacity:.7}
+.g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1.2;opacity:.85}
 
 /* the jobs' orbit — a slow drift in the dashes gives it motion without
    moving the jobs themselves */
@@ -1364,9 +1364,9 @@ a.foot-line:hover{color:var(--green)}
                  down the middle made the wireframe read as two objects rather
                  than one sphere. -->
             <linearGradient id="g-mesh-grad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(150,225,220,.3)"/>
-              <stop offset="50%"  stop-color="rgba(170,195,230,.26)"/>
-              <stop offset="100%" stop-color="rgba(178,165,240,.3)"/>
+              <stop offset="0%"   stop-color="rgba(150,225,220,.52)"/>
+              <stop offset="50%"  stop-color="rgba(170,195,230,.46)"/>
+              <stop offset="100%" stop-color="rgba(178,165,240,.52)"/>
             </linearGradient>
             <!-- Sphere shading: a light source up and to the left, and the limb
                  falling away into shadow. This is what makes it read as a ball
@@ -3785,10 +3785,13 @@ function globeThread(L, time, still){
   const { CX, CY, R } = GLOBE;
   const a = L.from, b = L.to;
 
-  // The corridor: out along the company's own radius, just inside the sphere.
+  // The corridor: out along the company's own radius, meeting the sphere at its
+  // rim. This used to gather at 0.88R — inside the surface — which is why the
+  // visible run appeared to start within the globe and lie over it. Ending on
+  // the rim makes the thread leave the surface instead of crossing it.
   const ca = Math.atan2(b.y - CY, b.x - CX);
-  const gx = CX + Math.cos(ca) * R * 0.88;
-  const gy = CY + Math.sin(ca) * R * 0.88;
+  const gx = CX + Math.cos(ca) * R * 0.995;
+  const gy = CY + Math.sin(ca) * R * 0.995;
 
   // A gentle drift so the bundle breathes, plus the pointer's tug.
   const sway = still ? 0 : Math.sin(time * 0.00012 * L.speed + L.phase) * 3 * L.bend;
