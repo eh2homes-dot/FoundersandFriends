@@ -164,6 +164,11 @@ tr.row:hover{background:rgba(127,77,224,.09)}
 .sent{font-size:15px}
 .sent.ok{color:var(--green)} .sent.no{color:var(--red)}
 .empty{padding:74px 20px;text-align:center;color:var(--ink-dim);font-size:14.5px}
+/* Reports arrive as finished text. pre keeps the line breaks that make them
+   readable; wrapping keeps long titles from forcing a horizontal scrollbar. */
+.rep-out{white-space:pre-wrap;font-family:var(--mono,ui-monospace,monospace);font-size:12.5px;
+  line-height:1.7;color:var(--ink-soft);background:var(--void);border:1px solid var(--line,#241a3d);
+  border-radius:10px;padding:16px 18px;margin-bottom:14px;max-height:420px;overflow:auto}
 
 /* ---------- signals ---------- */
 .sig-controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:20px}
@@ -287,6 +292,7 @@ textarea:focus{outline:none;border-color:var(--purple)}
       <button class="btn" type="button" data-view="pipeline">Pipeline</button>
       <button class="btn" type="button" data-view="signals">Signals</button>
       <button class="btn" type="button" data-view="coverage">Coverage</button>
+      <button class="btn" type="button" data-view="reports">Reports</button>
       <button class="btn" type="button" id="refresh">Refresh</button>
       <button class="btn" type="button" id="signout">Sign out</button>
       <a class="btn" href="/">← Board</a>
@@ -311,6 +317,31 @@ textarea:focus{outline:none;border-color:var(--purple)}
       <button class="btn act" type="button" id="sig-copy" style="margin-left:auto">Copy as text</button>
     </div>
     <div id="signals-body"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- Reports: the two autoreports, ready to paste. The endpoints return both
+       structured data and a finished text block; this renders the text, since
+       pasting is the whole point of the panel. -->
+  <div id="reports-view" hidden>
+    <div class="sig-controls">
+      <span class="sig-label">Window</span>
+      <button class="chip" type="button" data-repdays="7">7 days</button>
+      <button class="chip on" type="button" data-repdays="14">14 days</button>
+      <button class="chip" type="button" data-repdays="30">30 days</button>
+      <button class="btn" type="button" id="rep-refresh" style="margin-left:auto">Refresh</button>
+    </div>
+    <div class="sig-card">
+      <h3>Top roles — for LinkedIn</h3>
+      <p class="sig-sub">Ranked by clicks and applications, normalised per day live.</p>
+      <pre id="rep-top" class="rep-out">Loading…</pre>
+      <button class="btn act" type="button" data-repcopy="rep-top">Copy</button>
+    </div>
+    <div class="sig-card">
+      <h3>Movement brief</h3>
+      <p class="sig-sub">What opened, what closed, and which companies moved.</p>
+      <pre id="rep-brief" class="rep-out">Loading…</pre>
+      <button class="btn act" type="button" data-repcopy="rep-brief">Copy</button>
+    </div>
   </div>
 
   <!-- Coverage: the state of the scraper. Operational detail, admin only. -->
@@ -553,11 +584,68 @@ function setView(next) {
   $('filters').hidden = !isPipe;
   $('signals-view').hidden = next !== 'signals';
   $('coverage-view').hidden = next !== 'coverage';
-  $('title').textContent = next === 'signals' ? 'Signals' : next === 'coverage' ? 'Coverage' : 'Pipeline';
+  $('reports-view').hidden = next !== 'reports';
+  $('title').textContent = next === 'signals' ? 'Signals'
+    : next === 'coverage' ? 'Coverage'
+    : next === 'reports' ? 'Reports' : 'Pipeline';
   document.querySelectorAll('[data-view]').forEach((b) => b.classList.toggle('act', b.dataset.view === next));
   if (next === 'signals' && !sigData) loadSignals();
   if (next === 'coverage' && !covData) { loadCoverage(); loadManaged(); loadDiscoveries(); }
+  if (next === 'reports' && !repLoaded) loadReports();
 }
+
+/* ---------- reports ---------- */
+
+let repDays = 14;
+let repLoaded = false;
+
+async function loadReports() {
+  repLoaded = true;
+  $('rep-top').textContent = 'Loading…';
+  $('rep-brief').textContent = 'Loading…';
+
+  // format=text asks the Worker for the finished block rather than JSON, so
+  // there is nothing to assemble here and nothing to drift out of step with
+  // the version that gets pasted elsewhere.
+  const get = async (path, into) => {
+    try {
+      const res = await fetch(`${path}?days=${repDays}&format=text`, { headers: authHeaders() });
+      if (!res.ok) { $(into).textContent = `Could not load (${res.status}).`; return; }
+      const body = (await res.text()).trim();
+      $(into).textContent = body || 'Nothing to report for this window.';
+    } catch (_) {
+      $(into).textContent = 'Could not reach the server.';
+    }
+  };
+
+  await Promise.all([
+    get('/api/report/top', 'rep-top'),
+    get('/api/report/brief', 'rep-brief'),
+  ]);
+}
+
+document.addEventListener('click', (e) => {
+  const d = e.target.closest('[data-repdays]');
+  if (d) {
+    repDays = Number(d.dataset.repdays);
+    document.querySelectorAll('[data-repdays]').forEach((b) => b.classList.toggle('on', b === d));
+    loadReports();
+  }
+  if (e.target.id === 'rep-refresh') loadReports();
+
+  const c = e.target.closest('[data-repcopy]');
+  if (c) {
+    const text = $(c.dataset.repcopy).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      c.textContent = 'Copied';
+      setTimeout(() => { c.textContent = 'Copy'; }, 1800);
+    }).catch(() => {
+      // Clipboard can be blocked outright; selecting the text still works.
+      c.textContent = 'Select it above';
+      setTimeout(() => { c.textContent = 'Copy'; }, 2400);
+    });
+  }
+});
 
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-view]');
