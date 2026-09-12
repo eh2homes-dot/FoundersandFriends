@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V68" />
+<meta name="ff-build" content="RING-V71" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -403,7 +403,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #globe.is-handoff .g-role.is-lit .halo{animation:handoff-ping .52s ease-out both}
 @keyframes handoff-ping{from{opacity:.9}to{opacity:0;stroke-width:5}}
 
-.hemi-label{text-anchor:middle;font-family:var(--mono);font-size:15px;letter-spacing:.24em;text-transform:uppercase}
+.hemi-label{text-anchor:middle;font-family:var(--mono);font-size:20px;letter-spacing:.26em;text-transform:uppercase}
 .hemi-label.opco{fill:#00FF88}
 .hemi-label.proptech{fill:#A98FEC}
 
@@ -832,7 +832,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    narrow window rather than shrinking — a squeezed status line is unreadable,
    and below 640px the globes are hidden anyway. */
 .orbit-foot{display:flex;align-items:center;justify-content:center;gap:14px;
-  flex-wrap:wrap;margin:12px auto 0;max-width:1400px}
+  flex-wrap:wrap;margin:34px auto 0;max-width:1400px}
 .orbit-foot .data-status{margin:0}
 .orbit-foot .orbit-more{margin:0}
 
@@ -3696,9 +3696,9 @@ const GLOBE = {
                    // with their own node instead of being pushed off it.
   LABEL_PAD: 12,   // px from the edge of a node to the start of its name.
                    // The same for every node — that regularity is the point.
-  LABEL_MAX: 12,   // characters before a name is truncated. The two globes'
-                   // facing labels are what run out of room first, so this is
-                   // what buys the gap down the middle.
+  LABEL_MAX: 14,   // characters before a name is truncated. The two globes'
+                   // facing labels are what run out of room first: at 14 the
+                   // widest pair still clears by ~18px, at 16 they overlap.
 };
 
 const globeState = {
@@ -3873,76 +3873,94 @@ function globeBuild(){
     });
   }
 
-  // Labels: a name beside each node, nudged apart until none overlap.
+  // Labels.
   //
-  // The node positions cannot be changed — they carry the meaning — so the
-  // labels move instead. Near the top and bottom of each arc consecutive nodes
-  // are only a few pixels apart vertically, so their names would sit on top of
-  // each other; this pushes them apart, keeps them inside the frame, and leaves
-  // a lead line back to the node each one belongs to.
+  // Every earlier version placed a label and hoped. The vertical pass only
+  // compared labels with each other, so a name reaching sideways from its own
+  // node could land straight on the next node round the ring — which is what
+  // put "Envoy" across the circle beside it.
+  //
+  // This tries positions in order of preference and takes the first that is
+  // actually clear of every node and every label already placed. Outward from
+  // the node is preferred because it reads best; the fallbacks exist for the
+  // crowded arcs at the top and bottom, where outward is where the neighbours
+  // are.
   if (GLOBE.LABELS && cos.length){
-    const settle = (list) => {
-      if (!list.length) return;
-      const gap = GLOBE.LABEL_GAP;
-      list.forEach(c => { c.ly = c.y; });
-      list.sort((a, b) => a.ly - b.ly);
-      // Down the column, then back up: one pass in a single direction piles
-      // everything against whichever end it started from.
-      for (let pass = 0; pass < 3; pass++){
-        for (let i = 1; i < list.length; i++){
-          const d = list[i].ly - list[i - 1].ly;
-          if (d < gap) list[i].ly = list[i - 1].ly + gap;
-        }
-        for (let i = list.length - 2; i >= 0; i--){
-          const d = list[i + 1].ly - list[i].ly;
-          if (d < gap) list[i].ly = list[i + 1].ly - gap;
-        }
-      }
-      // Keep the whole column on the canvas.
-      const top = list[0].ly, bottom = list[list.length - 1].ly;
-      const span = bottom - top;
-      const fitTop = Math.max(14, Math.min(top, GLOBE.VH - 24 - span));
-      const shift = fitTop - top;
-      if (shift) list.forEach(c => { c.ly += shift; });
-    };
-    // Four columns, not two: each globe has nodes on both of its sides, and a
-    // label column can only be de-collided against the labels sharing it.
+    const PAD = GLOBE.LABEL_PAD;
+    const LH = 11;                       // half a line of text, for hit testing
+    const CHAR = 8.6;                    // approx advance at 16.5px
+
+    const placed = [];   // shared across both globes: their facing labels meet
+                         // in the middle of the canvas, so a per-globe list
+                         // would never see that collision coming.
     for (const h of ['opco', 'proptech']){
       const cx = GLOBE.cxOf(h);
       const mine = cos.filter(c => c.hub === h);
-      // The node at the very top of the circle, and the one at the very
-      // bottom, get their label centred above and below them instead of in a
-      // side column. They sit on the centre line, so a column throws their
-      // name right across the globe — which is what left "Invitation Ho…"
-      // stranded with nothing pointing at it. Only these two per globe: any
-      // more and centred labels start overlapping each other.
-      // Node radius, same formula the renderer uses — the label gap is
-      // measured from the circle's edge, so it has to know the size.
-      mine.forEach(c => { c.r = Math.min(19, 11.5 + Math.sqrt(c.count) * 1.35); });
-      const byY = [...mine].sort((a, b) => a.y - b.y);
-      const capTop = byY[0], capBottom = byY[byY.length - 1];
-      if (capTop){ capTop.lx = capTop.x; capTop.ly = capTop.y - 30; capTop.anchor = 'middle'; }
-      if (capBottom && capBottom !== capTop){
-        capBottom.lx = capBottom.x; capBottom.ly = capBottom.y + 36; capBottom.anchor = 'middle';
-      }
+      if (!mine.length) continue;
 
-      for (const side of [-1, 1]){
-        const col = mine.filter(c => c.anchor !== 'middle' && (side < 0 ? c.x < cx : c.x >= cx));
-        settle(col);
-        // One x for the whole column. Following the ring's outline put every
-        // label a different distance out, and near the poles the outline moves
-        // fast enough that neighbours stepped in and out — a ragged edge.
-        // Sharing an x squares the column up. It has to clear the ring's widest
-        // point, or a label beside an equator node would sit on top of it, so
-        // the polar labels end up further from their nodes than before. That is
-        // the cost of the straight edge, and the lead lines carry the link.
-        // The same gap from every node, rather than a shared column. One-line
-        // labels need only 23px of vertical clearance, and at this node count
-        // that means almost none of them has to move off its own row — so each
-        // name can sit right beside the circle it belongs to and still line up
-        // with it. The column existed to solve a crowding problem that dropping
-        // the count line removed.
-        col.forEach(c => { c.lx = c.x + side * (c.r + GLOBE.LABEL_PAD); });
+      // Node radius, same formula the renderer uses: the gap is measured from
+      // the circle's edge, so placement has to know how big the circle is.
+      mine.forEach(c => {
+        c.r = Math.min(19, 11.5 + Math.sqrt(c.count) * 1.35);
+        const name = c.name.length > GLOBE.LABEL_MAX
+          ? c.name.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : c.name;
+        c.tw = name.length * CHAR;
+      });
+
+      const hitsNode = (box, self) => mine.some(n => {
+        if (n === self) return false;
+        const nx = Math.max(box.x0, Math.min(n.x, box.x1));
+        const ny = Math.max(box.y0, Math.min(n.y, box.y1));
+        return Math.hypot(n.x - nx, n.y - ny) < n.r + 3;
+      });
+      const hitsLabel = (box) => placed.some(b =>
+        box.x0 < b.x1 + 6 && box.x1 > b.x0 - 6 && box.y0 < b.y1 + 3 && box.y1 > b.y0 - 3);
+      const onCanvas = (box) => box.x0 >= 4 && box.x1 <= GLOBE.VW - 4
+        && box.y0 >= 6 && box.y1 <= GLOBE.VH - 30;
+
+      // Outermost first. A node far from the centre has the most room around
+      // it, so letting it claim its spot before the crowded ones is what keeps
+      // the easy cases looking regular.
+      const order = [...mine].sort((a, b) =>
+        Math.hypot(b.x - cx, b.y - GLOBE.CY) - Math.hypot(a.x - cx, a.y - GLOBE.CY));
+
+      for (const c of order){
+        const out = c.x < cx ? -1 : 1;
+        const below = c.y > GLOBE.CY;
+        const cands = [
+          { side: out,  dy: 0 },                       // outward, level with the node
+          { side: -out, dy: 0 },                       // the other side
+          { mid: true,  dy: below ? c.r + 24 : -(c.r + 20) },   // under or over it
+          { mid: true,  dy: below ? -(c.r + 20) : c.r + 24 },
+          { side: out,  dy: below ? 20 : -20 },        // outward, one line off
+          { side: out,  dy: below ? -20 : 20 },
+        ];
+
+        let chosen = null;
+        for (const cand of cands){
+          const ly = c.y + cand.dy;
+          const lx = cand.mid ? c.x : c.x + cand.side * (c.r + PAD);
+          const x0 = cand.mid ? lx - c.tw / 2 : (cand.side < 0 ? lx - c.tw : lx);
+          const box = { x0, x1: x0 + c.tw, y0: ly - LH, y1: ly + LH };
+          if (!onCanvas(box)) continue;
+          if (hitsNode(box, c)) continue;
+          if (hitsLabel(box)) continue;
+          chosen = { lx, ly, anchor: cand.mid ? 'middle' : (cand.side > 0 ? 'start' : 'end'), box };
+          break;
+        }
+
+        // Nothing clear anywhere: take the outward position rather than drop
+        // the name. A grazed label still tells you which company it is; a
+        // missing one does not.
+        if (!chosen){
+          const ly = c.y, lx = c.x + out * (c.r + PAD);
+          const x0 = out < 0 ? lx - c.tw : lx;
+          chosen = { lx, ly, anchor: out > 0 ? 'start' : 'end',
+                     box: { x0, x1: x0 + c.tw, y0: ly - LH, y1: ly + LH } };
+        }
+
+        c.lx = chosen.lx; c.ly = chosen.ly; c.anchor = chosen.anchor;
+        placed.push(chosen.box);
       }
     }
   }
