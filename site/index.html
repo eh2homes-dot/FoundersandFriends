@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V89" />
+<meta name="ff-build" content="RING-V91" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3720,15 +3720,19 @@ const GLOBE = {
   // blocked the automatic order takes over, so a stale hint can never break
   // the layout — it just stops having an effect. Add a company here by name
   // exactly as it appears in the feed.
-  // Either a direction on its own, or [direction, notches] where a notch is
-  // 9px and negative is upward. The nudge rides on top of the direction, so
-  // ['left', -1] means "beside it on the left, one notch higher".
+  // Either a direction on its own, or [direction, up/down, left/right] in
+  // notches of 9px — negative is up and left. Both nudges ride on top of the
+  // direction, so ['above', 0, -3] means "over the node, shifted three notches
+  // to the left", and ['left', -1] means "beside it on the left, one notch
+  // higher". A sideways nudge only applies to 'above' and 'below', where the
+  // label is centred on the node and therefore has somewhere to slide.
   LABEL_HINTS: {
-    'Funnel Leasing':  ['left', -1],
+    'Funnel Leasing':  ['above', 0, -4],
     'Zillow Group':    ['right', -1],
-    'Luxury Presence': ['right', 1],
+    // Both below their node, so the pair reads the same way.
+    'Luxury Presence': 'below',
     'Ownwell':         'left',
-    'HomeLight':       ['left', 1],
+    'HomeLight':       'below',
   },
   LABEL_NOTCH: 9,  // one nudge step for a hint
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
@@ -4026,14 +4030,15 @@ function globeBuild(){
         const raw = GLOBE.LABEL_HINTS[c.name];
         const hint = Array.isArray(raw) ? raw[0] : raw;
         const nudge = (Array.isArray(raw) ? (raw[1] || 0) : 0) * GLOBE.LABEL_NOTCH;
+        const shift = (Array.isArray(raw) ? (raw[2] || 0) : 0) * GLOBE.LABEL_NOTCH;
         if (hint){
           const base = c.r + GLOBE.LABEL_PAD + 11;
           const vert = (sign) => [
-            { mid: true, dx: 0, dy: sign * base + nudge },
-            { mid: true, dx: 0, dy: sign * (base + GLOBE.LABEL_LINE) + nudge },
-            { mid: true, dx: out * SLIP, dy: sign * base + nudge },
-            { mid: true, dx: -out * SLIP, dy: sign * base + nudge },
-            { mid: true, dx: 0, dy: sign * (base + GLOBE.LABEL_LINE * 2) + nudge },
+            { mid: true, dx: shift, dy: sign * base + nudge },
+            { mid: true, dx: shift, dy: sign * (base + GLOBE.LABEL_LINE) + nudge },
+            { mid: true, dx: shift + out * SLIP, dy: sign * base + nudge },
+            { mid: true, dx: shift - out * SLIP, dy: sign * base + nudge },
+            { mid: true, dx: shift, dy: sign * (base + GLOBE.LABEL_LINE * 2) + nudge },
           ];
           const horiz = (side) => [
             { side, dy: nudge },
