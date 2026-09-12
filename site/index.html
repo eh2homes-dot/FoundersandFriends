@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V4" />
+<meta name="ff-build" content="RING-V5" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -262,7 +262,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-ring{fill:none;stroke:url(#g-ring-grad);stroke-width:1.2}
 
 /* threads */
-.g-thread{fill:none;stroke-width:1.7;opacity:.26;transition:opacity .3s,stroke-width .3s}
+.g-thread{fill:none;stroke-width:1.7;opacity:.2;transition:opacity .3s,stroke-width .3s}
 .g-thread.opco{stroke:#00FF88}
 .g-thread.proptech{stroke:#A98FEC}
 .g-thread.is-lit{opacity:1;stroke-width:3.2}
@@ -3449,9 +3449,15 @@ const GLOBE = {
   // rather than sitting in one arc per hub. Kept for the labelled layout.
   ARC_MAX: 168,
   ARC_STEP: 15,
-  MAX_ROLES: 22,   // per side — every slot the rings and parallels provide
-  ORBITS: [123, 95, 69, 46],    // concentric orbits the jobs ride on
-  LAT_STEP: 10,    // degrees between parallels
+  MAX_ROLES: 56,   // per side. This is capacity, not a preference: a role can
+                   // only sit where an orbit crosses a parallel, and the old
+                   // four orbits at 10-degree spacing offered exactly 22 slots
+                   // — which is why 21 companies each got precisely one dot.
+                   // Six orbits at 7 degrees offer 56, so each company shows
+                   // two or three.
+  ORBITS: [136, 118, 100, 82, 64, 46],   // concentric orbits the jobs ride on
+  LAT_STEP: 7,     // degrees between parallels — closer spacing is what
+                   // creates the extra slots, since a slot is a crossing
   MERS: 18,        // meridians
   LABELS: false,   // company names in a side column — see the note in globeBuild
 };
