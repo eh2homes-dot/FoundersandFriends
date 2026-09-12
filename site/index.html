@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V104" />
+<meta name="ff-build" content="RING-V105" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -1519,7 +1519,7 @@ a.foot-line:hover{color:var(--green)}
             <circle class="g-shade" cx="525" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
             <g class="hub-plate opco">
               <rect x="420" y="746" width="210" height="42" rx="21"/>
-              <text class="hemi-label opco" x="525" y="770">OpCo</text>
+              <text class="hemi-label opco" x="527.6" y="770">OpCo</text>
             </g>
           </g>
 
@@ -1539,7 +1539,7 @@ a.foot-line:hover{color:var(--green)}
             <circle class="g-shade" cx="1575" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
             <g class="hub-plate proptech">
               <rect x="1470" y="746" width="210" height="42" rx="21"/>
-              <text class="hemi-label proptech" x="1575" y="770">PropTech</text>
+              <text class="hemi-label proptech" x="1577.6" y="770">PropTech</text>
             </g>
           </g>
 
@@ -3601,6 +3601,48 @@ function timeAgo(iso) {
   return days + (days === 1 ? ' day ago' : ' days ago');
 }
 
+/* Keep an open tab current.
+   The feed is fetched once on load, so a board left open overnight shows
+   yesterday's roles. This re-checks periodically and on tab focus, and rebuilds
+   ONLY when generated_at has actually moved — a rebuild re-runs the whole label
+   resolver and re-seeds the role dots, so doing it on an unchanged feed would
+   make the globe twitch under someone who is reading it.
+
+   It also stays quiet while the tab is hidden: a background tab polling every
+   five minutes is a cost with no reader to benefit from it. */
+const REFRESH = { everyMs: 5 * 60 * 1000, stamp: null, timer: null };
+
+async function refreshIfStale(){
+  if (document.hidden) return;
+  try {
+    const { jobs: all, generatedAt } = await fetchJobs();
+    const stamp = generatedAt || all.map(j => j.scrapedAt).filter(Boolean).sort().pop() || null;
+    if (!all.length) return;                       // an empty feed is a fault, not an update
+    if (stamp && stamp === REFRESH.stamp) return;  // nothing new since last time
+    REFRESH.stamp = stamp;
+
+    HUBS.opco.jobs = all.filter(j => j.hub === 'opco');
+    HUBS.proptech.jobs = all.filter(j => j.hub === 'proptech');
+    renderAdmin();
+    setHub(hub);                                   // rebuild on the hub in view
+    const ago = timeAgo(stamp);
+    setStatus('live', '<b>' + all.length + ' live roles</b> — ' +
+      HUBS.opco.jobs.length + ' OpCo, ' + HUBS.proptech.jobs.length + ' PropTech' +
+      (ago ? ' · updated ' + ago : ''));
+  } catch (_) {
+    // A failed check leaves what is on screen alone. Stale data that loaded is
+    // better than an error state replacing a working board.
+  }
+}
+
+function startRefresh(){
+  if (REFRESH.timer) return;
+  REFRESH.timer = setInterval(refreshIfStale, REFRESH.everyMs);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshIfStale();        // catch up the moment they return
+  });
+}
+
 async function initData() {
   const startHub = location.hash.includes('proptech') ? 'proptech' : 'opco';
   setStatus('loading', 'Loading roles…');
@@ -3619,6 +3661,8 @@ async function initData() {
     }
 
     const stamp = generatedAt || all.map(j => j.scrapedAt).filter(Boolean).sort().pop();
+    REFRESH.stamp = stamp || null;
+    startRefresh();
     const ago = timeAgo(stamp);
     setStatus('live', '<b>' + all.length + ' live roles</b> — ' +
       HUBS.opco.jobs.length + ' OpCo, ' + HUBS.proptech.jobs.length + ' PropTech' +
