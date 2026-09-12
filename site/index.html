@@ -229,128 +229,52 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 
 /* ---------- hub cards under the hero ---------- */
-/* ---------- THE GLOBE ----------
-   One sphere split down the axis: operators on the left, technology on the
-   right. Roles sit inside their own half; the companies hiring them sit on the
-   outer ring, and a thread runs from every role to its company. */
-.orbits{margin-top:18px}
+/* ---------- ORBITS ---------- */
+.orbits{margin-top:36px}
 .orbits[hidden]{display:none}
-#globe{display:block;width:100%;max-width:1180px;height:auto;margin:0 auto;overflow:visible}
+.orbits svg{width:100%;max-width:620px;margin:0 auto;height:auto;display:block;overflow:visible}
 
-.g-hemi{cursor:pointer}
-.g-half{transition:opacity .4s}
-.g-hemi.opco .g-half{fill:url(#gs-opco)}
-.g-hemi.proptech .g-half{fill:url(#gs-prop)}
-.g-hemi:not(.is-current) .g-half{opacity:.62}
-.g-hemi:hover .g-half{opacity:1}
+.globe-body{transition:opacity .3s}
+.globe-rim{fill:none;stroke:var(--line-2);stroke-width:1;transition:stroke .3s}
+.hemi.opco .globe-rim{stroke:rgba(0,255,136,.2)}
+.hemi.proptech .globe-rim{stroke:rgba(127,77,224,.26)}
+.hemi.opco:hover .globe-rim,.hemi.opco.is-current .globe-rim{stroke:rgba(0,255,136,.55)}
+.hemi.proptech:hover .globe-rim,.hemi.proptech.is-current .globe-rim{stroke:rgba(127,77,224,.65)}
+.globe-lat ellipse{fill:none;stroke:var(--line);stroke-width:1;opacity:.55}
+.globe-axis{stroke-width:1}
 
-.g-lat,.g-mer{fill:none;stroke:url(#g-mesh-grad);stroke-width:.9;vector-effect:non-scaling-stroke}
-.g-mer{opacity:.55}
-.g-lat-row{opacity:.7}
-.g-lat-fill{opacity:.32}
-.g-atmo,.g-shade{pointer-events:none}
-.g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1.5;
-  filter:drop-shadow(0 0 10px rgba(120,190,255,.4))}
-.g-band{fill:none;stroke:url(#g-rim-grad);stroke-width:1.3;opacity:.5;
-  filter:drop-shadow(0 0 6px rgba(150,200,255,.35))}
-.g-band.b2{opacity:.32;stroke-width:1.1}
-/* the jobs' orbit — a slow drift in the dashes gives it motion without
-   moving the jobs themselves */
-.g-orbit{fill:none;stroke:rgba(200,197,218,.16);stroke-width:1}
-.g-orbit.inner{stroke:rgba(200,197,218,.12)}
-.g-axis{stroke-width:1}
+/* Each half is its own hit area. The fill is transparent but clickable, so the
+   whole hemisphere selects rather than only its dots. */
+.hemi{cursor:pointer}
+.hemi.is-current .globe-body{opacity:1}
+.hemi:not(.is-current) .globe-body{opacity:.55}
 
-/* the outer circle the companies ride on */
-/* The circle the companies sit on, one unbroken stroke the whole way round. */
-.g-ring{fill:none;stroke:url(#g-ring-grad);stroke-width:1.2}
+/* Rotation about the globe's centre, so both halves share one axis and dots
+   cross the divide as they travel — the point of drawing one sphere rather
+   than two. Slow on purpose: a fast orbit reads as a loading spinner. */
+.orbit-ring{animation:orbit 110s linear infinite;transform-origin:170px 150px}
+.hemi.proptech .orbit-ring{transform-origin:470px 150px}
+.orbit-ring.reverse{animation-duration:150s;animation-direction:reverse}
+@keyframes orbit{to{transform:rotate(360deg)}}
+.orbits:hover .orbit-ring{animation-play-state:paused}
 
-/* threads */
-.g-thread{fill:none;stroke-width:1;opacity:.2;transition:opacity .3s,stroke-width .3s}
-.g-thread.opco{stroke:#00FF88}
-.g-thread.proptech{stroke:#A98FEC}
-.g-thread.is-lit{opacity:1;stroke-width:2.2}
-.g-thread.opco.is-lit{filter:drop-shadow(0 0 5px rgba(0,255,136,.8))}
-.g-thread.proptech.is-lit{filter:drop-shadow(0 0 5px rgba(169,143,236,.85))}
+.orbit-co{cursor:pointer}
+.orbit-co circle{transition:r .25s,filter .25s}
+.hemi.opco .orbit-co circle{fill:var(--green)}
+.hemi.proptech .orbit-co circle{fill:var(--purple-bright)}
+.hemi.opco .orbit-co:hover circle{filter:drop-shadow(0 0 10px var(--green))}
+.hemi.proptech .orbit-co:hover circle{filter:drop-shadow(0 0 10px var(--purple-bright))}
 
-.g-spark{pointer-events:none;transition:opacity .3s}
-.g-spark.opco{fill:#00FF88;filter:drop-shadow(0 0 4px rgba(0,255,136,.8))}
-.g-spark.proptech{fill:#C4B0FF;filter:drop-shadow(0 0 4px rgba(169,143,236,.95))}
-.g-spark.lit{fill:#fff}
-
-/* role nodes, inside the sphere */
-.g-role{cursor:pointer;transition:opacity .3s}
-.g-role .core{stroke:#07040F;stroke-width:1.2;transition:fill .25s}
-.g-role .halo{fill:none;stroke-width:1;opacity:.28;transition:opacity .25s}
-.g-role.opco .core{fill:#00FF88}
-.g-role.opco .halo{stroke:#00FF88}
-.g-role.proptech .core{fill:#8B5CF0}
-.g-role.proptech .halo{stroke:#A98FEC}
-.g-role.is-lit .core{fill:#fff}
-.g-role.is-lit .halo{opacity:.9}
-
-/* company nodes, on the outer ring */
-.g-co{cursor:pointer;transition:opacity .3s}
-.g-co .core{fill:#0B0618;stroke-width:2;transition:fill .25s}
-.g-co.opco .core{stroke:#00FF88;filter:drop-shadow(0 0 6px rgba(0,255,136,.45))}
-.g-co.proptech .core{stroke:#8B5CF0;filter:drop-shadow(0 0 6px rgba(127,77,224,.6))}
-.g-co .pulse{fill:none;stroke-width:1.2;transform-box:fill-box;transform-origin:center;
-  animation:g-pulse 6.5s ease-out infinite}
-.g-co.opco .pulse{stroke:#00FF88}
-.g-co.proptech .pulse{stroke:#A98FEC}
-@keyframes g-pulse{0%{transform:scale(1);opacity:.6}65%,100%{transform:scale(1.85);opacity:0}}
-.g-co .n{font-family:var(--mono);font-size:10.5px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
-.g-co .lbl{font-family:var(--body);font-size:15px;font-weight:600;fill:var(--ink-soft)}
-.co-lead{stroke-width:1;opacity:.28;transition:opacity .25s}
-.g-co.opco .co-lead{stroke:rgba(0,255,136,.55)}
-.g-co.proptech .co-lead{stroke:rgba(169,143,236,.65)}
-.g-co.is-lit .co-lead{opacity:.95}
-.g-co .sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;fill:var(--ink-dim)}
-.g-co.opco.is-lit .core{fill:#00FF88}
-.g-co.proptech.is-lit .core{fill:#8B5CF0}
-.g-co.opco.is-lit .n{fill:#07040F}
-.g-co.is-lit .lbl{fill:#fff}
-.g-co:focus{outline:none}
-.g-co:focus-visible .core{stroke:#fff;stroke-width:3}
-
-/* everything off the traced path recedes */
-#globe.is-focused .g-thread:not(.is-lit){opacity:.07}
-#globe.is-focused .g-role:not(.is-lit),
-#globe.is-focused .g-co:not(.is-lit){opacity:.28}
-
-/* The beat between selecting and arriving: the chosen path holds bright while
-   the globe recedes, so the connection is legible before the board takes over. */
-#globe.is-handoff .g-thread:not(.is-lit),
-#globe.is-handoff .g-role:not(.is-lit),
-#globe.is-handoff .g-co:not(.is-lit),
-#globe.is-handoff .g-lat,#globe.is-handoff .g-mer,#globe.is-handoff .g-band,
-#globe.is-handoff .g-shade,#globe.is-handoff .g-atmo,
-#globe.is-handoff .g-ring{opacity:.05;transition:opacity .3s}
-#globe.is-handoff .g-thread.is-lit{stroke-width:2.8}
-#globe.is-handoff .g-role.is-lit .halo{animation:handoff-ping .52s ease-out both}
-@keyframes handoff-ping{from{opacity:.9}to{opacity:0;stroke-width:5}}
-
-.hemi-label{text-anchor:middle;font-family:var(--mono);font-size:13px;letter-spacing:.24em;text-transform:uppercase}
-.hemi-label.opco{fill:#00FF88}
-.hemi-label.proptech{fill:#A98FEC}
-
-.orbit-more{display:flex;justify-content:center;margin-top:14px}
-.orbit-more[hidden]{display:none}
-.all-cos{
-  display:inline-flex;align-items:center;gap:10px;padding:11px 22px;border-radius:100px;
-  cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--ink-soft);background:rgba(11,6,24,.7);border:1px solid var(--line-2);
-  transition:border-color .2s,color .2s,background .2s,transform .2s,box-shadow .2s;
+.hemi-label{
+  text-anchor:middle;font-family:var(--mono);font-size:11px;
+  letter-spacing:.22em;text-transform:uppercase;
 }
-.all-cos::after{content:"→";opacity:.7}
-.all-cos:hover{
-  color:#fff;border-color:rgba(0,255,136,.5);background:rgba(0,255,136,.08);
-  transform:translateY(-1px);box-shadow:0 0 22px rgba(0,255,136,.18);
-}
-.all-cos:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+.hemi-label.opco{fill:var(--green)}
+.hemi-label.proptech{fill:var(--purple-text)}
 
 .orbit-hint{
-  text-align:center;margin-top:10px;min-height:20px;
-  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-dim);
+  text-align:center;margin-top:12px;min-height:20px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-dim);
 }
 @media(max-width:640px){.orbits{display:none}}
 
@@ -485,7 +409,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .page-num em{font-style:normal;color:var(--ink-dim);text-shadow:none}
 
 .job-card{
-  cursor:pointer;
   position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;
   gap:16px;align-items:center;padding:14px 18px;border-radius:12px;min-height:128px;
   background:linear-gradient(150deg,rgba(43,16,85,.46),rgba(11,6,24,.84));
@@ -505,7 +428,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 }
 .job-card:hover::before,.job-card.is-active::before,.job-card.is-opened::before{opacity:1}
 .job-card.is-opened{border-color:rgba(0,255,136,.5)}
-.job-card:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 
 .job-index{
   width:32px;height:32px;flex:none;border-radius:9px;display:grid;place-items:center;
@@ -653,16 +575,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   .rail-target{position:static;flex-direction:row;justify-content:center;gap:18px}
   .target-label{text-align:left;max-width:22ch}
 }
-/* Desktop: date over pay, anchor beside them, and the drag hint lifted out of
-   the flow. On one line these took 345px of a 540px card and squeezed the
-   title into a 93px column. Mobile keeps its own layout below. */
-@media(min-width:681px){
-  .job-side{display:grid;grid-template-columns:auto 34px;column-gap:14px;row-gap:5px;align-items:center;justify-items:end}
-  .job-stamp{grid-column:1;grid-row:1}
-  .job-comp{grid-column:1;grid-row:2}
-  .drag-anchor{grid-column:2;grid-row:1 / span 2}
-  .dot-hint{position:absolute;right:16px;bottom:9px}
-}
 @media(max-width:680px){
   .job-card{grid-template-columns:auto minmax(0,1fr);gap:14px;padding:16px 18px}
   .job-side{grid-column:1/-1;justify-content:flex-start;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
@@ -736,15 +648,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   color:#04120A;background:linear-gradient(135deg,var(--cyan),var(--green));
   box-shadow:0 0 20px rgba(59,232,255,.35);
 }
-
-/* ---------- orbit / list ---------- */
-.view-bar{display:flex;justify-content:center;margin-top:30px}
-#board-view[data-view="orbit"] .board,
-#board-view[data-view="orbit"] .roster,
-#board-view[data-view="list"] .orbits,
-#board-view[data-view="list"] .hub-cards{display:none}
-#board-view[data-view="list"] .board-hero .laser-rule{margin-top:34px}
-.board-hero > .data-status{margin:22px auto 0;max-width:980px}
 
 .stat-line{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -885,7 +788,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* deliberately in the flow rather than floating over the page — a promo that
    covers the content it is promoting is worse than no promo */
 .promo-row{
-  display:grid;grid-template-columns:1fr;gap:12px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
   margin-top:26px;
 }
 @media(max-width:760px){.promo-row{grid-template-columns:1fr}}
@@ -899,19 +802,23 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 }
 .promo-card:hover{transform:translateY(-2px)}
 .promo-card.news:hover{border-color:rgba(0,255,136,.45);box-shadow:0 0 0 1px rgba(0,255,136,.16),0 14px 34px rgba(4,2,10,.5)}
+.promo-card.pt:hover{border-color:rgba(59,232,255,.45);box-shadow:0 0 0 1px rgba(59,232,255,.16),0 14px 34px rgba(4,2,10,.5)}
 
 .pc-icon{
   width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:15px;
   border:1px solid var(--line);
 }
 .promo-card.news .pc-icon{color:var(--green);background:rgba(0,255,136,.09);border-color:rgba(0,255,136,.28)}
+.promo-card.pt .pc-icon{color:var(--cyan);background:rgba(59,232,255,.09);border-color:rgba(59,232,255,.28)}
 
 .pc-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pc-copy b{font-family:var(--head);font-size:14px;font-weight:600;color:var(--ink)}
 .pc-copy b i{font-style:normal;color:var(--green)}
+.promo-card.pt .pc-copy b i{color:var(--cyan)}
 .pc-copy small{font-size:12px;color:var(--ink-dim);line-height:1.45}
 .pc-go{margin-left:auto;flex:none;font-size:14px;color:var(--ink-dim);transition:color .22s,transform .22s}
 .promo-card.news:hover .pc-go{color:var(--green);transform:translate(2px,-2px)}
+.promo-card.pt:hover .pc-go{color:var(--cyan);transform:translate(2px,-2px)}
 
 
 
@@ -936,6 +843,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 /* Both header links share one pill. Only the accent colour differs, so they
    read as a matched pair rather than two unrelated buttons. */
 .promo-badge,
+.pt-btn,
 .news-btn{
   display:inline-flex;align-items:center;gap:10px;
   padding:10px 18px;border-radius:100px;
@@ -946,9 +854,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   transition:border-color .2s,background .2s,transform .2s,box-shadow .2s;
 }
 .promo-badge{--accent:var(--cyan)}
+.pt-btn{--accent:var(--purple-text)}
 .news-btn{--accent:var(--green)}
 
 .promo-badge:hover,
+.pt-btn:hover,
 .news-btn:hover{
   border-color:var(--accent);
   background:color-mix(in srgb, var(--accent) 14%, transparent);
@@ -1293,6 +1203,11 @@ a.foot-line:hover{color:var(--green)}
       <span class="pb-text">Syndeo</span>
       <span class="pb-go" aria-hidden="true">↗</span>
     </a>
+    <a class="pt-btn" href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="Property and Technology (opens in a new tab)">
+      <span class="pb-dot" aria-hidden="true"></span>
+      <span class="pb-text">Property and Technology</span>
+      <span class="pb-go" aria-hidden="true">↗</span>
+    </a>
     <a class="news-btn" href="https://evanprothro-newsletter.beehiiv.com/" target="_blank" rel="noopener noreferrer" aria-label="Newsletter (opens in a new tab)">
       <span class="nb-dot" aria-hidden="true"></span>
       <span class="nb-text">Newsletter</span>
@@ -1310,132 +1225,56 @@ a.foot-line:hover{color:var(--green)}
       <p class="hero-sub" id="hero-sub"></p>
     </div>
 
-    <!-- Two views, as before: the orbit is the main page, the list is its own
-         page for reading every role. Each has its own address (#/ and #/roles)
-         so the back button moves between them. -->
-    <div class="view-bar">
-      <div class="view-toggle" role="group" aria-label="View">
-        <button type="button" id="v-orbit" data-view="orbit">Orbit</button>
-        <button type="button" id="v-list" data-view="list">List</button>
-      </div>
-    </div>
-    <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
-      <span class="ds-dot" aria-hidden="true"></span>
-      <span class="ds-msg"></span>
-    </p>
-
     <!-- Two doors into the board. Each switches the hub and scrolls to the
            roles. To send visitors to a separate site instead, add an href to
            the <a> and remove data-goto — the click handler stands down when
            an href is present. -->
-      <!-- The globe. One sphere split down the axis: OpCo on the left, PropTech
-           on the right. Roles sit inside their own half, the companies hiring
-           them ride the outer ring, and a thread joins every role to its
-           company. Built from the feed, so it can never show a company that is
-           not really contributing roles. -->
+      <!-- Two globes, side by side. OpCo on the left, PropTech on the right.
+           Each dot is a company in orbit, sized by how much it is hiring, and
+           built from the feed — so it cannot show a company that is not really
+           contributing roles. -->
       <div class="orbits" id="orbits" hidden>
-        <svg id="globe" viewBox="0 0 1000 610" role="img" aria-label="Open roles by hub, each connected to the company hiring">
+        <svg viewBox="0 0 640 320" role="img" aria-label="Companies hiring, by hub">
           <defs>
-            <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(0,255,136,.15)"/>
-              <stop offset="100%" stop-color="rgba(0,255,136,.03)"/>
-            </linearGradient>
-            <linearGradient id="gs-prop" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(127,77,224,.04)"/>
-              <stop offset="100%" stop-color="rgba(127,77,224,.26)"/>
-            </linearGradient>
-            <linearGradient id="g-axis-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stop-color="rgba(200,197,218,0)"/>
-              <stop offset="25%"  stop-color="rgba(200,197,218,.3)"/>
-              <stop offset="75%"  stop-color="rgba(200,197,218,.3)"/>
-              <stop offset="100%" stop-color="rgba(200,197,218,0)"/>
-            </linearGradient>
-            <clipPath id="g-clip-l"><rect x="0" y="0" width="500" height="610"/></clipPath>
-            <clipPath id="g-clip-r"><rect x="500" y="0" width="500" height="610"/></clipPath>
-            <!-- The wireframe runs green on the operator side into purple on the
-                 technology side, so the mesh itself carries the split. -->
-            <linearGradient id="g-mesh-grad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(34,238,190,.46)"/>
-              <stop offset="46%"  stop-color="rgba(34,222,190,.22)"/>
-              <stop offset="54%"  stop-color="rgba(150,110,240,.26)"/>
-              <stop offset="100%" stop-color="rgba(152,112,244,.52)"/>
-            </linearGradient>
-            <!-- Sphere shading: a light source up and to the left, and the limb
-                 falling away into shadow. This is what makes it read as a ball
-                 rather than a disc with lines drawn on it. -->
-            <radialGradient id="g-shade" cx="34%" cy="28%" r="78%">
-              <stop offset="0%"   stop-color="rgba(255,255,255,.10)"/>
-              <stop offset="34%"  stop-color="rgba(255,255,255,.02)"/>
-              <stop offset="62%"  stop-color="rgba(4,2,10,.18)"/>
-              <stop offset="88%"  stop-color="rgba(4,2,10,.52)"/>
-              <stop offset="100%" stop-color="rgba(4,2,10,.72)"/>
+            <radialGradient id="orb-o" cx="50%" cy="42%" r="62%">
+              <stop offset="0%"   stop-color="rgba(0,255,136,.16)"/>
+              <stop offset="70%"  stop-color="rgba(0,255,136,.04)"/>
+              <stop offset="100%" stop-color="rgba(0,255,136,0)"/>
             </radialGradient>
-            <radialGradient id="g-atmo" cx="50%" cy="50%" r="50%">
-              <stop offset="86%"  stop-color="rgba(95,185,225,0)"/>
-              <stop offset="94%"  stop-color="rgba(100,195,230,.16)"/>
-              <stop offset="100%" stop-color="rgba(100,195,230,0)"/>
+            <radialGradient id="orb-p" cx="50%" cy="42%" r="62%">
+              <stop offset="0%"   stop-color="rgba(127,77,224,.20)"/>
+              <stop offset="70%"  stop-color="rgba(127,77,224,.05)"/>
+              <stop offset="100%" stop-color="rgba(127,77,224,0)"/>
             </radialGradient>
-            <linearGradient id="g-ring-grad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(0,255,136,.34)"/>
-              <stop offset="46%"  stop-color="rgba(120,225,205,.26)"/>
-              <stop offset="54%"  stop-color="rgba(150,130,235,.28)"/>
-              <stop offset="100%" stop-color="rgba(169,143,236,.4)"/>
-            </linearGradient>
-            <linearGradient id="g-rim-grad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stop-color="rgba(46,242,196,.9)"/>
-              <stop offset="50%"  stop-color="rgba(200,195,230,.55)"/>
-              <stop offset="100%" stop-color="rgba(172,142,255,.92)"/>
-            </linearGradient>
           </defs>
 
-          <!-- The halo sits outside the sphere, so it has to be drawn before
-               anything that should appear in front of it. -->
-          <circle class="g-atmo" cx="500" cy="290" r="207" fill="url(#g-atmo)"/>
-          <circle class="g-ring" cx="500" cy="290" r="218"/>
-
-          <g class="g-hemi opco" data-goto="opco">
-            <circle class="g-half" cx="500" cy="290" r="190" clip-path="url(#g-clip-l)"/>
-          </g>
-          <g class="g-hemi proptech" data-goto="proptech">
-            <circle class="g-half" cx="500" cy="290" r="190" clip-path="url(#g-clip-r)"/>
-          </g>
-
-          <!-- The wireframe is built in JS: the meridians have to be redrawn
-               each frame for the sphere to turn, and hand-writing twenty-odd
-               ellipses here would only duplicate that. -->
-          <g id="g-mesh" pointer-events="none"></g>
-          <!-- Two bright bands crossing the sphere, as in the reference: they
-               catch the eye the way a lit great circle does and stop the mesh
-               reading as flat cross-hatching. -->
-          <g class="g-bands" pointer-events="none">
-            <ellipse class="g-band" cx="500" cy="290" rx="190" ry="66" transform="rotate(-28 500 290)"/>
-            <ellipse class="g-band b2" cx="500" cy="290" rx="190" ry="112" transform="rotate(24 500 290)"/>
-          </g>
-          <g pointer-events="none">
-            <circle class="g-rim" cx="500" cy="290" r="190"/>
-            <g id="g-orbits"></g>
-            <line class="g-axis" x1="500" y1="92" x2="500" y2="488" stroke="url(#g-axis-grad)"/>
+          <g class="hemi opco" data-goto="opco">
+            <circle class="globe-body" cx="170" cy="150" r="112" fill="url(#orb-o)"/>
+            <circle class="globe-rim"  cx="170" cy="150" r="112"/>
+            <g class="globe-lat">
+              <ellipse cx="170" cy="150" rx="112" ry="32"/>
+              <ellipse cx="170" cy="150" rx="112" ry="68"/>
+              <ellipse cx="170" cy="150" rx="112" ry="100"/>
+            </g>
+            <g class="orbit-ring" id="orb-opco-outer"></g>
+            <g class="orbit-ring reverse" id="orb-opco-inner"></g>
+            <text class="hemi-label opco" x="170" y="300">OpCo · Operators</text>
           </g>
 
-          <!-- Laid over the wireframe but under the jobs, so the mesh curves
-               away into shadow while the dots stay at full strength. -->
-          <circle class="g-shade" cx="500" cy="290" r="190" fill="url(#g-shade)" pointer-events="none"/>
-
-          <g id="g-threads"></g>
-          <g id="g-sparks"></g>
-          <g id="g-roles"></g>
-          <g id="g-cos"></g>
-
-          <text class="hemi-label opco"     x="330" y="600">OpCo</text>
-          <text class="hemi-label proptech" x="670" y="600">PropTech</text>
+          <g class="hemi proptech" data-goto="proptech">
+            <circle class="globe-body" cx="470" cy="150" r="112" fill="url(#orb-p)"/>
+            <circle class="globe-rim"  cx="470" cy="150" r="112"/>
+            <g class="globe-lat">
+              <ellipse cx="470" cy="150" rx="112" ry="32"/>
+              <ellipse cx="470" cy="150" rx="112" ry="68"/>
+              <ellipse cx="470" cy="150" rx="112" ry="100"/>
+            </g>
+            <g class="orbit-ring" id="orb-proptech-outer"></g>
+            <g class="orbit-ring reverse" id="orb-proptech-inner"></g>
+            <text class="hemi-label proptech" x="470" y="300">PropTech · Technology</text>
+          </g>
         </svg>
         <p class="orbit-hint" id="orbit-hint"></p>
-        <!-- The globe only has room for the busiest companies each side. This
-             is the way to everyone else, and it names the number so the gap is
-             never a surprise. -->
-        <div class="orbit-more">
-          <button type="button" class="all-cos" id="all-cos"></button>
-        </div>
       </div>
 
       <div class="hub-cards">
@@ -1476,6 +1315,11 @@ a.foot-line:hover{color:var(--green)}
   </section>
 
   <main class="board">
+    <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
+      <span class="ds-dot" aria-hidden="true"></span>
+      <span class="ds-msg"></span>
+    </p>
+
     <div class="board-controls">
       <div class="controls-top">
         <p class="stat-line" id="stats-line" role="status"></p>
@@ -1510,7 +1354,7 @@ a.foot-line:hover{color:var(--green)}
       <div class="rail-dots" id="dots"></div>
       <div class="rail-target" id="target">
         <div class="target-ring">View</div>
-        <p class="target-label">Select a role, or drag its node here</p>
+        <p class="target-label">Drag a node here to open the role</p>
       </div>
     </div>
 
@@ -1520,6 +1364,14 @@ a.foot-line:hover{color:var(--green)}
         <span class="pc-copy">
           <b>Stay Ahead in Proptech</b>
           <small>Weekly insights on proptech hiring, market trends, and the openings worth knowing about.</small>
+        </span>
+        <span class="pc-go" aria-hidden="true">↗</span>
+      </a>
+      <a class="promo-card pt" href="https://propertyandtechnology.pages.dev/" target="_blank" rel="noopener noreferrer">
+        <span class="pc-icon" aria-hidden="true">◆</span>
+        <span class="pc-copy">
+          <b>Property and Technology</b>
+          <small>The feed behind this network — real estate, SFR operations, and the AI reshaping proptech.</small>
         </span>
         <span class="pc-go" aria-hidden="true">↗</span>
       </a>
@@ -1551,7 +1403,7 @@ a.foot-line:hover{color:var(--green)}
       <div>
         <div class="fmark">Founders <span class="amp">&amp;</span> Friends</div>
         <p class="foot-blurb">
-          The scattered site talent network. Two hubs, one for scattered site
+          The talent network behind Property and Technology. Two hubs, one for scattered site
           operations and one for the technology that catalyzes them.
         </p>
       </div>
@@ -1829,8 +1681,7 @@ function renderCards(){
   }
 
   cardsEl.innerHTML = list.map(j => `
-    <article class="job-card" data-id="${j.id}" tabindex="0" role="button"
-      aria-label="${esc(j.title)} at ${esc(j.company)}. Open the role.">
+    <article class="job-card" data-id="${j.id}">
       <span class="job-index" aria-hidden="true">+</span>
       <div class="job-main">
         <h3 class="job-title">${esc(j.title)}</h3>
@@ -1843,7 +1694,7 @@ function renderCards(){
       <div class="job-side">
         <span class="job-stamp"><span class="job-type">${esc(j.type)}</span><span class="sep">·</span><span>${ago(j.days)}</span></span>
         ${compRange(j) ? `<span class="job-comp">${compRange(j)}</span>` : ''}
-        <span class="dot-hint">Open</span>
+        <span class="dot-hint">Drag to view</span>
         <span class="drag-anchor" aria-hidden="true"></span>
       </div>
     </article>`).join('');
@@ -2040,35 +1891,6 @@ function settle(id, from){
 function complete(id){
   place(id, 1);
   openDrawer(id);
-  fireBeam();
-  setTimeout(() => settle(id, 1), 520);
-}
-
-/* Selecting a card opens the role. The drag is the flourish, not the only way
-   in — arriving from the globe and finding the cards inert broke the run from
-   company to role to application. Clicks on the dot overlay are excluded, so
-   the drag still works. */
-cardsEl.addEventListener('click', (e) => {
-  if (dragging) return;
-  const card = e.target.closest('.job-card');
-  if (!card || e.target.closest('button, a, input')) return;
-  runLine(card.dataset.id);
-  openDrawer(card.dataset.id);
-});
-cardsEl.addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter' && e.key !== ' ') return;
-  const card = e.target.closest('.job-card');
-  if (!card || e.target.closest('button, a, input')) return;
-  e.preventDefault();
-  runLine(card.dataset.id);
-  openDrawer(card.dataset.id);
-});
-
-/* Send the dot down its thread to the target, so opening by click still shows
-   the connection the drag would have drawn. */
-function runLine(id){
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-  place(id, 1);
   fireBeam();
   setTimeout(() => settle(id, 1), 520);
 }
@@ -2673,7 +2495,7 @@ async function submitApply(){
 
 const web = $('web');
 const SVGNS = 'http://www.w3.org/2000/svg';
-let view = /\/roles/.test(location.hash) ? 'list' : 'orbit';
+let view = 'list';
 let graph = { roles: [], cos: [], links: [], w: 0, h: 0 };
 let focusKey = null;          // node or link currently traced
 let pointer = { x: -9999, y: -9999, inside: false };
@@ -3116,60 +2938,17 @@ function openMatch(key){
   drawer.querySelector('.drawer-close').focus();
 }
 
-/* ---------- orbit / list ---------- */
-/* The orbit is the main page. The list is its own page for reading every
-   role — reached from the toggle, a hub card, or selecting a company on the
-   globe. Callers that pass nothing just redraw whichever view is showing. */
-const viewHash = () =>
-  (hub === 'proptech' ? '#/proptech-hub' : '#') + (view === 'list' ? '/roles' : '/');
-
-function setView(next, opts = {}){
-  const changed = next && next !== view;
-  if (next) view = next;
-  const listOn = view === 'list';
-  $('board-view').dataset.view = view;
-  document.querySelectorAll('.view-toggle [data-view]').forEach((b) => {
-    const on = b.dataset.view === view;
-    b.classList.toggle('is-on', on);
-    b.setAttribute('aria-pressed', String(on));
-  });
-
-  // A new view is a new page, so it gets a history entry: back returns to
-  // the globe rather than leaving the site.
-  if (changed && !opts.fromHistory){
-    try { history.pushState({ view }, '', viewHash()); } catch (_) {}
-  }
-
-  if (listOn){
-    globeStop();
-    $('rail').style.display = 'grid';
-    $('nav').style.display = '';
-    document.querySelector('.pill-row').style.display = 'flex';
-    renderCards();
-  } else {
-    globeStart();
-  }
+/* ---------- graph / list toggle ---------- */
+/* The matching web was removed: the orbits above now carry the visual weight,
+   and two competing animated graphics on one page fought each other. setView
+   survives as a single entry point so every caller still works. */
+function setView(){
+  view = 'list';
+  $('rail').style.display = 'grid';
+  $('nav').style.display = '';
+  document.querySelector('.pill-row').style.display = 'flex';
+  renderCards();
 }
-
-/* Every company, including the ones the globe has no room for. The roster on
-   the list page is built from the feed, so it is always the full set. */
-$('all-cos')?.addEventListener('click', () => {
-  setView('list');
-  $('roster')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
-
-/* Go to the list, at the top of the board. */
-function openList(){
-  setView('list');
-  document.querySelector('.board')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-document.querySelectorAll('.view-toggle [data-view]').forEach((b) =>
-  b.addEventListener('click', () => {
-    if (b.dataset.view === view) return;
-    setView(b.dataset.view);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }));
 
 function renderStats(){
   const list = visibleJobs();
@@ -3243,7 +3022,7 @@ function setHub(next){
 
   // Sandboxed preview frames have an opaque origin and reject replaceState,
   // so the deep link is best-effort rather than load-bearing.
-  try { history.replaceState(history.state, '', viewHash()); }
+  try { history.replaceState(null, '', hub === 'proptech' ? '#/proptech-hub' : '#/'); }
   catch { /* no deep link here — the hub still switches */ }
 
   query = ''; $('search').value = '';
@@ -3426,7 +3205,7 @@ function wireHubCards(){
       if (card.getAttribute('href')) return;   // a real link wins
       e.preventDefault();
       setHub(card.dataset.goto);
-      openList();
+      document.querySelector('.board').scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     card.addEventListener('click', go);
     card.addEventListener('keydown', (e) => {
@@ -3435,563 +3214,82 @@ function wireHubCards(){
   });
 }
 
-/* ==========================================================================
-   THE GLOBE
-   One sphere, split. Every open role is a node inside its hub's half; every
-   company hiring is a node on the outer ring; a thread runs from each role to
-   its company. The shape of the threads is the shape of who is hiring.
-   ========================================================================== */
-
-const GLOBE = {
-  CX: 500, CY: 290,
-  R: 190,          // the sphere
-  RC: 218,         // how far out the company rail sits. Tight to the sphere:
-                   // at this distance the nodes clear the limb by 13px and
-                   // their pulse rings just reach it.
-  LATS: 9,         // wireframe density
-  MERS: 22,
-  MAX_COS: 9,      // per side. On a circle this close in, more than nine
-                   // cannot be spaced evenly without the labels colliding.
-  ARC_MAX: 96,     // degrees of arc each side uses
-  ARC_STEP: 13,    // degrees between companies when there are only a few
-  MAX_ROLES: 36,   // per side — every slot the rings below provide
-  ORBITS: [150, 116, 84, 56],   // concentric orbits the jobs ride on
-  ROW_SLOTS: 20,   // slots on the outer orbit, which set the horizontal lines
-  ORBIT_SPAN: 82,  // degrees above and below the horizon the outer orbit uses —
-                   // the small gap at the poles keeps the axis readable
-};
-
-const globeState = {
-  sig: '', links: [], roles: [], cos: [], held: null, mers: [], rows: null,
-  raf: null, visible: true, focus: null,
-  pointer: { x: 0, y: 0, inside: false },
-  bound: false,
-};
-
-const globeCalm = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-/* Small deterministic jitter, so the layout is organic but does not reshuffle
-   every time the hub switches. */
-function globeHash(i){
-  const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
-  return x - Math.floor(x);
-}
-
-/* The horizontal lines of the wireframe. They come from evenly spacing slots
-   around the outer orbit, and every inner orbit then reuses the same lines —
-   which is what keeps each job on an intersection rather than near one. */
-function globeRows(){
-  if (globeState.rows) return globeState.rows;
-  const { CX, CY, ORBITS, ROW_SLOTS, ORBIT_SPAN } = GLOBE;
-  const RO = ORBITS[0];
-  const set = new Set();
-  for (let i = 0; i < ROW_SLOTS; i++){
-    const rel = -ORBIT_SPAN + (i / (ROW_SLOTS - 1)) * ORBIT_SPAN * 2;
-    if (rel <= 0) continue;                       // mirrored, so one half is enough
-    const rad = rel * Math.PI / 180;
-    const L = globeLatFor(CX + Math.cos(rad) * RO, CY + Math.sin(rad) * RO);
-    if (L && L > 4) set.add(+L.toFixed(2));
-  }
-  globeState.rows = [...set].sort((a, b) => a - b);
-  return globeState.rows;
-}
-
-/* Where a job can sit on one side: every point where an orbit crosses one of
-   those lines. An orbit only reaches the lines inside it, so the inner rings
-   hold fewer jobs than the outer — which is also what keeps them from
-   crowding together near the middle. */
-function globeSlots(side){
-  const key = 'slots' + side;
-  if (globeState[key]) return globeState[key];
-  const { CX, CY, R, ORBITS } = GLOBE;
-  const out = [];
-  for (const RO of ORBITS){
-    for (const L of globeRows()){
-      if (L > RO * 0.985) continue;               // this orbit never reaches that line
-      const y2 = (1 - (RO / R) ** 2) / (1 / (L * L) - 1 / (R * R));
-      if (!(y2 >= 0) || y2 > RO * RO) continue;
-      const y = Math.sqrt(y2), x = Math.sqrt(Math.max(0, RO * RO - y2));
-      for (const sy of [-1, 1]){
-        const px = CX + side * x, py = CY + sy * y;
-        out.push({ x: px, y: py, ro: RO, rel: globeRel(px, py, side) });
-      }
-    }
-  }
-  // Top to bottom, outer ring first where two slots share a line, so a company's
-  // jobs stay in one angular band and its threads fan instead of crossing.
-  out.sort((a, b) => a.rel - b.rel || b.ro - a.ro);
-  globeState[key] = out;
-  return out;
-}
-
-/* The angle of a point from the horizon on its own side, used to order slots
-   and to keep each company's jobs together. */
-function globeRel(x, y, side){
-  const a = Math.atan2(y - GLOBE.CY, x - GLOBE.CX) * 180 / Math.PI;
-  if (side > 0) return a;
-  return a > 0 ? 180 - a : -180 - a;
-}
-
-function globeBuild(){
-  const { CX, CY, RC } = GLOBE;
-  const layers = ['g-threads', 'g-sparks', 'g-roles', 'g-cos'].map($);
-  if (layers.some(l => !l)) return;
-  const [gThreads, gSparks, gRoles, gCos] = layers;
-  layers.forEach(l => { l.innerHTML = ''; });
-
-  const roles = [], cos = [], links = [];
-  let hiddenCos = 0;
-
-  for (const [h, side] of [['opco', -1], ['proptech', 1]]){
-    const jobs = HUBS[h].jobs || [];
-    const byCo = new Map();
-    for (const j of jobs){
-      if (!byCo.has(j.company)) byCo.set(j.company, []);
-      byCo.get(j.company).push(j);
-    }
-
-    // Priority companies first, then whoever is hiring most — the same rule
-    // the old web used, so a key operator is never pushed off by a vendor
-    // posting forty roles.
-    const pri = (list) => list.some(j => j.priority);
-    const ranked = [...byCo.entries()]
-      .sort((a, b) => (pri(b[1]) - pri(a[1])) || (b[1].length - a[1].length) || a[0].localeCompare(b[0]));
-    hiddenCos += Math.max(0, ranked.length - GLOBE.MAX_COS);
-    const shown = ranked.slice(0, GLOBE.MAX_COS);
-    if (!shown.length) continue;
-
-    // Companies on the circle, in equal steps around it. Equal steps of angle,
-    // not of height: on a circle those are different, and spacing by height
-    // left uneven gaps along the arc. The arc is kept shallow so the first and
-    // last do not swing far in towards the axis.
-    const n = shown.length;
-    const span = n > 1 ? Math.min(GLOBE.ARC_MAX, (n - 1) * GLOBE.ARC_STEP) : 0;
-    const sideCos = shown.map(([name, list], i) => {
-      const rel = n === 1 ? 0 : -span / 2 + (i / (n - 1)) * span;
-      const rad = (side > 0 ? rel : 180 - rel) * Math.PI / 180;
-      return {
-        key: 'c:' + name, name, hub: h, side, rank: i,
-        count: list.length,
-        x: CX + Math.cos(rad) * RC, y: CY + Math.sin(rad) * RC,
-      };
-    });
-    cos.push(...sideCos);
-
-    // One role from each company in turn, so a single busy company cannot
-    // fill the whole half.
-    const pools = shown.map(([, list]) => list.slice());
-    const sample = [];
-    for (let round = 0; sample.length < GLOBE.MAX_ROLES; round++){
-      let took = 0;
-      pools.forEach((pool, ci) => {
-        if (round < pool.length && sample.length < GLOBE.MAX_ROLES){
-          sample.push({ job: pool[round], co: sideCos[ci] });
-          took++;
-        }
-      });
-      if (!took) break;
-    }
-    sample.sort((a, b) => a.co.rank - b.co.rank);
-
-    // Sorted by company, so each company's jobs sit together on the orbit
-    // opposite it and the threads run out like spokes rather than crossing.
-    const all = globeSlots(side);
-    // Spread whatever is showing across the rings rather than filling the outer
-    // one first, so a short feed still reads as a globe.
-    const step = all.length / Math.max(1, sample.length);
-    const pts = sample.map((_, i) => all[Math.min(all.length - 1, Math.floor(i * step))]);
-
-    sample.forEach((s, i) => {
-      const p = pts[i];
-      if (!p) return;
-      const role = { key: 'j:' + s.job.id, job: s.job, hub: h, x: p.x, y: p.y };
-      roles.push(role);
-      links.push({
-        key: 'l:' + s.job.id, from: role, to: s.co, hub: h,
-        phase: globeHash(roles.length) * Math.PI * 2,
-        bend: 0.35 + globeHash(roles.length + 17) * 1.15,
-        speed: 0.5 + globeHash(roles.length + 7) * 0.5,
-        period: 9000 + globeHash(roles.length + 31) * 7000,   // one pass every 9–16s
-        start: globeHash(roles.length + 53),
-        pull: { x: 0, y: 0 },
-      });
-    });
-  }
-
-  // threads and their sparks
-  for (const L of links){
-    L.path = el('path', { class: 'g-thread ' + L.hub, 'data-key': L.from.key });
-    L.dot = el('circle', { class: 'g-spark ' + L.hub, r: 2 });
-    gThreads.append(L.path);
-    gSparks.append(L.dot);
-  }
-
-  // role nodes
-  for (const n of roles){
-    const g = el('g', { class: 'g-role ' + n.hub, 'data-key': n.key });
-    g.append(el('circle', { class: 'halo', cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: 8.5 }));
-    g.append(el('circle', { class: 'core', cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: 4.6 }));
-    const t = el('title');
-    t.textContent = `${n.job.title} — ${n.job.company}`;
-    g.append(t);
-    n.g = g;
-    gRoles.append(g);
-  }
-
-  // company nodes, labelled outward from the ring
-  cos.forEach((c, i) => {
-    const r = Math.min(17, 9.5 + Math.sqrt(c.count) * 1.25);
-    const g = el('g', {
-      class: 'g-co ' + c.hub, 'data-key': c.key,
-      tabindex: '0', role: 'button',
-      'aria-label': `${c.name}, ${c.count} open ${c.count === 1 ? 'role' : 'roles'}. Show on the board.`,
-    });
-    const pulse = el('circle', { class: 'pulse', cx: c.x.toFixed(1), cy: c.y.toFixed(1), r: (r + 1).toFixed(1) });
-    pulse.style.animationDelay = (i * 0.55).toFixed(2) + 's';
-    g.append(pulse);
-    g.append(el('circle', { class: 'core', cx: c.x.toFixed(1), cy: c.y.toFixed(1), r: r.toFixed(1) }));
-    const num = el('text', { class: 'n', x: c.x.toFixed(1), y: c.y.toFixed(1) });
-    num.textContent = c.count;
-    g.append(num);
-
-    // The nodes bow with the circle, but the labels stay in one column so the
-    // names and counts still line up. A hairline carries each label back to
-    // its node, which is what keeps the two reading as one thing.
-    const lx = GLOBE.CX + c.side * (GLOBE.RC + 34);
-    const anchor = c.side > 0 ? 'start' : 'end';
-    const leadFrom = c.x + c.side * (r + 5);
-    const leadTo = lx - c.side * 9;
-    if (Math.abs(leadTo - leadFrom) > 5){
-      g.append(el('line', {
-        class: 'co-lead',
-        x1: leadFrom.toFixed(1), y1: c.y.toFixed(1),
-        x2: leadTo.toFixed(1),   y2: c.y.toFixed(1),
-      }));
-    }
-    const name = c.name.length > 24 ? c.name.slice(0, 23).trimEnd() + '…' : c.name;
-    const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.y - 1).toFixed(1), 'text-anchor': anchor });
-    lbl.textContent = name;
-    const sub = el('text', { class: 'sub', x: lx.toFixed(1), y: (c.y + 13).toFixed(1), 'text-anchor': anchor });
-    sub.textContent = c.count === 1 ? '1 role' : c.count + ' roles';
-    const t = el('title');
-    t.textContent = c.name;
-    g.append(lbl, sub, t);
-    c.g = g;
-    gCos.append(g);
-  });
-
-  Object.assign(globeState, { roles, cos, links, hiddenCos, focus: null });
-  globeMesh();                       // latitudes follow the job rows
-  $('globe')?.classList.remove('is-focused');
-  globeStep(performance.now(), true);
-}
-
-/* A thread that genuinely undulates: three waypoints alternating either side
-   of the straight run, joined with smooth cubics. */
-/* Threads are bundled: each one is drawn towards a gathering point on its own
-   company's radius before it reaches the node, so a company's threads run as
-   one stem rather than each cutting its own line across the globe. Straight
-   lines from every job to every node is what makes a field this dense read as
-   stray hairs. */
-function globeThread(L, time, still){
-  const { CX, CY, R } = GLOBE;
-  const a = L.from, b = L.to;
-
-  // The corridor: out along the company's own radius, just inside the sphere.
-  const ca = Math.atan2(b.y - CY, b.x - CX);
-  const gx = CX + Math.cos(ca) * R * 0.88;
-  const gy = CY + Math.sin(ca) * R * 0.88;
-
-  // A gentle drift so the bundle breathes, plus the pointer's tug.
-  const sway = still ? 0 : Math.sin(time * 0.00022 * L.speed + L.phase) * 3 * L.bend;
-  const dx = gx - a.x, dy = gy - a.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = -dy / len, ny = dx / len;
-
-  // Leaves the job heading for the corridor, arrives at the node along it.
-  // Hug the job's own radius first, then bend into the corridor. Leaving
-  // straight from the dot is what made these read as cut lines.
-  const ja = Math.atan2(a.y - CY, a.x - CX);
-  const ar = Math.hypot(a.x - CX, a.y - CY);
-  const lift = Math.min(46, len * 0.42);
-  const c1x = a.x + Math.cos(ja) * lift + nx * sway + L.pull.x * 0.6;
-  const c1y = a.y + Math.sin(ja) * lift + ny * sway + L.pull.y * 0.6;
-  const c2x = gx + (gx - CX) * 0.1;
-  const c2y = gy + (gy - CY) * 0.1;
-
-  const f = (v) => v.toFixed(1);
-  return `M ${f(a.x)} ${f(a.y)} C ${f(c1x)} ${f(c1y)}, ${f(c2x)} ${f(c2y)}, ${f(gx)} ${f(gy)}`
-       + ` S ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
-}
-
-function globeStep(time, once){
-  const still = globeCalm();
-  const P = globeState.pointer;
-
-  for (const L of globeState.links){
-    // The pointer tugs nearby threads toward it and they spring back after.
-    let tx = 0, ty = 0;
-    if (P.inside && !still){
-      const mx = (L.from.x + L.to.x) / 2, my = (L.from.y + L.to.y) / 2;
-      const ddx = P.x - mx, ddy = P.y - my, dist = Math.hypot(ddx, ddy);
-      if (dist < 150){
-        const force = (1 - dist / 150) ** 2 * 20;
-        tx = ddx / (dist || 1) * force;
-        ty = ddy / (dist || 1) * force;
-      }
-    }
-    L.pull.x += (tx - L.pull.x) * 0.06;
-    L.pull.y += (ty - L.pull.y) * 0.06;
-    L.path.setAttribute('d', globeThread(L, time, still));
-
-    // the spark travelling role → company
-    const total = L.path.getTotalLength?.() || 0;
-    if (total){
-      const t = still ? 0.5 : (L.start + time / L.period) % 1;
-      const pt = L.path.getPointAtLength(total * t);
-      L.dot.setAttribute('cx', pt.x.toFixed(1));
-      L.dot.setAttribute('cy', pt.y.toFixed(1));
-      // Set inline every frame, so the dimming for a traced path has to be
-      // applied here — a CSS rule would lose to the inline value.
-      const dim = globeState.focus && !L.dot.classList.contains('lit') ? 0.1 : 1;
-      L.dot.style.opacity = still ? '0' : String(Math.min(1, Math.sin(t * Math.PI) * 1.6) * dim);
-    }
-  }
-
-  // The meridians narrow and widen as the sphere turns. A full turn takes a
-  // minute and a half — slow enough to read as a globe, not a spinner.
-  if (!still && globeState.mers.length){
-    const ph = time / 90000 * Math.PI * 2;
-    const step = Math.PI / globeState.mers.length;
-    globeState.mers.forEach((el, i) => {
-      el.setAttribute('rx', (GLOBE.R * Math.abs(Math.sin(ph + i * step))).toFixed(1));
-    });
-  }
-
-  if (once) return;
-  if (!globeState.visible || $('orbits')?.hidden || still){ globeState.raf = null; return; }
-  globeState.raf = requestAnimationFrame((t) => globeStep(t));
-}
-
-function globeStart(){
-  if (globeState.raf || globeCalm() || view !== 'orbit') return;
-  globeState.raf = requestAnimationFrame((t) => globeStep(t));
-}
-function globeStop(){
-  if (globeState.raf) cancelAnimationFrame(globeState.raf);
-  globeState.raf = null;
-}
-
-/* ---------- tracing ---------- */
-function globeRelated(key){
-  const set = new Set([key]);
-  for (const L of globeState.links){
-    if (L.from.key === key || L.to.key === key){
-      set.add(L.from.key); set.add(L.to.key); set.add('l:' + L.from.key);
-    }
-  }
-  return set;
-}
-
-function globeFocus(key){
-  // A click is holding this trace lit on its way to the list; a stray
-  // pointermove must not put it out before it has been seen.
-  if (globeState.held && key !== globeState.held) return;
-  if (key === globeState.focus) return;
-  globeState.focus = key;
-  const svg = $('globe');
-  const lit = key ? globeRelated(key) : null;
-  svg?.classList.toggle('is-focused', Boolean(key));
-  for (const L of globeState.links){
-    const on = lit ? lit.has('l:' + L.from.key) : false;
-    L.path.classList.toggle('is-lit', on);
-    L.dot.classList.toggle('lit', on);
-  }
-  for (const n of [...globeState.roles, ...globeState.cos]){
-    n.g?.classList.toggle('is-lit', lit ? lit.has(n.key) : false);
-  }
-}
-
-/* Selecting on the globe lights the path first, then follows it. Without the
-   pause the trace is drawn and destroyed in the same frame, so the link
-   between an employer and its roles is never actually seen — which is the
-   whole reason the threads are drawn. A company leads to its roles on the
-   board; a single role opens straight into its own posting. */
-const HANDOFF_MS = 520;
-
-function globeActivate(key){
-  if (globeState.held) return;        // a second click must not queue a second jump
-  const c = globeState.cos.find(x => x.key === key);
-  const r = globeState.roles.find(x => x.key === key);
-  if (!c && !r) return;
-
-  globeFocus(key);                    // light the threads and whatever they join
-  globeState.held = key;
-  $('globe')?.classList.add('is-handoff');
-
-  const go = () => {
-    globeState.held = null;
-    $('globe')?.classList.remove('is-handoff');
-    if (c){
-      if (hub !== c.hub) setHub(c.hub);
-      company = c.name;
-      page = 0;
-      renderPills(); renderStats();
-      openList();
-    } else {
-      if (hub !== r.hub) setHub(r.hub);
-      openDrawer(r.job.id);
-    }
-  };
-
-  if (globeCalm()) go();              // no pause for anyone who asked for less motion
-  else setTimeout(go, HANDOFF_MS);
-}
-
-/* The wireframe. Latitudes are fixed rings; meridians are ellipses whose width
-   is animated to give the turn. Built once — it does not depend on the feed. */
-/* The vertical half-axis of the latitude ellipse that passes exactly through a
-   point, given the ellipse spans the full width of the sphere. This is what
-   lets every job sit on a line rather than near one. */
-function globeLatFor(x, y){
-  const { CX, CY, R } = GLOBE;
-  const k = 1 - ((x - CX) / R) ** 2;
-  if (k <= 0.001) return null;
-  return Math.abs(y - CY) / Math.sqrt(k);
-}
-
-/* The wireframe. Latitudes run through the job rows, so each job sits where its
-   own horizontal line crosses the inner circle — an intersection of two drawn
-   lines rather than a dot floating on one. Fainter lines are added between
-   them for the web, and the meridians are animated to give the turn. */
-function globeMesh(){
-  const g = $('g-mesh');
-  if (!g) return;
-
-  const rings = $('g-orbits');
-  if (rings && !rings.children.length){
-    rings.innerHTML = GLOBE.ORBITS
-      .map((r, i) => `<circle class="g-orbit${i ? ' inner' : ''}" cx="${GLOBE.CX}" cy="${GLOBE.CY}" r="${r}"/>`)
-      .join('');
-  }
-  const { CX, CY, R, MERS } = GLOBE;
-
-  const rows = globeRows();
-
-  // Halfway between each pair, and one above the widest, so the mesh keeps its
-  // density even when few roles are showing.
-  // Only where there is room: the rows crowd towards the poles, and adding a
-  // line into a gap that is already a few pixels wide turns the mesh to mush.
-  const GAP = 13;
-  const fills = [];
-  for (let i = 0; i < rows.length - 1; i++){
-    if (rows[i + 1] - rows[i] > GAP * 2) fills.push((rows[i] + rows[i + 1]) / 2);
-  }
-  if (rows.length && R - rows[rows.length - 1] > GAP * 2) fills.push((rows[rows.length - 1] + R) / 2);
-  if (rows.length && rows[0] > GAP * 2) fills.push(rows[0] / 2);
-
-  const lat = (ry, cls) =>
-    `<ellipse class="${cls}" cx="${CX}" cy="${CY}" rx="${R}" ry="${ry.toFixed(1)}"/>`;
-
-  const frag = [
-    ...fills.map((ry) => lat(ry, 'g-lat g-lat-fill')),
-    ...rows.map((ry) => lat(ry, 'g-lat g-lat-row')),
-  ];
-  for (let i = 0; i < MERS; i++){
-    frag.push(`<ellipse class="g-mer" cx="${CX}" cy="${CY}" rx="${(R * Math.abs(Math.sin(i * Math.PI / MERS))).toFixed(1)}" ry="${R}"/>`);
-  }
-  g.innerHTML = frag.join('');
-  globeState.mers = [...g.querySelectorAll('.g-mer')];
-}
-
-function globeBind(){
-  const svg = $('globe');
-  if (!svg || globeState.bound) return;
-  globeState.bound = true;
-
-  const toLocal = (e) => {
-    const m = svg.getScreenCTM?.();
-    if (m && svg.createSVGPoint){
-      const p = svg.createSVGPoint();
-      p.x = e.clientX; p.y = e.clientY;
-      return p.matrixTransform(m.inverse());
-    }
-    const box = svg.getBoundingClientRect();
-    return { x: (e.clientX - box.left) * (1000 / (box.width || 1)), y: (e.clientY - box.top) * (610 / (box.height || 1)) };
-  };
-
-  svg.addEventListener('pointermove', (e) => {
-    const p = toLocal(e);
-    Object.assign(globeState.pointer, { x: p.x, y: p.y, inside: true });
-    globeFocus(e.target.closest?.('[data-key]')?.dataset.key || null);
-  });
-  svg.addEventListener('pointerleave', () => {
-    globeState.pointer.inside = false;
-    globeFocus(null);
-  });
-
-  svg.addEventListener('click', (e) => {
-    const key = e.target.closest?.('[data-key]')?.dataset.key;
-    if (key){ globeActivate(key); return; }
-    const half = e.target.closest?.('.g-hemi[data-goto]');
-    if (half && half.dataset.goto !== hub) setHub(half.dataset.goto);
-  });
-
-  // keyboard: companies are focusable and trace their roles while focused
-  svg.addEventListener('focusin', (e) => {
-    const key = e.target.closest?.('.g-co')?.dataset.key;
-    if (key) globeFocus(key);
-  });
-  svg.addEventListener('focusout', () => globeFocus(null));
-  svg.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    const key = e.target.closest?.('.g-co')?.dataset.key;
-    if (key){ e.preventDefault(); globeActivate(key); }
-  });
-
-  // Only animate while it is on screen.
-  if ('IntersectionObserver' in window){
-    new IntersectionObserver(([entry]) => {
-      globeState.visible = entry.isIntersecting;
-      if (globeState.visible) globeStart(); else globeStop();
-    }).observe(svg);
-  }
-}
-
+/* Counts come from whatever is loaded, so they stay honest when the feed is
+   empty or still loading. */
 /**
- * Paints the globe from the feed. Rebuilt only when the roles actually change,
- * so switching hub just moves the highlight rather than re-laying everything.
+ * Paints the two orbits from the feed.
+ *
+ * Each dot is one company, sized by how much it is hiring, placed evenly around
+ * the ring. Companies with the most openings go on the outer orbit so they are
+ * easiest to see and to hit.
+ *
+ * Built from the data, so it can never show a company that is not contributing
+ * roles — the same rule the roster follows.
  */
 function paintOrbits(){
   const section = $('orbits');
-  if (!section) return;
-  const o = (HUBS.opco.jobs || []).length, pt = (HUBS.proptech.jobs || []).length;
-  if (!o && !pt){ section.hidden = true; globeStop(); return; }
+  const all = [...(HUBS.opco.jobs || []), ...(HUBS.proptech.jobs || [])];
+  if (!all.length) { section.hidden = true; return; }
   section.hidden = false;
-  globeBind();
 
-  const sig = ['opco', 'proptech'].map(h => (HUBS[h].jobs || []).map(j => j.id).join(',')).join('|');
-  if (sig !== globeState.sig){ globeState.sig = sig; globeBuild(); }
+  const CENTRES = { opco: 170, proptech: 470 };
+  const CY = 150;
 
-  document.querySelectorAll('.g-hemi[data-goto]').forEach((g) =>
+  for (const h of ['opco', 'proptech']) {
+    const counts = new Map();
+    for (const j of HUBS[h].jobs || []) counts.set(j.company, (counts.get(j.company) || 0) + 1);
+
+    const list = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const most = list[0]?.[1] || 1;
+    const cx = CENTRES[h];
+
+    // The busiest dozen take the outer ring; the rest orbit inside. Beyond
+    // about twenty the dots start colliding, so the tail is left off — the
+    // roster below lists everyone.
+    const rings = [
+      { el: $(`orb-${h}-outer`), items: list.slice(0, 12), r: 96 },
+      { el: $(`orb-${h}-inner`), items: list.slice(12, 20), r: 58 },
+    ];
+
+    for (const ring of rings) {
+      if (!ring.el) continue;
+      ring.el.innerHTML = ring.items.map(([name, n], i) => {
+        // Evenly around the full circle, starting at the top.
+        const a = -Math.PI / 2 + (i / Math.max(1, ring.items.length)) * Math.PI * 2;
+        const x = cx + Math.cos(a) * ring.r;
+        const y = CY + Math.sin(a) * ring.r;
+        const r = 3.5 + Math.min(6, (n / most) * 6);
+        return `<g class="orbit-co" data-orbit-co="${esc(name)}" data-orbit-hub="${h}">
+          <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>
+          <title>${esc(name)} — ${n} ${n === 1 ? 'role' : 'roles'}</title>
+        </g>`;
+      }).join('');
+    }
+  }
+
+  document.querySelectorAll('.hemi[data-goto]').forEach((g) =>
     g.classList.toggle('is-current', g.dataset.goto === hub));
 
+  const o = (HUBS.opco.jobs || []).length, pt = (HUBS.proptech.jobs || []).length;
   $('orbit-hint').textContent =
-    `${o} operator ${o === 1 ? 'role' : 'roles'} · ${pt} technology ${pt === 1 ? 'role' : 'roles'} · select a company to see its roles`;
-
-  const total = new Set([...(HUBS.opco.jobs || []), ...(HUBS.proptech.jobs || [])].map(j => j.company)).size;
-  const shown = globeState.cos.length;
-  const btn = $('all-cos');
-  if (btn){
-    btn.textContent = `See all ${total} ${total === 1 ? 'company' : 'companies'}`;
-    // Nothing is hidden when they all fit, so the button would be a detour.
-    btn.closest('.orbit-more').hidden = total <= shown;
-    const hiddenN = Math.max(0, total - shown);
-    btn.setAttribute('aria-label',
-      `See all ${total} companies, including the ${hiddenN} not shown on the globe`);
-  }
-  globeStart();
+    `${o} operator ${o === 1 ? 'role' : 'roles'} · ${pt} technology ${pt === 1 ? 'role' : 'roles'} — hover to pause, select a company to filter`;
 }
+
+/* Selecting a dot filters the board to that company; selecting the space
+   around it switches hub. */
+document.addEventListener('click', (e) => {
+  const dot = e.target.closest('[data-orbit-co]');
+  if (dot) {
+    if (hub !== dot.dataset.orbitHub) setHub(dot.dataset.orbitHub);
+    company = dot.dataset.orbitCo;
+    page = 0;
+    renderPills(); renderStats(); setView(view);
+    document.querySelector('.board')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  const hemi = e.target.closest('.hemi[data-goto]');
+  if (hemi && hemi.dataset.goto !== hub) setHub(hemi.dataset.goto);
+});
 
 function paintHubCards(){
   document.querySelectorAll('.hc-count').forEach((el) => {
@@ -4089,6 +3387,7 @@ document.addEventListener('click', (e) => {
    sends them back to it. Add any other entry point here. */
 const HOME_SITES = [
   { match: /the-source-flax\.vercel\.app/i, url: 'https://the-source-flax.vercel.app/', label: 'The Source' },
+  { match: /propertyandtechnology/i,        url: 'https://propertyandtechnology.pages.dev/', label: 'Property and Technology' },
   { match: /syndeo/i,                       url: 'https://syndeo-main-page.eh2homes.workers.dev/', label: 'Syndeo' },
 ];
 
@@ -4143,13 +3442,6 @@ window.addEventListener('popstate', () => {
   if (drawer || scrim) {
     drawerInHistory = false;    // the entry is already gone
     closeDrawer();
-    return;
-  }
-  // Otherwise back/forward moved between the orbit and the list.
-  const next = /\/roles/.test(location.hash) ? 'list' : 'orbit';
-  if (next !== view){
-    setView(next, { fromHistory: true });
-    window.scrollTo({ top: 0 });
   }
 });
 
@@ -4204,17 +3496,16 @@ document.addEventListener('click', (e) => {
   page = 0;
   renderPills();
   renderStats();
-  openList();
+  setView(view);
+  document.querySelector('.board').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
 /* ---------- boot ---------- */
-$('board-view').dataset.view = view;
 initBackLink();
 wireHubCards();
 initData();
 new ResizeObserver(() => { if (view === 'list') measure(); }).observe(rail);
-// (the graph's resize observer went with the graph — observing a missing
-// element throws, which silently stopped the resize and scroll handlers below)
+new ResizeObserver(() => { if (view === 'graph') buildGraph(); }).observe($('graph-view'));
 window.addEventListener('resize', measure);
 window.addEventListener('scroll', onScroll, { passive: true });
 // web fonts land after first paint and shift every card
