@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V92" />
+<meta name="ff-build" content="RING-V93" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3940,6 +3940,16 @@ function globeBuild(){
     const placed = [];   // shared across both globes: their facing labels meet
                          // in the middle of the canvas, so a per-globe list
                          // would never see that collision coming.
+
+    // The OPCO / PROPTECH captions are drawn text too, and the node at the
+    // bottom of each circle sends its label straight down onto them. Seeding
+    // them here is cheaper than a special case, and it means any future fixed
+    // text can be protected the same way.
+    for (const h of ['opco', 'proptech']){
+      const w = (h === 'proptech' ? 8 : 5) * 17;   // 20px mono at .26em tracking
+      const hx = GLOBE.cxOf(h);
+      placed.push({ x0: hx - w / 2 - 10, x1: hx + w / 2 + 10, y0: 748, y1: 786 });
+    }
     for (const h of ['opco', 'proptech']){
       const cx = GLOBE.cxOf(h);
       const mine = cos.filter(c => c.hub === h);
@@ -4522,33 +4532,56 @@ function globeOrbitals(){
     { f: 0.70, ry: 0.26, tilt:  38, dur: 52, dir: 1 },
     { f: 0.90, ry: 0.58, tilt:  -8, dur: 78, dir: -1 },
   ];
+  const NS = 'http://www.w3.org/2000/svg';
 
   for (const host of hosts){
     if (host.children.length) continue;
     const cx = Number(host.dataset.cx);
     const hub = cx === GLOBE.cxOf('proptech') ? 'proptech' : 'opco';
-    const band = RCX - R;                       // the empty ring of space
+    const band = RCX - R;
 
-    host.innerHTML = TRACKS.map((t, i) => {
-      const rx = (R + band * t.f).toFixed(1);
-      const ry = (Number(rx) * t.ry).toFixed(1);
-      // An ellipse as a path, centred on the origin, so the pulse point can be
-      // animated along the very same geometry the ring is drawn from — two
-      // separate definitions would drift apart the moment either changed.
+    TRACKS.forEach((t, i) => {
+      const rx = +(R + band * t.f).toFixed(1);
+      const ry = +(rx * t.ry).toFixed(1);
+      // One ellipse expressed as a path, so the ring and the pulse point that
+      // runs it are drawn from the same geometry rather than two definitions
+      // that can drift apart.
       const d = `M ${-rx},0 a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
-      // cx/cy on the dot, not just the motion path: if animateMotion does not
-      // run — an old engine, a blocked SMIL implementation — the dot still
-      // draws somewhere sensible instead of collapsing to the group's origin,
-      // which is the middle of the sphere.
-      return `<g class="orb ${hub}" transform="translate(${cx} ${CY}) rotate(${t.tilt})"
-                 style="--spin:${(t.dur * 2.6).toFixed(0)}s;--dir:${t.dir > 0 ? 'normal' : 'reverse'};--fade:${(0.85 - i * 0.1).toFixed(2)}">
-          <path class="orb-path" d="${d}"/>
-          <circle class="orb-dot" cx="${rx}" cy="0" r="${(3.4 - i * 0.3).toFixed(1)}">
-            <animateMotion dur="${t.dur}s" repeatCount="indefinite" path="${d}"
-              keyPoints="${t.dir > 0 ? '0;1' : '1;0'}" keyTimes="0;1" calcMode="linear"/>
-          </circle>
-        </g>`;
-    }).join('');
+
+      // Built with createElementNS rather than innerHTML. Assigning innerHTML
+      // on an SVG element parses in the HTML namespace on some engines, which
+      // produces elements that exist in the DOM and never paint — invisible
+      // and impossible to tell apart from "the code never ran".
+      const g = document.createElementNS(NS, 'g');
+      g.setAttribute('class', 'orb ' + hub);
+      g.setAttribute('transform', `translate(${cx} ${CY}) rotate(${t.tilt})`);
+      g.style.setProperty('--spin', (t.dur * 2.6).toFixed(0) + 's');
+      g.style.setProperty('--dir', t.dir > 0 ? 'normal' : 'reverse');
+      g.style.setProperty('--fade', (0.85 - i * 0.1).toFixed(2));
+
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('class', 'orb-path');
+      path.setAttribute('d', d);
+      g.append(path);
+
+      const dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('class', 'orb-dot');
+      dot.setAttribute('cx', rx);      // a real position, so it shows even if
+      dot.setAttribute('cy', 0);       // the motion below never starts
+      dot.setAttribute('r', (3.4 - i * 0.3).toFixed(1));
+
+      const motion = document.createElementNS(NS, 'animateMotion');
+      motion.setAttribute('dur', t.dur + 's');
+      motion.setAttribute('repeatCount', 'indefinite');
+      motion.setAttribute('path', d);
+      motion.setAttribute('keyPoints', t.dir > 0 ? '0;1' : '1;0');
+      motion.setAttribute('keyTimes', '0;1');
+      motion.setAttribute('calcMode', 'linear');
+      dot.append(motion);
+      g.append(dot);
+
+      host.append(g);
+    });
   }
 }
 
