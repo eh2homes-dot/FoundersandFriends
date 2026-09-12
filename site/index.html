@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V66" />
+<meta name="ff-build" content="RING-V67" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -1424,7 +1424,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
-        <svg id="globe" viewBox="0 0 1800 744" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
+        <svg id="globe" viewBox="0 0 1800 784" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%"   stop-color="rgba(0,255,136,.035)"/>
@@ -1479,35 +1479,35 @@ a.foot-line:hover{color:var(--green)}
                hover card all key off one coordinate space, and splitting them
                would mean three copies of each. -->
           <g class="g-world" data-hub="opco">
-            <circle class="g-atmo" cx="440" cy="350" r="203" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="440" cy="350" r="300"/>
+            <circle class="g-atmo" cx="440" cy="390" r="203" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="440" cy="390" r="300"/>
             <g class="g-hemi opco" data-goto="opco">
-              <circle class="g-half" cx="440" cy="350" r="186"/>
+              <circle class="g-half" cx="440" cy="390" r="186"/>
             </g>
             <g class="g-mesh" data-cx="440" pointer-events="none"></g>
             <g pointer-events="none">
-              <circle class="g-rim" cx="440" cy="350" r="186"/>
+              <circle class="g-rim" cx="440" cy="390" r="186"/>
               <g class="g-orbits" data-cx="440"></g>
-              <line class="g-axis" x1="440" y1="156" x2="440" y2="544" stroke="url(#g-axis-grad)"/>
+              <line class="g-axis" x1="440" y1="196" x2="440" y2="584" stroke="url(#g-axis-grad)"/>
             </g>
-            <circle class="g-shade" cx="440" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label opco" x="440" y="730">OpCo</text>
+            <circle class="g-shade" cx="440" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label opco" x="440" y="770">OpCo</text>
           </g>
 
           <g class="g-world" data-hub="proptech">
-            <circle class="g-atmo" cx="1360" cy="350" r="203" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="1360" cy="350" r="300"/>
+            <circle class="g-atmo" cx="1360" cy="390" r="203" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="1360" cy="390" r="300"/>
             <g class="g-hemi proptech" data-goto="proptech">
-              <circle class="g-half" cx="1360" cy="350" r="186"/>
+              <circle class="g-half" cx="1360" cy="390" r="186"/>
             </g>
             <g class="g-mesh" data-cx="1360" pointer-events="none"></g>
             <g pointer-events="none">
-              <circle class="g-rim" cx="1360" cy="350" r="186"/>
+              <circle class="g-rim" cx="1360" cy="390" r="186"/>
               <g class="g-orbits" data-cx="1360"></g>
-              <line class="g-axis" x1="1360" y1="156" x2="1360" y2="544" stroke="url(#g-axis-grad)"/>
+              <line class="g-axis" x1="1360" y1="196" x2="1360" y2="584" stroke="url(#g-axis-grad)"/>
             </g>
-            <circle class="g-shade" cx="1360" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label proptech" x="1360" y="730">PropTech</text>
+            <circle class="g-shade" cx="1360" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label proptech" x="1360" y="770">PropTech</text>
           </g>
 
           <g id="g-threads"></g>
@@ -3645,8 +3645,8 @@ const GLOBE = {
   // so the only way to make each sphere bigger is to make the space it sits in
   // smaller. The centres come together and the label columns tighten with
   // them — 1800 is the floor before the two inner columns of text meet.
-  VW: 1800, VH: 744,          // the canvas
-  CY: 350,
+  VW: 1800, VH: 784,          // the canvas
+  CY: 390,
   CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
   cxOf: (hub) => (hub === 'proptech' ? 1360 : 440),
   R: 186,          // the sphere — still smaller than the ring, so the ring
