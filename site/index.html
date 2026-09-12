@@ -290,7 +290,6 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-atmo,.g-shade{pointer-events:none}
 
 /* ---------- the orbital system ---------- */
-.orb{transform-box:view-box}
 .orb-path{fill:none;stroke-width:1.6;opacity:var(--fade);
   stroke-dasharray:3 10;animation:orb-drift var(--spin) linear infinite var(--dir)}
 .orb.opco .orb-path{stroke:rgba(0,255,136,.85);filter:drop-shadow(0 0 4px rgba(0,255,136,.45))}
@@ -3975,6 +3974,14 @@ function globeBuild(){
       const onCanvas = (box) => box.x0 >= 4 && box.x1 <= GLOBE.VW - 4
         && box.y0 >= 6 && box.y1 <= GLOBE.VH - 30;
 
+      // The hub name under each globe is a drawn object like any other. It was
+      // not in the obstacle set, so a company label could land on top of it —
+      // which is how "Entrata" ended up sitting across "PROPTECH".
+      const HUB_LABEL = { x0: cx - 92, x1: cx + 92, y0: 752, y1: 784 };
+      const hitsHubLabel = (box) =>
+        box.x0 < HUB_LABEL.x1 && box.x1 > HUB_LABEL.x0
+        && box.y0 < HUB_LABEL.y1 && box.y1 > HUB_LABEL.y0;
+
       // The ring is a drawn line, so a name sitting across it reads as struck
       // through. A box is clear only if the whole of it is inside the ring or
       // the whole of it is outside — which is true when the circle's radius
@@ -4091,6 +4098,7 @@ function globeBuild(){
           if (hitsNode(box, c)) continue;
           if (hitsLabel(box)) continue;
           if (crossesRing(box)) continue;
+          if (hitsHubLabel(box)) continue;
           chosen = { lx, ly, anchor, box };
           break;
         }
