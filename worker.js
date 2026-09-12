@@ -1558,8 +1558,13 @@ async function reviewDiscovery(request, env) {
    =========================================================================== */
 /* Below this much evidence a role is counted but not ranked. Without it, one
    click on a role posted yesterday reads as a perfect daily average and tops
-   the list over something with fifty times the history. */
-const MIN_EVENTS = 12;
+   the list over something with fifty times the history.
+
+   Three, not twelve. The board currently takes roughly eighty clicks a week
+   across fifty-odd roles — about 1.5 each — so a twelve-event bar excludes
+   everything, every week. A threshold only protects the ranking if some roles
+   can clear it. Override per request with ?min= when traffic grows. */
+const MIN_EVENTS = 3;
 
 /* Added to a role's age before dividing. Same guard, other direction: without
    it, dividing by a very small number of days turns a single application into
@@ -1569,8 +1574,20 @@ const GRACE_DAYS = 2.5;
 const deny = () =>
   new Response(JSON.stringify({ error: 'admin only' }), { status: 401, headers: JSON_HEADERS });
 
-const ok = (payload) =>
-  new Response(JSON.stringify(payload), { headers: JSON_HEADERS });
+/* ?format=text returns just the pasteable block as plain text. Reading a
+   report in the browser otherwise means picking it out of JSON with every
+   line break escaped as \n — technically the same content, useless to read
+   and worse to copy. */
+const ok = (payload, request) => {
+  const wantsText = request
+    && new URL(request.url).searchParams.get('format') === 'text';
+  if (wantsText && typeof payload?.text === 'string') {
+    return new Response(payload.text, {
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
+    });
+  }
+  return new Response(JSON.stringify(payload), { headers: JSON_HEADERS });
+};
 
 const windowDays = (request, fallback = 7) => {
   const n = parseInt(new URL(request.url).searchParams.get('days') || '', 10);
@@ -1583,7 +1600,7 @@ const windowDays = (request, fallback = 7) => {
 
 async function topRolesReport(request, env) {
   if (!adminAuthed(request, env)) return deny();
-  if (!env.DB) return ok({ error: 'no database bound', data: null, text: '' });
+  if (!env.DB) return ok({ error: 'no database bound', data: null, text: '' }, request);
 
   const days = windowDays(request);
   const since = `-${days} days`;
@@ -1634,22 +1651,40 @@ async function topRolesReport(request, env) {
     };
   });
 
-  const ranked = scored.filter(r => !r.thin).sort((x, y) => y.score - x.score).slice(0, 10);
+  let ranked = scored.filter(r => !r.thin).sort((x, y) => y.score - x.score).slice(0, 10);
   const held = scored.length - scored.filter(r => !r.thin).length;
+
+  // If nothing clears the bar, fall back to raw click leaders rather than
+  // returning an empty report. Flagged, because ordering four clicks above
+  // three is not a finding — but an empty list is no use to anyone either.
+  let basis = 'ranked';
+  if (!ranked.length) {
+    ranked = scored.sort((x, y) => y.clicks - x.clicks || y.applies - x.applies).slice(0, 10);
+    basis = 'raw-clicks';
+  }
+
+  const top = ranked[0];
+  const thinSample = basis === 'raw-clicks' || (top && top.clicks + top.applies < 10);
 
   const text = [
     `Most-engaged roles on the board, past ${days} days`,
     '',
     ...ranked.map((r, i) =>
       `${i + 1}. ${r.title} — ${r.company}\n` +
-      `   ${r.clicks} clicks · ${r.applies} application${r.applies === 1 ? '' : 's'}`),
+      `   ${r.clicks} click${r.clicks === 1 ? '' : 's'} · ${r.applies} application${r.applies === 1 ? '' : 's'}`),
+    ...(ranked.length ? [] : ['(no clicks recorded in this window)']),
     '',
+    ...(thinSample
+      ? ['[thin sample — these are the week\'s click leaders, not a reliable ranking]', '']
+      : []),
     'Full board: propertyandtechnologyjobs.com',
   ].join('\n');
 
   return ok({
     data: {
       window_days: days,
+      basis, thin_sample: thinSample,
+      min_events: MIN_EVENTS,
       ranked,
       held_back_thin: held,
       totals: {
@@ -1659,7 +1694,7 @@ async function topRolesReport(request, env) {
       },
     },
     text,
-  });
+  }, request);
 }
 
 /* --------------------------------------------------------------------------
@@ -1668,7 +1703,7 @@ async function topRolesReport(request, env) {
 
 async function movementBriefReport(request, env) {
   if (!adminAuthed(request, env)) return deny();
-  if (!env.DB) return ok({ error: 'no database bound', data: null, text: '' });
+  if (!env.DB) return ok({ error: 'no database bound', data: null, text: '' }, request);
 
   const days = windowDays(request);
   const since = `-${days} days`;
@@ -1761,7 +1796,7 @@ async function movementBriefReport(request, env) {
       senior_closed: seniorOut.results || [],
     },
     text: lines.join('\n'),
-  });
+  }, request);
 }
 
 export default {
