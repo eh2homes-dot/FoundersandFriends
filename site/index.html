@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V63" />
+<meta name="ff-build" content="RING-V66" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -362,7 +362,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-co.proptech .pulse{stroke:#A98FEC}
 @keyframes g-pulse{0%{transform:scale(1);opacity:.6}65%,100%{transform:scale(1.85);opacity:0}}
 .g-co .n{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
-.g-co .lbl{font-family:var(--body);font-size:14.5px;font-weight:600;fill:var(--ink-soft)}
+.g-co .lbl{font-family:var(--body);font-size:16.5px;font-weight:600;fill:var(--ink-soft)}
 /* The lead is what says which name belongs to which node. At .28 it was
    invisible against the background, so three labels stacked in a column read
    as unattached text. It carries the hub's colour now rather than a grey. */
@@ -3687,14 +3687,15 @@ const GLOBE = {
                    // creates the extra slots, since a slot is a crossing
   MERS: 18,        // meridians
   LABELS: true,    // company names beside the ring
-  LABEL_GAP: 30,   // minimum px between two labels, vertically. A label is two
-                   // lines — the name, then the role count below it — so this
-                   // is the height of the whole block, not of a line. It grew
-                   // with the type: 26 was right at 12.5px, not at 14.5.
-  LABEL_MAX: 14,   // characters before a name is truncated. Down from 16: a
-                   // wider glyph over the same distance has to lose characters
-                   // somewhere, and the two globes' facing labels are what run
-                   // out of room first.
+  LABEL_GAP: 23,   // minimum px between two labels, vertically. One line now
+                   // rather than two, so this is a line height plus breathing
+                   // room — which is also what lets more labels stay level
+                   // with their own node instead of being pushed off it.
+  LABEL_PAD: 12,   // px from the edge of a node to the start of its name.
+                   // The same for every node — that regularity is the point.
+  LABEL_MAX: 12,   // characters before a name is truncated. The two globes'
+                   // facing labels are what run out of room first, so this is
+                   // what buys the gap down the middle.
 };
 
 const globeState = {
@@ -3912,11 +3913,14 @@ function globeBuild(){
       // name right across the globe — which is what left "Invitation Ho…"
       // stranded with nothing pointing at it. Only these two per globe: any
       // more and centred labels start overlapping each other.
+      // Node radius, same formula the renderer uses — the label gap is
+      // measured from the circle's edge, so it has to know the size.
+      mine.forEach(c => { c.r = Math.min(19, 11.5 + Math.sqrt(c.count) * 1.35); });
       const byY = [...mine].sort((a, b) => a.y - b.y);
       const capTop = byY[0], capBottom = byY[byY.length - 1];
-      if (capTop){ capTop.lx = capTop.x; capTop.ly = capTop.y - 34; capTop.anchor = 'middle'; }
+      if (capTop){ capTop.lx = capTop.x; capTop.ly = capTop.y - 30; capTop.anchor = 'middle'; }
       if (capBottom && capBottom !== capTop){
-        capBottom.lx = capBottom.x; capBottom.ly = capBottom.y + 42; capBottom.anchor = 'middle';
+        capBottom.lx = capBottom.x; capBottom.ly = capBottom.y + 36; capBottom.anchor = 'middle';
       }
 
       for (const side of [-1, 1]){
@@ -3929,8 +3933,13 @@ function globeBuild(){
         // point, or a label beside an equator node would sit on top of it, so
         // the polar labels end up further from their nodes than before. That is
         // the cost of the straight edge, and the lead lines carry the link.
-        const lx = cx + side * (GLOBE.RCX + 22 + 16);
-        col.forEach(c => { c.lx = lx; });
+        // The same gap from every node, rather than a shared column. One-line
+        // labels need only 23px of vertical clearance, and at this node count
+        // that means almost none of them has to move off its own row — so each
+        // name can sit right beside the circle it belongs to and still line up
+        // with it. The column existed to solve a crowding problem that dropping
+        // the count line removed.
+        col.forEach(c => { c.lx = c.x + side * (c.r + GLOBE.LABEL_PAD); });
       }
     }
   }
@@ -4037,7 +4046,7 @@ function globeBuild(){
       const anchor = mid0 ? 'middle' : (side > 0 ? 'start' : 'end');
       const name0 = c.name.length > GLOBE.LABEL_MAX
         ? c.name.slice(0, GLOBE.LABEL_MAX - 1).trimEnd() + '…' : c.name;
-      const textW = name0.length * 7.6;   // approx advance at 14.5px
+      const textW = name0.length * 8.6;   // approx advance at 16.5px
       let lx = c.lx;
       // Keep the text on the canvas: a name hanging off the edge is worse than
       // one sitting slightly further from its node.
@@ -4061,9 +4070,10 @@ function globeBuild(){
       const name = name0;
       const lbl = el('text', { class: 'lbl', x: lx.toFixed(1), y: (c.ly - 1).toFixed(1), 'text-anchor': anchor });
       lbl.textContent = name;
-      const sub = el('text', { class: 'sub', x: lx.toFixed(1), y: (c.ly + 13).toFixed(1), 'text-anchor': anchor });
-      sub.textContent = c.count === 1 ? '1 role' : c.count + ' roles';
-      g.append(lbl, sub);
+      // No count line: the number is already inside the node, so printing it
+      // again under the name said the same thing twice and cost every label a
+      // second row. Dropping it is what pays for the larger type.
+      g.append(lbl);
     }
     // No <title>: the card carries this now, and the browser would draw its own
     // grey box over the top of it.
