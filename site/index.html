@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V97" />
+<meta name="ff-build" content="RING-V98" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3731,8 +3731,14 @@ const GLOBE = {
   // genuinely gets a company wrong, not to fine-tune one that looks fine.
   LABEL_HINTS: {},
   LABEL_NOTCH: 9,  // one nudge step for a hint
-  LABEL_RING_STEP: 30,  // gap between the two label rings. Must clear a line
-                        // of text (26px) or alternating neighbours still touch.
+  LABEL_RING_STEP: 0,   // 0 = one ring, every label the same distance out.
+                        // I staggered these onto two rings believing a single
+                        // one could not hold 21 names — arc per label is 92px
+                        // and a name runs to 141px. That arithmetic ignores the
+                        // anchor: a label left of the globe is end-anchored and
+                        // extends away from its neighbour, not towards it. On
+                        // one ring all 21 place with no overlaps; staggered,
+                        // only 88% did, and the alternating radius was visible.
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
                    // scales to 1.85x and the core has a drop shadow, so the
                    // circle takes up noticeably more room than r suggests.
