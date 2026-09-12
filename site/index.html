@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V39" />
+<meta name="ff-build" content="RING-V42" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -265,7 +265,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .orbits[hidden]{display:none}
 /* Cap by height, not just width: on a short wide window the 1000x610 viewBox
    would otherwise scale to the width and run off the bottom of the screen. */
-#globe{display:block;width:100%;max-width:1560px;height:auto;max-height:min(62vh,660px);
+#globe{display:block;width:100%;max-width:1780px;height:auto;max-height:min(70vh,760px);
   margin:0 auto;overflow:visible}
 /* Nothing here draws a border, so the blue rectangle around the globe is the
    browser's own focus ring landing on the container after a click. Suppress it
@@ -1455,35 +1455,35 @@ a.foot-line:hover{color:var(--green)}
                hover card all key off one coordinate space, and splitting them
                would mean three copies of each. -->
           <g class="g-world" data-hub="opco">
-            <circle class="g-atmo" cx="500" cy="330" r="170" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="500" cy="330" r="280"/>
+            <circle class="g-atmo" cx="500" cy="350" r="203" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="500" cy="350" r="300"/>
             <g class="g-hemi opco" data-goto="opco">
-              <circle class="g-half" cx="500" cy="330" r="156"/>
+              <circle class="g-half" cx="500" cy="350" r="186"/>
             </g>
             <g class="g-mesh" data-cx="500" pointer-events="none"></g>
             <g pointer-events="none">
-              <circle class="g-rim" cx="500" cy="330" r="156"/>
+              <circle class="g-rim" cx="500" cy="350" r="186"/>
               <g class="g-orbits" data-cx="500"></g>
-              <line class="g-axis" x1="500" y1="166" x2="500" y2="494" stroke="url(#g-axis-grad)"/>
+              <line class="g-axis" x1="500" y1="156" x2="500" y2="544" stroke="url(#g-axis-grad)"/>
             </g>
-            <circle class="g-shade" cx="500" cy="330" r="156" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label opco" x="500" y="690">OpCo</text>
+            <circle class="g-shade" cx="500" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label opco" x="500" y="726">OpCo</text>
           </g>
 
           <g class="g-world" data-hub="proptech">
-            <circle class="g-atmo" cx="1500" cy="330" r="170" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="1500" cy="330" r="280"/>
+            <circle class="g-atmo" cx="1500" cy="350" r="203" fill="url(#g-atmo)"/>
+            <circle class="g-ring" cx="1500" cy="350" r="300"/>
             <g class="g-hemi proptech" data-goto="proptech">
-              <circle class="g-half" cx="1500" cy="330" r="156"/>
+              <circle class="g-half" cx="1500" cy="350" r="186"/>
             </g>
             <g class="g-mesh" data-cx="1500" pointer-events="none"></g>
             <g pointer-events="none">
-              <circle class="g-rim" cx="1500" cy="330" r="156"/>
+              <circle class="g-rim" cx="1500" cy="350" r="186"/>
               <g class="g-orbits" data-cx="1500"></g>
-              <line class="g-axis" x1="1500" y1="166" x2="1500" y2="494" stroke="url(#g-axis-grad)"/>
+              <line class="g-axis" x1="1500" y1="156" x2="1500" y2="544" stroke="url(#g-axis-grad)"/>
             </g>
-            <circle class="g-shade" cx="1500" cy="330" r="156" fill="url(#g-shade)" pointer-events="none"/>
-            <text class="hemi-label proptech" x="1500" y="690">PropTech</text>
+            <circle class="g-shade" cx="1500" cy="350" r="186" fill="url(#g-shade)" pointer-events="none"/>
+            <text class="hemi-label proptech" x="1500" y="726">PropTech</text>
           </g>
 
           <g id="g-threads"></g>
@@ -3616,11 +3616,11 @@ function wireHubCards(){
    ========================================================================== */
 
 const GLOBE = {
-  VW: 2000, VH: 700,          // the canvas
-  CY: 330,
+  VW: 2000, VH: 740,          // the canvas
+  CY: 350,
   CENTRES: { opco: 500, proptech: 1500 },   // one globe per hub
   cxOf: (hub) => (hub === 'proptech' ? 1500 : 500),
-  R: 156,          // the sphere — still smaller than the ring, so the ring
+  R: 186,          // the sphere — still smaller than the ring, so the ring
                    // stays the main shape, but with enough presence to hold
                    // the centre. The ceiling is the ring itself: the oval
                    // clears 272px vertically, and the threads need room to
@@ -3630,8 +3630,8 @@ const GLOBE = {
   // own, and a circle sits more naturally around a sphere than an ellipse does.
   // 280 is the ceiling — the canvas is 700 tall with the centre at 330, so a
   // larger radius would push the lowest node under the hub label.
-  RCX: 280,
-  RCY: 280,        // is landscape, so a circle wastes the sides and crowds the
+  RCX: 300,
+  RCY: 300,        // is landscape, so a circle wastes the sides and crowds the
                    // top. Separate radii let the nodes sit evenly all the way
                    // round without the labels colliding.
   MAX_COS: 21,     // per hub, so up to 42 nodes share the full ring. The
@@ -3650,7 +3650,7 @@ const GLOBE = {
                    // The spiral offers 103, and 63 divides evenly across 21
                    // companies: three roles each, rather than some on two and
                    // some on three.
-  ORBITS: [136, 118, 100, 82, 64, 46],   // drawn as rings; no longer where roles sit
+  ORBITS: [162, 141, 119, 98, 76, 55],   // drawn as rings; no longer where roles sit
   MIN_GAP: 19,     // px between role dots. A dot is 9px across with a 17px
                    // halo, and 63 dots in half a 137px disc can hold ~23px
                    // apart at best, so 19 leaves room without forcing a grid
@@ -3658,7 +3658,10 @@ const GLOBE = {
                    // creates the extra slots, since a slot is a crossing
   MERS: 18,        // meridians
   LABELS: true,    // company names beside the ring
-  LABEL_GAP: 16,   // minimum px between two labels, vertically
+  LABEL_GAP: 26,   // minimum px between two labels, vertically. A label is two
+                   // lines — the name, then the role count 12px below it — so
+                   // a 16px gap let the count of one sit on the name of the
+                   // next. This is the height of the block, not of a line.
   LABEL_MAX: 20,   // characters before a name is truncated
 };
 
@@ -3815,6 +3818,15 @@ function globeBuild(){
   // Each hub's companies ring their own globe, the whole way round. Equal
   // steps of angle from the top — equal angle, not equal height, because on an
   // oval those differ and stepping by height crowds the sides.
+  // A company whose hub is neither value — the sheet carries UNKNOWN and blank
+  // for most rows — was never placed, so it kept its 0,0 placeholder and drew
+  // itself in the top-left corner of the canvas. Drop it from the picture
+  // rather than parking it somewhere arbitrary: an unclassified company on a
+  // hub globe would be a claim the data does not support.
+  for (let i = cos.length - 1; i >= 0; i--){
+    if (cos[i].hub !== 'opco' && cos[i].hub !== 'proptech') cos.splice(i, 1);
+  }
+
   for (const h of ['opco', 'proptech']){
     const list = cos.filter(c => c.hub === h);
     const cx = GLOBE.cxOf(h);
@@ -3919,7 +3931,11 @@ function globeBuild(){
 
   // role nodes
   for (const n of roles){
-    const g = el('g', { class: 'g-role ' + n.hub, 'data-key': n.key });
+    // The dots inside take the other hub's colour: purple roles on the OpCo
+    // globe, green roles on the PropTech one. The ring nodes still carry their
+    // own hub's colour, so each globe reads as one hub in two tones rather than
+    // a single flat block of it.
+    const g = el('g', { class: 'g-role ' + (n.hub === 'opco' ? 'proptech' : 'opco'), 'data-key': n.key });
     g.append(el('circle', { class: 'halo', cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: 8.5 }));
     g.append(el('circle', { class: 'core', cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: 4.6 }));
     // No <title> here — the browser would show its own tooltip on top of the
@@ -3980,9 +3996,9 @@ function globeBuild(){
       sub.textContent = c.count === 1 ? '1 role' : c.count + ' roles';
       g.append(lbl, sub);
     }
-    const t = el('title');
-    t.textContent = c.name + ' — ' + (c.count === 1 ? '1 role' : c.count + ' roles');
-    g.append(t);
+    // No <title>: the card carries this now, and the browser would draw its own
+    // grey box over the top of it.
+    g.setAttribute('aria-label', c.name + ', ' + (c.count === 1 ? '1 open role' : c.count + ' open roles'));
     c.g = g;
     gCos.append(g);
   });
@@ -4001,7 +4017,11 @@ function globeBuild(){
    lines from every job to every node is what makes a field this dense read as
    stray hairs. */
 function globeThread(L, time, still){
-  const { CX, CY, R } = GLOBE;
+  const { CY, R } = GLOBE;
+  // Which globe this thread belongs to. There is no single CX any more, and
+  // reading the old one gave undefined — every path came out NaN and nothing
+  // drew, which is why the threads vanished rather than looked wrong.
+  const CX = GLOBE.cxOf(L.hub);
   const a = L.from, b = L.to;
 
   // The corridor: out along the company's own radius, meeting the sphere at its
@@ -4126,26 +4146,40 @@ function globePeek(key, svg){
 
   const role = key && key.startsWith('j:')
     ? (globeState.roles || []).find(r => r.key === key) : null;
+  const co = key && key.startsWith('c:')
+    ? (globeState.cos || []).find(c => c.key === key) : null;
 
-  if (!role){ box.classList.remove('is-on'); box.setAttribute('aria-hidden', 'true'); return; }
+  const node = role || co;
+  if (!node){ box.classList.remove('is-on'); box.setAttribute('aria-hidden', 'true'); return; }
 
-  const j = role.job;
-  const comp = compRange(j);
-  box.className = 'g-peek is-on ' + role.hub;
+  box.className = 'g-peek is-on ' + node.hub;
   box.setAttribute('aria-hidden', 'false');
-  box.innerHTML =
-    `<span class="pk-title">${esc(j.title)}</span>` +
-    `<span class="pk-line">${esc(j.company)}</span>` +
-    `<span class="pk-line">${esc(j.location)}${j.type ? ' · ' + esc(j.type) : ''}</span>` +
-    (comp ? `<span class="pk-comp">${comp}</span>` : '') +
-    `<span class="pk-go">Click to open</span>`;
+
+  if (role){
+    const j = role.job;
+    const comp = compRange(j);
+    box.innerHTML =
+      `<span class="pk-title">${esc(j.title)}</span>` +
+      `<span class="pk-line">${esc(j.company)}</span>` +
+      `<span class="pk-line">${esc(j.location)}${j.type ? ' · ' + esc(j.type) : ''}</span>` +
+      (comp ? `<span class="pk-comp">${comp}</span>` : '') +
+      `<span class="pk-go">Click to open</span>`;
+  } else {
+    box.innerHTML =
+      `<span class="pk-title">${esc(co.name)}</span>` +
+      `<span class="pk-comp">${co.count === 1 ? '1 open role' : co.count + ' open roles'}</span>` +
+      `<span class="pk-go">Click to see them</span>`;
+  }
 
   // viewBox units → page pixels, so the card tracks the dot at any zoom.
   const rect = svg.getBoundingClientRect();
   const host = svg.parentElement.getBoundingClientRect();
   const sx = rect.width / GLOBE.VW, sy = rect.height / GLOBE.VH;
-  let left = (rect.left - host.left) + role.x * sx;
-  const top = (rect.top - host.top) + role.y * sy - 9 * sy;
+  let left = (rect.left - host.left) + node.x * sx;
+  // Clear the node itself: a company circle is much larger than a role dot, so
+  // a fixed offset would put the card on top of the bigger one.
+  const lift = (role ? 9 : 22) * sy;
+  const top = (rect.top - host.top) + node.y * sy - lift;
 
   // Keep it on screen: a card hanging off the edge is worse than an offset one.
   const half = box.offsetWidth / 2 || 120;
@@ -4216,8 +4250,9 @@ function globeActivate(key){
 /* The vertical half-axis of the latitude ellipse that passes exactly through a
    point, given the ellipse spans the full width of the sphere. This is what
    lets every job sit on a line rather than near one. */
-function globeLatFor(x, y){
-  const { CX, CY, R } = GLOBE;
+function globeLatFor(x, y, hub){
+  const { CY, R } = GLOBE;
+  const CX = GLOBE.cxOf(hub);
   const k = 1 - ((x - CX) / R) ** 2;
   if (k <= 0.001) return null;
   return Math.abs(y - CY) / Math.sqrt(k);
