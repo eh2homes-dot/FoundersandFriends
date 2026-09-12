@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V107" />
+<meta name="ff-build" content="RING-V109" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -452,7 +452,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @media(max-width:640px){.orbits{display:none}}
 
 .hub-cards{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;
   gap:14px;padding-bottom:30px;
   /* Measured against the viewport, not a fixed gap: the globes are width-bound
      on a laptop, so on a short screen there is nothing left to grow into and
@@ -466,7 +466,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @media(max-width:760px){.hub-cards{grid-template-columns:1fr}}
 
 .hub-card{
-  position:relative;display:flex;flex-direction:column;gap:8px;
+  /* Equal height and content flush to the top, so the two cards read as a pair
+     rather than two boxes that happen to sit side by side. */
+  height:100%;
+  position:relative;display:flex;flex-direction:column;gap:8px;justify-content:flex-start;
   padding:15px 18px 14px;border-radius:14px;overflow:hidden;cursor:pointer;
   border:1px solid var(--line);
   background:linear-gradient(150deg,rgba(43,16,85,.46),rgba(11,6,24,.86));
@@ -486,7 +489,14 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hub-card.opco:hover,.hub-card.opco.is-current{border-color:rgba(0,255,136,.42);box-shadow:0 0 0 1px rgba(0,255,136,.14),0 24px 56px rgba(4,2,10,.5)}
 .hub-card.proptech:hover,.hub-card.proptech.is-current{border-color:rgba(127,77,224,.52);box-shadow:0 0 0 1px rgba(127,77,224,.18),0 24px 56px rgba(4,2,10,.5)}
 
-.hc-top{display:flex;align-items:center;gap:10px}
+/* Align to the FIRST line, not the block's middle. The name is two lines — the
+   title and the kicker under it — so centring put the icon and the count pill
+   in the gap between them instead of level with the title. */
+.hc-top{display:flex;align-items:flex-start;gap:10px}
+/* The icon is 34px and a line of the title is ~21px, so nudge it to sit level
+   with that line rather than starting flush with it. */
+.hc-mark{margin-top:-2px}
+.hc-count{margin-top:3px}
 .hc-mark{
   width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;
   color:var(--hue);border:1px solid currentColor;
@@ -1505,7 +1515,7 @@ a.foot-line:hover{color:var(--green)}
                would mean three copies of each. -->
           <g class="g-world" data-hub="opco">
             <circle class="g-atmo" cx="525" cy="390" r="203" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="525" cy="390" r="275"/>
+            <circle class="g-ring" cx="525" cy="390" r="264"/>
             <g class="g-hemi opco" data-goto="opco">
               <circle class="g-half" cx="525" cy="390" r="186"/>
             </g>
@@ -1525,7 +1535,7 @@ a.foot-line:hover{color:var(--green)}
 
           <g class="g-world" data-hub="proptech">
             <circle class="g-atmo" cx="1575" cy="390" r="203" fill="url(#g-atmo)"/>
-            <circle class="g-ring" cx="1575" cy="390" r="275"/>
+            <circle class="g-ring" cx="1575" cy="390" r="264"/>
             <g class="g-hemi proptech" data-goto="proptech">
               <circle class="g-half" cx="1575" cy="390" r="186"/>
             </g>
@@ -3736,8 +3746,8 @@ const GLOBE = {
   // own, and a circle sits more naturally around a sphere than an ellipse does.
   // 280 is the ceiling — the canvas is 700 tall with the centre at 330, so a
   // larger radius would push the lowest node under the hub label.
-  RCX: 275,
-  RCY: 275,        // is landscape, so a circle wastes the sides and crowds the
+  RCX: 264,
+  RCY: 264,        // is landscape, so a circle wastes the sides and crowds the
                    // top. Separate radii let the nodes sit evenly all the way
                    // round without the labels colliding.
   // The ring takes as many companies as it can hold, not a fixed number, so a
@@ -3807,7 +3817,7 @@ const GLOBE = {
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
                    // scales to 1.85x and the core has a drop shadow, so the
                    // circle takes up noticeably more room than r suggests.
-  LABEL_PAD: 32,   // px from the edge of a node to the start of its name. The
+  LABEL_PAD: 43,   // px from the edge of a node to the start of its name. The
                    // label ring's radius is RCX + 19 + this, so every increase
                    // needs canvas width to match — the names sit outside the
                    // ring, and pushing them out pushes them towards the edge.
