@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V95" />
+<meta name="ff-build" content="RING-V96" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3736,6 +3736,8 @@ const GLOBE = {
   // genuinely gets a company wrong, not to fine-tune one that looks fine.
   LABEL_HINTS: {},
   LABEL_NOTCH: 9,  // one nudge step for a hint
+  LABEL_RING_STEP: 30,  // gap between the two label rings. Must clear a line
+                        // of text (26px) or alternating neighbours still touch.
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
                    // scales to 1.85x and the core has a drop shadow, so the
                    // circle takes up noticeably more room than r suggests.
@@ -3998,6 +4000,25 @@ function globeBuild(){
         return near <= GLOBE.RCX && far >= GLOBE.RCX;
       };
 
+      // Labels sit on their own ring, concentric with the company ring: every
+      // one the same distance from the globe's centre, so the names describe a
+      // circle rather than a ragged outline.
+      //
+      // One ring cannot hold them. At this radius there are ~92px of arc per
+      // label and a name runs up to 141px, so near the top and bottom — where
+      // neighbours are side by side rather than stacked — they would overlap by
+      // about 49px. Alternating between two radii gives each label a clear
+      // neighbour on both sides and still reads as a ring.
+      const bearing = (c) => Math.atan2(c.y - GLOBE.CY, c.x - cx);
+      const round = [...mine].sort((a, b) => bearing(a) - bearing(b));
+      const RL = GLOBE.RCX + 19 + GLOBE.LABEL_PAD;
+      round.forEach((c, k) => {
+        // An odd count would put the first and last on the same ring, and they
+        // are neighbours once the circle closes.
+        const outer = (k % 2 === 1) || (k === round.length - 1 && round.length % 2 === 1);
+        c.ringR = RL + (outer ? GLOBE.LABEL_RING_STEP : 0);
+      });
+
       // Outermost first. A node far from the centre has the most room around
       // it, so letting it claim its spot before the crowded ones is what keeps
       // the easy cases looking regular.
@@ -4084,9 +4105,13 @@ function globeBuild(){
             // bottom, down-and-right for one on the lower right. The anchor
             // follows the same bearing, so a name always reads away from the
             // sphere rather than back across it.
+            // From the globe's centre, not from the node: a fixed radius is
+            // what makes the labels describe a circle. Measuring out from each
+            // node instead would vary with its size, and the ring would wobble
+            // by the difference between the largest and smallest node.
             const ux = (c.x - cx) / GLOBE.RCX, uy = (c.y - GLOBE.CY) / GLOBE.RCY;
-            lx = c.x + ux * (c.r + PAD);
-            ly = c.y + uy * (c.r + PAD);
+            lx = cx + ux * c.ringR;
+            ly = GLOBE.CY + uy * c.ringR;
             anchor = ux > 0.25 ? 'start' : ux < -0.25 ? 'end' : 'middle';
           } else {
             ly = c.y + cand.dy;
