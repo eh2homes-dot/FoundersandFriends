@@ -585,6 +585,44 @@ async function updateApplication(request, env) {
  * The email is optional: with no RESEND_API_KEY the status still changes and
  * you can write to them yourself.
  */
+/**
+ * Erase an application outright.
+ *
+ * Distinct from decline, which keeps the record and marks it passed — the
+ * candidate stays in the network for the next role. This is for records that
+ * should not exist at all: spam, a duplicate, a test row, or a candidate who
+ * asks to be removed. It is irreversible, so it takes the ref AND the
+ * candidate's email and requires them to match the stored row. A mistyped ref
+ * then deletes nothing instead of deleting somebody else.
+ */
+async function deleteApplication(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const ref = clean(body.ref, 20);
+  const row = await env.DB.prepare('SELECT ref, email, first_name, last_name FROM applications WHERE ref = ?1')
+    .bind(ref).first();
+  if (!row) return new Response(JSON.stringify({ error: 'No such application.' }), { status: 404, headers: JSON_HEADERS });
+
+  const confirm = String(body.confirm_email || '').trim().toLowerCase();
+  if (!confirm || confirm !== String(row.email || '').trim().toLowerCase()) {
+    return new Response(JSON.stringify({
+      error: 'Confirmation did not match. Enter the applicant email exactly to delete.',
+    }), { status: 400, headers: JSON_HEADERS });
+  }
+
+  await env.DB.prepare('DELETE FROM applications WHERE ref = ?1').bind(ref).run();
+
+  return new Response(JSON.stringify({
+    deleted: true, ref,
+    who: [row.first_name, row.last_name].filter(Boolean).join(' '),
+  }), { headers: JSON_HEADERS });
+}
+
 async function decline(request, env) {
   if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
   if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
@@ -1708,7 +1746,7 @@ async function movementBriefReport(request, env) {
   const days = windowDays(request);
   const since = `-${days} days`;
 
-  const [opened, closed, net, seniorOut, seniorIn, health] = await Promise.all([
+  const [opened, closed, net, seniorOut, seniorIn, health, clickTot, applyTot, topCos] = await Promise.all([
     env.DB.prepare(
       `SELECT COUNT(*) AS n FROM job_history WHERE first_seen > datetime('now', ?1)`).bind(since).first(),
 
@@ -1748,6 +1786,27 @@ async function movementBriefReport(request, env) {
     env.DB.prepare(
       `SELECT ran_at, total_roles, sources_failed, ok
          FROM scrape_runs ORDER BY ran_at DESC LIMIT 2`).all(),
+
+    // Demand, not just supply. The rest of this brief counts what employers
+    // posted; without these it says nothing about whether anyone looked.
+    env.DB.prepare(
+      `SELECT COUNT(*) AS clicks,
+              COUNT(DISTINCT job_id) AS roles_clicked,
+              COUNT(DISTINCT company) AS companies_clicked
+         FROM job_clicks WHERE clicked_at > datetime('now', ?1)`).bind(since).first(),
+
+    env.DB.prepare(
+      `SELECT COUNT(*) AS applications,
+              COUNT(DISTINCT email) AS applicants,
+              COUNT(DISTINCT company) AS companies_applied
+         FROM applications WHERE created_at > datetime('now', ?1)`).bind(since).first()
+        .catch(() => ({ applications: 0, applicants: 0, companies_applied: 0 })),
+
+    env.DB.prepare(
+      `SELECT company, COUNT(*) AS clicks
+         FROM job_clicks
+        WHERE clicked_at > datetime('now', ?1) AND company IS NOT NULL
+        GROUP BY company ORDER BY clicks DESC LIMIT 5`).bind(since).all(),
   ]);
 
   const rows = net.results || [];
@@ -1763,6 +1822,13 @@ async function movementBriefReport(request, env) {
 
   const lines = [`SFR + proptech hiring, past ${days} days`, ''];
   lines.push(`${opened?.n || 0} roles opened · ${closed?.n || 0} closed.`);
+  lines.push(`${clickTot?.clicks || 0} clicks across ${clickTot?.roles_clicked || 0} roles`
+    + ` · ${applyTot?.applications || 0} application${(applyTot?.applications || 0) === 1 ? '' : 's'}`
+    + ` from ${applyTot?.applicants || 0} applicant${(applyTot?.applicants || 0) === 1 ? '' : 's'}.`);
+  if ((topCos.results || []).length) {
+    lines.push('', 'Most clicked:');
+    topCos.results.forEach(c => lines.push(`  ${c.company}  ${c.clicks}`));
+  }
 
   if (growing.length) {
     lines.push('', 'Adding roles:');
@@ -1790,7 +1856,15 @@ async function movementBriefReport(request, env) {
   return ok({
     data: {
       window_days: days, reliable, drop,
-      totals: { opened: opened?.n || 0, closed: closed?.n || 0 },
+      totals: {
+        opened: opened?.n || 0, closed: closed?.n || 0,
+        clicks: clickTot?.clicks || 0,
+        roles_clicked: clickTot?.roles_clicked || 0,
+        companies_clicked: clickTot?.companies_clicked || 0,
+        applications: applyTot?.applications || 0,
+        applicants: applyTot?.applicants || 0,
+      },
+      most_clicked: topCos.results || [],
       growing, shrinking,
       senior_opened: seniorIn.results || [],
       senior_closed: seniorOut.results || [],
@@ -1799,7 +1873,81 @@ async function movementBriefReport(request, env) {
   }, request);
 }
 
+/* ===========================================================================
+   THE WEEKLY AGENT
+
+   Cron fires this; it builds both reports and emails them. Without it the
+   reports are a dashboard you have to remember to open, which is the thing
+   that does not happen on a busy Monday.
+
+   The two report functions are called through their own HTTP handlers rather
+   than being refactored into shared builders. That is deliberate: the emailed
+   report is then byte-identical to the one in the admin panel, because it IS
+   the same code path. Two builders would drift.
+   =========================================================================== */
+async function runScheduledReports(env, { days = 7 } = {}) {
+  const to = env.ADMIN_EMAIL || env.EMPLOYER_EMAIL;
+  if (!env.STATS_KEY) return { ok: false, error: 'No STATS_KEY — cannot authorise the internal call.' };
+  if (!env.RESEND_API_KEY) return { ok: false, error: 'No RESEND_API_KEY configured.' };
+  if (!to) return { ok: false, error: 'No recipient — set ADMIN_EMAIL.' };
+
+  const call = async (path) => {
+    const req = new Request(`https://internal${path}?days=${days}`, {
+      headers: { 'x-admin-key': env.STATS_KEY },
+    });
+    const res = path.includes('/top')
+      ? await topRolesReport(req, env)
+      : await movementBriefReport(req, env);
+    const body = await res.json().catch(() => ({}));
+    return typeof body.text === 'string' ? body.text : '(report unavailable)';
+  };
+
+  const [top, brief] = await Promise.all([
+    call('/api/report/top'),
+    call('/api/report/brief'),
+  ]);
+
+  const when = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  // Plain text in a <pre>: the whole point is that it can be pasted straight
+  // into LinkedIn or the newsletter without carrying styling with it.
+  const block = (title, body) =>
+    `<h2 style="font:600 13px/1 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;letter-spacing:.14em;
+      text-transform:uppercase;color:#6a6478;margin:26px 0 10px">${title}</h2>
+     <pre style="white-space:pre-wrap;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
+      color:#12101a;background:#f7f6fa;border:1px solid #e4e1ec;border-radius:8px;
+      padding:16px 18px;margin:0">${body.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</pre>`;
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: env.FROM_EMAIL || 'Founders & Friends <onboarding@resend.dev>',
+      to: [to],
+      subject: `Founders & Friends — ${days}-day report, ${when}`,
+      html: `<div style="max-width:680px;margin:0 auto;padding:24px;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+        <div style="font:600 11px/1 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;letter-spacing:.18em;
+          text-transform:uppercase;color:#6a6478">Founders &amp; Friends</div>
+        <h1 style="font-size:21px;margin:8px 0 2px;color:#12101a">Your ${days}-day report</h1>
+        <p style="font-size:13px;color:#6a6478;margin:0">${when} · ready to paste</p>
+        ${block('Top roles — for LinkedIn', top)}
+        ${block('Movement brief', brief)}
+        <p style="font-size:12px;color:#8a8398;margin-top:26px">
+          Full panel: <a href="https://www.propertyandtechnologyjobs.com/admin.html">admin</a>
+        </p>
+      </div>`,
+    }),
+  });
+
+  if (!res.ok) return { ok: false, error: 'Resend ' + res.status };
+  return { ok: true };
+}
+
 export default {
+  /* Cron entry point. Schedule lives in wrangler.jsonc. */
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runScheduledReports(env, { days: 7 }));
+  },
+
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
 
@@ -1814,11 +1962,18 @@ export default {
     if (pathname === '/api/applications'  && request.method === 'POST') return updateApplication(request, env);
     if (pathname === '/api/forward'       && request.method === 'POST') return introduce(request, env);
     if (pathname === '/api/decline'       && request.method === 'POST') return decline(request, env);
+    if (pathname === '/api/applications/delete' && request.method === 'POST') return deleteApplication(request, env);
     if (pathname === '/api/history/sync'  && request.method === 'POST') return syncHistory(request, env);
     if (pathname === '/api/history'       && request.method === 'GET')  return historyReport(request, env);
     if (pathname === '/api/signals'       && request.method === 'GET')  return signals(request, env);
     if (pathname === '/api/report/top'    && request.method === 'GET')  return topRolesReport(request, env);
     if (pathname === '/api/report/brief'  && request.method === 'GET')  return movementBriefReport(request, env);
+    if (pathname === '/api/report/send'   && request.method === 'POST') {
+      // Same path the cron takes — so testing it tests the real thing.
+      if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'admin only' }), { status: 401, headers: JSON_HEADERS });
+      const out = await runScheduledReports(env, { days: Number(new URL(request.url).searchParams.get('days')) || 7 });
+      return new Response(JSON.stringify(out), { status: out.ok ? 200 : 500, headers: JSON_HEADERS });
+    }
     if (pathname === '/api/coverage'      && request.method === 'GET')  return coverage(request, env);
 
     if (pathname === '/api/companies/feed' && request.method === 'GET')  return companiesForScraper(request, env);
