@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V19" />
+<meta name="ff-build" content="RING-V20" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -4077,15 +4077,15 @@ function paintOrbits(){
   document.querySelectorAll('.g-hemi[data-goto]').forEach((g) =>
     g.classList.toggle('is-current', g.dataset.goto === hub));
 
-  // The counts moved into the status line above; repeating them here was the
-  // same sentence twice. What is left is the instruction, which nothing else says.
-  $('orbit-hint').textContent = 'Select a company to see its roles';
+  // No caption under the globe: the status line above already carries the
+  // counts, and the instruction was stating the obvious about a clickable node.
+  $('orbit-hint').textContent = '';
 
   const total = new Set([...(HUBS.opco.jobs || []), ...(HUBS.proptech.jobs || [])].map(j => j.company)).size;
   const shown = globeState.cos.length;
   const btn = $('all-cos');
   if (btn){
-    btn.textContent = `See all ${total} ${total === 1 ? 'company' : 'companies'}`;
+    btn.textContent = 'See all companies';
     // Nothing is hidden when they all fit, so the button would be a detour.
     btn.closest('.orbit-more').hidden = total <= shown;
     const hiddenN = Math.max(0, total - shown);
