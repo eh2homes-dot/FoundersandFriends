@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V114" />
+<meta name="ff-build" content="RING-V115" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -335,7 +335,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    enough to decide whether to click, which is the point of a preview. */
 .g-peek{
   position:absolute;z-index:6;pointer-events:none;opacity:0;
-  transform:translate(-50%,-100%) translateY(-14px);
+  transform:translate(-50%,-50%);
   transition:opacity .16s ease-out;
   min-width:210px;max-width:300px;padding:12px 14px;border-radius:12px;
   border:1px solid var(--line-2);background:rgba(9,5,20,.96);
@@ -349,10 +349,9 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-peek.proptech .pk-comp{color:#C4B0FF}
 .g-peek .pk-go{display:block;margin-top:8px;font-family:var(--mono);font-size:10px;
   letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
-/* The arrow keeps the card tied to the dot it describes. */
-.g-peek::after{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;
-  transform:translateX(-50%) rotate(45deg);background:rgba(9,5,20,.96);
-  border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+/* No arrow: the card now sits out beyond the ring rather than directly
+   above its node, so a pointer on one edge would aim at nothing. The lit
+   thread is what ties the two together, and it stays visible. */
 @media(max-width:640px){ .g-peek{display:none} }
 .g-thread.is-lit{opacity:1;stroke-width:3.2}
 .g-thread-in.is-lit{opacity:1}
@@ -4578,19 +4577,36 @@ function globePeek(key, svg){
       `<span class="pk-go">Click to see them</span>`;
   }
 
-  // viewBox units → page pixels, so the card tracks the dot at any zoom.
+  // Pushed OUTWARD from the globe's centre, not stacked above the node.
+  //
+  // Sitting directly over a role dot, the card covered the sphere's interior —
+  // which is exactly where that role's thread had just lit up. The card was
+  // hiding the connection it was there to explain. Moving it radially outward
+  // puts it in the space beyond the ring, where nothing is drawn, so the lit
+  // thread stays visible the whole time the card is open.
   const rect = svg.getBoundingClientRect();
   const host = svg.parentElement.getBoundingClientRect();
   const sx = rect.width / GLOBE.VW, sy = rect.height / GLOBE.VH;
-  let left = (rect.left - host.left) + node.x * sx;
-  // Clear the node itself: a company circle is much larger than a role dot, so
-  // a fixed offset would put the card on top of the bigger one.
-  const lift = (role ? 9 : 22) * sy;
-  const top = (rect.top - host.top) + node.y * sy - lift;
+
+  const gcx = GLOBE.cxOf(node.hub);
+  let ux = node.x - gcx, uy = node.y - GLOBE.CY;
+  const len = Math.hypot(ux, uy) || 1;
+  ux /= len; uy /= len;
+
+  // Far enough out to clear the company ring and its labels, so the card never
+  // lands on a name either.
+  const outRadius = GLOBE.RCX + 76;
+  const px = gcx + ux * outRadius;
+  const py = GLOBE.CY + uy * outRadius;
+
+  let left = (rect.left - host.left) + px * sx;
+  let top  = (rect.top - host.top)  + py * sy;
 
   // Keep it on screen: a card hanging off the edge is worse than an offset one.
-  const half = box.offsetWidth / 2 || 120;
-  left = Math.max(half + 6, Math.min(host.width - half - 6, left));
+  const halfW = (box.offsetWidth || 240) / 2;
+  const halfH = (box.offsetHeight || 90) / 2;
+  left = Math.max(halfW + 6, Math.min(host.width - halfW - 6, left));
+  top = Math.max(halfH + 6, Math.min(rect.height - halfH - 6, top));
 
   box.style.left = left + 'px';
   box.style.top = top + 'px';
