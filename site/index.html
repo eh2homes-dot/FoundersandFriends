@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V152" />
+<meta name="ff-build" content="RING-V153" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3894,7 +3894,13 @@ const GLOBE = {
                    // when they never actually cross.
   ROUTE_SAMPLES: 150,// points each route is sampled at when checking whether
                    // two of them cross. Coarser is faster and lies to you.
-  ROUTE_BOW: 58,   // furthest a route bows off its straight line. The five
+  ROUTE_OPEN: 0.95,// radians either side of the line into the globe that a
+                   // company's routes leave at — about 54 degrees each way, so
+                   // five depart across a 108 degree fan.
+  ROUTE_REACH: 0.55,// how far along its departure ray each route's control point
+                   // sits, as a share of that route's own length, so a long
+                   // route swings wider than a short one heading the same way.
+  ROUTE_BOW: 58,   // unused since departure angles replaced perpendicular bow   // furthest a route bows off its straight line. The five
                    // routes of one company leave their shared landing point in
                    // five directions and reach right across the sphere, so they
                    // need real curve — this is what makes them read as paths
@@ -4485,6 +4491,9 @@ function globeBuild(){
       shown.forEach((L, k) => {
         L.draw = true;
         L.fan = m === 1 ? 0 : (k / (m - 1)) * 2 - 1;
+        // Its departure slot, in the same bearing order the dots are in, so the
+        // fan opens without folding back on itself.
+        L.open = L.fan;
         /* Its own landfall. Every route used to end on the single point where
            the rail meets the sphere, so five paths crossing five different
            parts of the globe still collapsed onto one spot — which is what
@@ -4519,12 +4528,15 @@ function globeBuild(){
       // the sphere. This read L.land, which I removed in the same edit that
       // brought the shared landing point back; the dereference threw inside
       // globeBuild, so no globe rendered and both hubs counted zero.
+      // Named apart from the group-sorting `inward` above, which is the same
+      // angle measured for a different purpose in the same scope.
+      const hubIn = Math.atan2(CY - gy, CX - gx);
       const arcPts = (L) => {
-        const dx = gx - L.from.x, dy = gy - L.from.y;
-        const ch = Math.hypot(dx, dy) || 1;
-        const bow = L.fan * Math.min(GLOBE.ROUTE_BOW, ch * 0.34);
-        const qx = (L.from.x + gx) / 2 + (-dy / ch) * bow;
-        const qy = (L.from.y + gy) / 2 + ( dx / ch) * bow;
+        const ch = Math.hypot(gx - L.from.x, gy - L.from.y) || 1;
+        const th = hubIn + L.open * GLOBE.ROUTE_OPEN;
+        const reach = ch * GLOBE.ROUTE_REACH;
+        const qx = gx + Math.cos(th) * reach;
+        const qy = gy + Math.sin(th) * reach;
         const o = [];
         for (let i = 0; i <= GLOBE.ROUTE_SAMPLES; i++){
           const u = 1 - i / GLOBE.ROUTE_SAMPLES, v = i / GLOBE.ROUTE_SAMPLES;
@@ -4587,7 +4599,7 @@ function globeBuild(){
         for (let i = 0; i < shown.length && !swapped; i++){
           for (let j = i + 1; j < shown.length; j++){
             if (!tangled(S[i], S[j])) continue;
-            const fn = shown[i].fan; shown[i].fan = shown[j].fan; shown[j].fan = fn;
+            const fn = shown[i].open; shown[i].open = shown[j].open; shown[j].open = fn;
             swapped = true; break;
           }
         }
@@ -4653,8 +4665,8 @@ function globeBuild(){
         const bp = badPairs();
         if (!bp.length) break;
         for (const [i, j] of bp){
-          const lo = shown[i].fan <= shown[j].fan ? i : j, hi = lo === i ? j : i;
-          shown[lo].fan -= 0.3; shown[hi].fan += 0.3;
+          const lo = shown[i].open <= shown[j].open ? i : j, hi = lo === i ? j : i;
+          shown[lo].open -= 0.22; shown[hi].open += 0.22;
         }
       }
       for (let pass = 0; pass < 24; pass++){
@@ -4662,7 +4674,7 @@ function globeBuild(){
         if (!bp.length) break;
         const bad = new Set();
         bp.forEach(([i, j]) => { bad.add(i); bad.add(j); });
-        bad.forEach(i => { shown[i].fan *= 0.78; });
+        bad.forEach(i => { shown[i].open *= 0.82; });
       }
     }
   }
@@ -4850,24 +4862,27 @@ function globeThread(L, time, still){
      width reads as a rendering artefact. */
   const arcRoute = () => {
     const ex = gx, ey = gy;
-    const ddx = ex - a.x, ddy = ey - a.y;
-    const chord = Math.hypot(ddx, ddy) || 1;
-    // Perpendicular to the run. Bowing along this is what separates two routes
-    // ending at the same point: they diverge from the first pixel rather than
-    // running side by side and merging.
-    const bx = -ddy / chord, by = ddx / chord;
-    const bow = (L.fan || 0) * Math.min(GLOBE.ROUTE_BOW, chord * 0.34);
-    /* No sway, no pointer pull.
+    const chord = Math.hypot(ex - a.x, ey - a.y) || 1;
 
-       The untangle runs once at layout time with the curves at rest, and then
-       the animation moved them: sway alone shifts a control point by up to
-       3.5px per frame and the pointer tug adds up to 20 more. A guarantee
-       computed on one shape does not hold for a different shape, which is
-       exactly why crossings kept reappearing in the rendered output after every
-       clean build-time check. The routes are fixed now, and the globe's motion
-       lives in the meridians and the travelling spark instead. */
-    const mx = (a.x + ex) / 2 + bx * bow;
-    const my = (a.y + ey) / 2 + by * bow;
+    /* The departure angle is set, not inherited.
+
+       Bowing each route off its own straight line meant its direction out of
+       the hub depended on where its dot happened to be — two dots lying in a
+       similar direction produced two near-identical curves however the bow was
+       tuned, which is the bundled look. The control point now sits on a ray
+       leaving the hub at this route's own angle, fanned evenly around the line
+       into the globe, so five routes depart at five separated angles by
+       construction and the dot decides only where each one ends up.
+
+       No sway and no pointer pull: the untangle certifies these curves once at
+       layout, and a guarantee computed on one shape does not hold for a shape
+       the animation has since moved. The motion lives in the meridians and the
+       travelling spark. */
+    const inward = Math.atan2(CY - ey, CX - ex);
+    const th = inward + (L.open || 0) * GLOBE.ROUTE_OPEN;
+    const reach = chord * GLOBE.ROUTE_REACH;
+    const mx = ex + Math.cos(th) * reach;
+    const my = ey + Math.sin(th) * reach;
     return `M ${f(a.x)} ${f(a.y)} Q ${f(mx)} ${f(my)}, ${f(ex)} ${f(ey)}`;
   };
   // Two halves, not one path: the run inside the sphere and the run out to the
