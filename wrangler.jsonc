@@ -41,7 +41,7 @@
   "triggers": {
     "crons": [
       "0 13 * * 1",   // Monday 13:00 UTC — the weekly report email
-      "0 11 * * *"    // daily 11:00 UTC — pull the Syndeo sheet into D1
+      "0 12 * * *"    // daily 12:00 UTC — work through the ATS detection backlog
     ]
   }
 }
