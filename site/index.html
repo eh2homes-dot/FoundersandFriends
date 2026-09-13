@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V145" />
+<meta name="ff-build" content="RING-V146" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -4478,7 +4478,7 @@ function globeBuild(){
            only one company's five are ever on screen together. Those five are
            untangled below, exactly. Cross-company crossings were a problem I
            created by drawing all 105 at once. */
-        L.land = null;
+
       });
 
       /* Untangle, by swapping landfalls between any two routes that cross.
@@ -4495,17 +4495,21 @@ function globeBuild(){
          same 2-opt move that untangles a route. Repeat until a full sweep finds
          nothing. With at most five routes this settles in a handful of passes,
          and it is done here at layout time rather than per frame. */
+      // Every route ends at gx,gy — the point where this company's rail meets
+      // the sphere. This read L.land, which I removed in the same edit that
+      // brought the shared landing point back; the dereference threw inside
+      // globeBuild, so no globe rendered and both hubs counted zero.
       const arcPts = (L) => {
-        const dx = L.land.x - L.from.x, dy = L.land.y - L.from.y;
+        const dx = gx - L.from.x, dy = gy - L.from.y;
         const ch = Math.hypot(dx, dy) || 1;
         const bow = L.fan * Math.min(GLOBE.ROUTE_BOW, ch * 0.34);
-        const qx = (L.from.x + L.land.x) / 2 + (-dy / ch) * bow;
-        const qy = (L.from.y + L.land.y) / 2 + ( dx / ch) * bow;
+        const qx = (L.from.x + gx) / 2 + (-dy / ch) * bow;
+        const qy = (L.from.y + gy) / 2 + ( dx / ch) * bow;
         const o = [];
         for (let i = 0; i <= 26; i++){
           const u = 1 - i / 26, v = i / 26;
-          o.push({ x: u * u * L.from.x + 2 * u * v * qx + v * v * L.land.x,
-                   y: u * u * L.from.y + 2 * u * v * qy + v * v * L.land.y });
+          o.push({ x: u * u * L.from.x + 2 * u * v * qx + v * v * gx,
+                   y: u * u * L.from.y + 2 * u * v * qy + v * v * gy });
         }
         return o;
       };
@@ -4528,8 +4532,7 @@ function globeBuild(){
         for (let i = 0; i < shown.length && !swapped; i++){
           for (let j = i + 1; j < shown.length; j++){
             if (!tangled(S[i], S[j])) continue;
-            const ld = shown[i].land; shown[i].land = shown[j].land; shown[j].land = ld;
-            const fn = shown[i].fan;  shown[i].fan  = shown[j].fan;  shown[j].fan  = fn;
+            const fn = shown[i].fan; shown[i].fan = shown[j].fan; shown[j].fan = fn;
             swapped = true; break;
           }
         }
