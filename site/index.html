@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V154" />
+<meta name="ff-build" content="RING-V155" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -1628,40 +1628,6 @@ a.foot-line:hover{color:var(--green)}
         <p class="orbit-hint" id="orbit-hint"></p>
       </div>
 
-      <div class="hub-cards">
-        <a class="hub-card opco" data-goto="opco">
-          <span class="hc-top">
-            <span class="hc-mark" aria-hidden="true">
-              <svg viewBox="0 0 32 32">
-                <path d="M4 14.5 16 5l12 9.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M7 13.5V26h18V13.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="16" cy="19.5" r="2.6" fill="currentColor"/>
-              </svg>
-            </span>
-            <span class="hc-name">OpCo Hub<span class="hc-kicker">Operators</span></span>
-            <span class="hc-count" data-count="opco"></span>
-          </span>
-          <span class="hc-body">Roles inside the companies that own and run the doors — leasing, maintenance, asset management, and the leadership above them.</span>
-          <span class="hc-go">Find OpCo roles <span aria-hidden="true">→</span></span>
-        </a>
-
-        <a class="hub-card proptech" data-goto="proptech">
-          <span class="hc-top">
-            <span class="hc-mark" aria-hidden="true">
-              <svg viewBox="0 0 32 32">
-                <rect x="5" y="7" width="22" height="15" rx="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/>
-                <path d="M11 26h10M16 22v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                <path d="M10.5 14.5l2.5 2.5-2.5 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M16 19.5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </span>
-            <span class="hc-name">PropTech Hub<span class="hc-kicker">Vendors</span></span>
-            <span class="hc-count" data-count="proptech"></span>
-          </span>
-          <span class="hc-body">Roles at the companies building the software those operators buy — product, applied AI, enterprise sales, and the founders behind them.</span>
-          <span class="hc-go">Find PropTech roles <span aria-hidden="true">→</span></span>
-        </a>
-    </div>
     <hr class="laser-rule" />
   </section>
 
@@ -3756,6 +3722,9 @@ async function initData() {
 /* Each card switches the hub and scrolls to the board. If a card is given an
    href — to route somewhere else entirely — the handler stands aside. */
 function wireHubCards(){
+  // The hub cards were removed from the page. These loops run over an empty
+  // list, which is harmless, and are kept so restoring the cards is a matter of
+  // putting the markup back and nothing else.
   document.querySelectorAll('.hub-card[data-goto]').forEach((card) => {
     card.setAttribute('role', 'link');
     card.setAttribute('tabindex', '0');
