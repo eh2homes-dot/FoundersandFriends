@@ -1187,6 +1187,29 @@ function excludeReason(job) {
 
 const all = [...fresh, ...carried];
 
+/* The published set.
+   --------------------------------------------------------------------------
+   This block used to sit forty lines further down, below the per-hub totals
+   and the empty-feed guard that both read `published`. `const` is hoisted but
+   stays uninitialised until its declaration runs, so those reads threw
+   "Cannot access 'published' before initialization" and the run died before
+   writing anything. It has to be declared above its first use.
+
+   Two things follow from the move, both improvements: --dry now reports what
+   the role filter held back instead of exiting before the filter runs, and the
+   empty-feed guard protects dry runs too, so a filter change that would empty
+   the board fails there rather than on the live one.
+
+   Applied to the published feed only. `fresh` is what goes to job_history
+   further down, and it stays whole. */
+const dropped = new Map();
+const published = all.filter((j) => {
+  const reason = excludeReason(j);
+  if (!reason) return true;
+  dropped.set(reason, (dropped.get(reason) || 0) + 1);
+  return false;
+});
+
 console.log('\n' + '-'.repeat(60));
 const sum = (k) => okResults.reduce((n, r) => n + (r[k] || 0), 0);
 console.log(`scraped   ${fresh.length} roles from ${okResults.length} sources`);
@@ -1252,7 +1275,13 @@ if (!published.length) {
 }
 
 if (args.dry) {
-  console.log('\ndry run — nothing written');
+  if (dropped.size) {
+    const total = [...dropped.values()].reduce((a, b) => a + b, 0);
+    console.log(`\nwould hold back ${total} of ${all.length} roles from the board:`);
+    [...dropped].sort((a, b) => b[1] - a[1])
+      .forEach(([reason, n]) => console.log(`  ${String(n).padStart(4)}  ${reason}`));
+  }
+  console.log(`\ndry run — nothing written (${published.length} roles would publish)`);
   process.exit(0);
 }
 
@@ -1260,16 +1289,6 @@ if (args.dry) {
 // carried-over roles so the board keeps working, but the run is marked failed
 // so GitHub emails you instead of the problem going unnoticed for weeks.
 const totalFailure = ready.length > 0 && okResults.length === 0;
-
-// Applied to the published feed only. `fresh` is what goes to job_history a
-// few lines below, and it stays whole.
-const dropped = new Map();
-const published = all.filter((j) => {
-  const reason = excludeReason(j);
-  if (!reason) return true;
-  dropped.set(reason, (dropped.get(reason) || 0) + 1);
-  return false;
-});
 
 /* The roster, published alongside the roles.
 
