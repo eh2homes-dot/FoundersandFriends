@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V153" />
+<meta name="ff-build" content="RING-V154" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -4530,13 +4530,10 @@ function globeBuild(){
       // globeBuild, so no globe rendered and both hubs counted zero.
       // Named apart from the group-sorting `inward` above, which is the same
       // angle measured for a different purpose in the same scope.
-      const hubIn = Math.atan2(CY - gy, CX - gx);
       const arcPts = (L) => {
         const ch = Math.hypot(gx - L.from.x, gy - L.from.y) || 1;
-        const th = hubIn + L.open * GLOBE.ROUTE_OPEN;
-        const reach = ch * GLOBE.ROUTE_REACH;
-        const qx = gx + Math.cos(th) * reach;
-        const qy = gy + Math.sin(th) * reach;
+        const c = globeCtrl(L, L.from, gx, gy, CX, GLOBE.CY, GLOBE.R, ch);
+        const qx = c.x, qy = c.y;
         const o = [];
         for (let i = 0; i <= GLOBE.ROUTE_SAMPLES; i++){
           const u = 1 - i / GLOBE.ROUTE_SAMPLES, v = i / GLOBE.ROUTE_SAMPLES;
@@ -4666,7 +4663,8 @@ function globeBuild(){
         if (!bp.length) break;
         for (const [i, j] of bp){
           const lo = shown[i].open <= shown[j].open ? i : j, hi = lo === i ? j : i;
-          shown[lo].open -= 0.22; shown[hi].open += 0.22;
+          shown[lo].open = Math.max(-1, shown[lo].open - 0.22);
+          shown[hi].open = Math.min( 1, shown[hi].open + 0.22);
         }
       }
       for (let pass = 0; pass < 24; pass++){
@@ -4783,6 +4781,31 @@ function globeBuild(){
    one stem rather than each cutting its own line across the globe. Straight
    lines from every job to every node is what makes a field this dense read as
    stray hairs. */
+/* Where a route's control point sits: on a ray leaving the hub at this route's
+   own departure angle.
+
+   Two clamps, both learned the hard way.
+
+   The departure slot is held inside its range. The repair loop widens a pair by
+   0.22 a pass with nothing stopping it, so a stubborn route could be pushed past
+   a half turn and end up aiming back OUT of the globe — which is what threw
+   those loops over the top of the sphere.
+
+   The control point is then held inside the sphere outright. A quadratic never
+   leaves the triangle of its three points, and the dot and the hub are both on
+   or inside the surface, so pinning the third point inside is what guarantees no
+   route can bulge out however the angles end up. A guarantee beats a tuned
+   number: the first clamp should make the second unnecessary, and the second is
+   there because I have been wrong about that kind of thing twice today. */
+function globeCtrl(L, a, ex, ey, CX, CY, R, chord){
+  const slot = Math.max(-1, Math.min(1, L.open || 0));
+  const th = Math.atan2(CY - ey, CX - ex) + slot * GLOBE.ROUTE_OPEN;
+  // Along this ray, the sphere is 2R*cos(offset) deep. Stop short of that.
+  const deep = 2 * R * Math.max(0.05, Math.cos(slot * GLOBE.ROUTE_OPEN));
+  const reach = Math.min(chord * GLOBE.ROUTE_REACH, deep * 0.88);
+  return { x: ex + Math.cos(th) * reach, y: ey + Math.sin(th) * reach };
+}
+
 function globeThread(L, time, still){
   const f = (v) => v.toFixed(1);
   const { CY, R } = GLOBE;
@@ -4878,11 +4901,8 @@ function globeThread(L, time, still){
        layout, and a guarantee computed on one shape does not hold for a shape
        the animation has since moved. The motion lives in the meridians and the
        travelling spark. */
-    const inward = Math.atan2(CY - ey, CX - ex);
-    const th = inward + (L.open || 0) * GLOBE.ROUTE_OPEN;
-    const reach = chord * GLOBE.ROUTE_REACH;
-    const mx = ex + Math.cos(th) * reach;
-    const my = ey + Math.sin(th) * reach;
+    const c = globeCtrl(L, a, ex, ey, CX, CY, R, chord);
+    const mx = c.x, my = c.y;
     return `M ${f(a.x)} ${f(a.y)} Q ${f(mx)} ${f(my)}, ${f(ex)} ${f(ey)}`;
   };
   // Two halves, not one path: the run inside the sphere and the run out to the
