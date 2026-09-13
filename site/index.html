@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V146" />
+<meta name="ff-build" content="RING-V152" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3873,7 +3873,7 @@ const GLOBE = {
   THREAD_FAN: 0,   // no spread needed now that a company draws one rail. This
                    // existed to stop its several rails coinciding; with one,
                    // any angle other than the node's own reads as a tilt
-  CHORD_TURN: 0.33,// how far round the sphere a company's dots sit from the
+  CHORD_TURN: 0,   // how far round the sphere a company's dots sit from the
                    // company itself, as a fraction of a full turn. 0 puts them
                    // under their own node; 0.5 puts them directly opposite and
                    // sends every line through the centre
@@ -3886,6 +3886,14 @@ const GLOBE = {
                    // however the dots are chosen.
   ROUTE_LEAN: 0,   // unused: routes land where their rail does
   ROUTE_SPREAD: 0,   // unused: as above
+  ROUTE_HUB_R: 16, // px around the landing point where routes are allowed to be
+                   // on top of each other. All five end on that pixel, so they
+                   // must be. Everything outside this circle is checked.
+  ROUTE_CLEAR: 3.0,// px two routes must keep between them. Set from the stroke
+                   // width: closer than this and they render as one line even
+                   // when they never actually cross.
+  ROUTE_SAMPLES: 150,// points each route is sampled at when checking whether
+                   // two of them cross. Coarser is faster and lies to you.
   ROUTE_BOW: 58,   // furthest a route bows off its straight line. The five
                    // routes of one company leave their shared landing point in
                    // five directions and reach right across the sphere, so they
@@ -4356,9 +4364,21 @@ function globeBuild(){
     // onto dots on the left and the reverse. Two different conventions for the
     // same angle, one of them obsolete.
     const bearing = (c) => Math.atan2(c.y - GLOBE.CY, c.x - cx);
-    const flat = [...groups.values()]
-      .sort((g1, g2) => bearing(g1[0].co) - bearing(g2[0].co))
-      .flat();
+    /* Deal the slots round-robin, not in blocks.
+
+       Flattening the groups gave each company five CONSECUTIVE slots, and the
+       slot ring is sorted by bearing — so a company's five dots landed in one
+       cluster and its five paths left in nearly the same direction. Measured:
+       15 degrees of spread between the outermost two. Dealing one dot per
+       company per lap puts a company's dots right round the sphere instead, and
+       the spread goes to 72 degrees — paths heading off in different directions
+       across the globe, which is the shape in the sketch. */
+    const byBearing = [...groups.values()]
+      .sort((g1, g2) => bearing(g1[0].co) - bearing(g2[0].co));
+    const deepest = Math.max(0, ...byBearing.map(g => g.length));
+    const flat = [];
+    for (let lap = 0; lap < deepest; lap++)
+      for (const g of byBearing) if (g[lap]) flat.push(g[lap]);
 
     // Slots are sorted by bearing, so rotating the list moves every company's
     // dots the same way round the sphere — a company on the left gets dots
@@ -4506,8 +4526,8 @@ function globeBuild(){
         const qx = (L.from.x + gx) / 2 + (-dy / ch) * bow;
         const qy = (L.from.y + gy) / 2 + ( dx / ch) * bow;
         const o = [];
-        for (let i = 0; i <= 26; i++){
-          const u = 1 - i / 26, v = i / 26;
+        for (let i = 0; i <= GLOBE.ROUTE_SAMPLES; i++){
+          const u = 1 - i / GLOBE.ROUTE_SAMPLES, v = i / GLOBE.ROUTE_SAMPLES;
           o.push({ x: u * u * L.from.x + 2 * u * v * qx + v * v * gx,
                    y: u * u * L.from.y + 2 * u * v * qy + v * v * gy });
         }
@@ -4520,10 +4540,45 @@ function globeBuild(){
         const u = ((q1.x - p1.x) * (p2.y - p1.y) - (q1.y - p1.y) * (p2.x - p1.x)) / d;
         return s > 0 && s < 1 && u > 0 && u < 1;
       };
+      const box = (P) => {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const q of P){
+          if (q.x < x0) x0 = q.x; if (q.x > x1) x1 = q.x;
+          if (q.y < y0) y0 = q.y; if (q.y > y1) y1 = q.y;
+        }
+        return { x0, y0, x1, y1 };
+      };
+      /* Both tests stop short of the landing point.
+
+         All five routes end on the same pixel, so near it every pair is within
+         a pixel of every other — by construction, and permanently. Measuring
+         there made the repair see ten bad pairs it could never clear, so it
+         spent its whole budget and flattened every route to a bow of 0.05 while
+         the actual crossings survived untouched. Convergence at the hub is the
+         design, not a fault; only the way there is checked. */
+      /* The exclusion is a circle around the landing point, not a share of the
+         curve. Dropping the last 14% of each path by parameter sounds
+         equivalent and is not: a hard-bowed route covers far more ground in its
+         last 14% than a straight one, so the same fraction hid a real crossing
+         on one route while barely trimming another. What has to be ignored is
+         the place where all five genuinely meet — a fixed radius around it. */
+      const near = (q) => {
+        const dx = q.x - gx, dy = q.y - gy;
+        return dx * dx + dy * dy < GLOBE.ROUTE_HUB_R * GLOBE.ROUTE_HUB_R;
+      };
       const tangled = (A, B) => {
-        for (let i = 1; i < A.length; i++)
-          for (let j = 1; j < B.length; j++)
+        // Most pairs are nowhere near each other; the box test skips them for
+        // the cost of four comparisons, which is what makes checking at full
+        // resolution affordable.
+        const a = A.box || (A.box = box(A)), b = B.box || (B.box = box(B));
+        if (a.x1 < b.x0 || b.x1 < a.x0 || a.y1 < b.y0 || b.y1 < a.y0) return false;
+        for (let i = 1; i < A.length; i++){
+          if (near(A[i]) && near(A[i - 1])) continue;
+          for (let j = 1; j < B.length; j++){
+            if (near(B[j]) && near(B[j - 1])) continue;
             if (hits(A[i - 1], A[i], B[j - 1], B[j])) return true;
+          }
+        }
         return false;
       };
       for (let pass = 0; pass < 24; pass++){
@@ -4537,6 +4592,77 @@ function globeBuild(){
           }
         }
         if (!swapped) break;
+      }
+
+      /* Whatever the permutation cannot fix, the curve can.
+
+         Swapping bow slots only reorders a fixed ladder of five; some geometries
+         have no ordering that works. Easing the curve does, and it terminates by
+         construction: at zero bow a route is a straight run to the shared point,
+         and straight runs from distinct dots to one point cannot cross. It fires
+         on roughly one company in twenty, and only that company loses curve.
+
+         This checks at the same resolution the result is verified at. An earlier
+         version repaired on a coarse sample and passed itself while a finer look
+         still found crossings — the check has to be at least as fine as the
+         thing it is certifying. */
+      /* The repair treats a NEAR miss as a crossing.
+
+         Sampling a curve and testing segments is exact only at the resolution
+         you sample at: a repair that cleared itself at 110 points still left
+         crossings a 140-point check could find, because a tangency slips
+         between samples. Rather than chase resolution, anything that comes
+         within a pixel of another route is repaired too. That is strictly
+         stronger than any finer sampling would be, and it is also the right
+         visual rule — two routes a pixel apart read as touching whether or not
+         they technically cross. */
+      const tooClose = (A, B) => {
+        const a = A.box || (A.box = box(A)), b = B.box || (B.box = box(B));
+        const M = GLOBE.ROUTE_CLEAR;
+        if (a.x1 + M < b.x0 || b.x1 + M < a.x0 || a.y1 + M < b.y0 || b.y1 + M < a.y0) return false;
+        const M2 = M * M;
+        for (let i = 0; i < A.length; i++){
+          if (near(A[i])) continue;
+          for (let j = 0; j < B.length; j++){
+            if (near(B[j])) continue;
+            const dx = A[i].x - B[j].x, dy = A[i].y - B[j].y;
+            if (dx * dx + dy * dy < M2) return true;
+          }
+        }
+        return false;
+      };
+      /* Two repairs, in this order, because they fix opposite faults.
+
+         SPREAD first. The stubborn case is two dots that sit nearly in line with
+         the shared landing point — one behind the other. Flattening those makes
+         it worse, because the flatter they get the more exactly they lie on top
+         of each other. Bowing them apart is the only thing that separates them.
+
+         EASE second, for the opposite fault: a route curving so far it swings
+         through a neighbour. Easing terminates by construction — at zero bow a
+         route is a straight run to the shared point — so the loop always has
+         somewhere to land. */
+      const badPairs = () => {
+        const S = shown.map(arcPts), out = [];
+        for (let i = 0; i < shown.length; i++)
+          for (let j = i + 1; j < shown.length; j++)
+            if (tangled(S[i], S[j]) || tooClose(S[i], S[j])) out.push([i, j]);
+        return out;
+      };
+      for (let pass = 0; pass < 16; pass++){
+        const bp = badPairs();
+        if (!bp.length) break;
+        for (const [i, j] of bp){
+          const lo = shown[i].fan <= shown[j].fan ? i : j, hi = lo === i ? j : i;
+          shown[lo].fan -= 0.3; shown[hi].fan += 0.3;
+        }
+      }
+      for (let pass = 0; pass < 24; pass++){
+        const bp = badPairs();
+        if (!bp.length) break;
+        const bad = new Set();
+        bp.forEach(([i, j]) => { bad.add(i); bad.add(j); });
+        bad.forEach(i => { shown[i].fan *= 0.78; });
       }
     }
   }
@@ -4731,8 +4857,17 @@ function globeThread(L, time, still){
     // running side by side and merging.
     const bx = -ddy / chord, by = ddx / chord;
     const bow = (L.fan || 0) * Math.min(GLOBE.ROUTE_BOW, chord * 0.34);
-    const mx = (a.x + ex) / 2 + bx * (bow + sway) + L.pull.x * 0.5;
-    const my = (a.y + ey) / 2 + by * (bow + sway) + L.pull.y * 0.5;
+    /* No sway, no pointer pull.
+
+       The untangle runs once at layout time with the curves at rest, and then
+       the animation moved them: sway alone shifts a control point by up to
+       3.5px per frame and the pointer tug adds up to 20 more. A guarantee
+       computed on one shape does not hold for a different shape, which is
+       exactly why crossings kept reappearing in the rendered output after every
+       clean build-time check. The routes are fixed now, and the globe's motion
+       lives in the meridians and the travelling spark instead. */
+    const mx = (a.x + ex) / 2 + bx * bow;
+    const my = (a.y + ey) / 2 + by * bow;
     return `M ${f(a.x)} ${f(a.y)} Q ${f(mx)} ${f(my)}, ${f(ex)} ${f(ey)}`;
   };
   // Two halves, not one path: the run inside the sphere and the run out to the
