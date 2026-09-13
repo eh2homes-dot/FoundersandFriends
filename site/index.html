@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V120" />
+<meta name="ff-build" content="RING-V121" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3865,8 +3865,11 @@ const GLOBE = {
                         // one ring all 21 place with no overlaps; staggered,
                         // only 88% did, and the alternating radius was visible.
   THREAD_START: 40,// px beyond the sphere's rim where a thread becomes visible
-  THREAD_FAN: 0.20,// radians of spread around a company's bearing, so its
-                   // threads leave the globe as a fan rather than a bundle
+  THREAD_FAN: 0.20,// radians of spread around a role's bearing, so threads
+                   // leaving the globe near each other still separate
+  ARC_BOW: 0.26,   // how far a thread bows off the straight line, as a share
+                   // of its own length. Long crossings sweep, short ones stay
+                   // close to direct — which is what keeps them from tangling
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
                    // scales to 1.85x and the core has a drop shadow, so the
                    // circle takes up noticeably more room than r suggests.
@@ -4484,13 +4487,34 @@ function globeThread(L, time, still){
   const c2x = gx + (gx - CX) * 0.1;
   const c2y = gy + (gy - CY) * 0.1;
 
+  /* The long sweep.
+     The old control point sat ON the straight line between the two ends, at
+     40% of the way — so the "curve" was a straight line with extra steps. A
+     real arc needs the control point pushed PERPENDICULAR to that line, and
+     pushed further the longer the run, which is what makes a thread crossing
+     the whole globe bow generously while a short one stays nearly direct.
+     The direction alternates per thread, so neighbouring arcs bow opposite
+     ways and separate instead of stacking. */
+  const outerArc = () => {
+    const vx = b.x - gx, vy = b.y - gy;
+    const span = Math.hypot(vx, vy) || 1;
+    const px = -vy / span, py = vx / span;        // perpendicular
+    // Sign and depth fixed per thread; depth scales with the run so the bow
+    // stays in proportion rather than looking flat on long arcs.
+    const dir = L.spread >= 0 ? 1 : -1;
+    const depth = span * GLOBE.ARC_BOW * (0.55 + Math.abs(L.spread)) * dir;
+    const mx = gx + vx * 0.5 + px * depth;
+    const my = gy + vy * 0.5 + py * depth;
+    return `M ${f(gx)} ${f(gy)} Q ${f(mx)} ${f(my)}, ${f(b.x)} ${f(b.y)}`;
+  };
+
   const f = (v) => v.toFixed(1);
   // Two halves, not one path: the run inside the sphere and the run out to the
   // node. Splitting them is what lets the interior hide while the outside stays
   // visible — a single path can only be shown or hidden as a whole.
   return {
     inner: `M ${f(a.x)} ${f(a.y)} C ${f(c1x)} ${f(c1y)}, ${f(c2x)} ${f(c2y)}, ${f(gx)} ${f(gy)}`,
-    outer: `M ${f(gx)} ${f(gy)} Q ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`,
+    outer: outerArc(),
   };
 }
 
