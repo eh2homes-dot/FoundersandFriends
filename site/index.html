@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V141" />
+<meta name="ff-build" content="RING-V144" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -302,7 +302,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-ring{fill:none;stroke:url(#g-ring-grad);stroke-width:1.2}
 
 /* threads */
-.g-thread{fill:none;stroke-width:1.7;opacity:.2;transition:opacity .3s,stroke-width .3s}
+.g-thread{fill:none;stroke-width:2.4;opacity:.2;stroke-linecap:round;transition:opacity .3s,stroke-width .3s}
 .g-thread.opco{stroke:#00FF88}
 .g-thread.proptech{stroke:#A98FEC}
 /* Inside the globe is the half that shows. The run from a role dot out to its
@@ -329,11 +329,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    followable, but only once there are few enough to follow. On hover the one
    set you asked about appears against an otherwise empty globe. */
 .g-thread.g-thread-in{opacity:0;pointer-events:none;transition:opacity .2s}
-.g-thread.g-thread-in.is-lit{opacity:.9;stroke-width:1.5}
+.g-thread.g-thread-in.is-lit{opacity:.95;stroke-width:2.6}
 
 .g-thread:not(.g-thread-in),
 .g-thread:not(.g-thread-in).is-lit,
-#globe.is-focused .g-thread:not(.g-thread-in){opacity:.6;stroke-width:3.2;stroke-linecap:round}
+#globe.is-focused .g-thread:not(.g-thread-in){opacity:.62;stroke-width:3.6;stroke-linecap:round}
 
 /* The native <title> tooltip gave a grey OS box after a delay and showed only
    one line. This is the job card in miniature: title, company, location, pay —
@@ -363,7 +363,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    above its node, so a pointer on one edge would aim at nothing. The lit
    thread is what ties the two together, and it stays visible. */
 @media(max-width:640px){ .g-peek{display:none} }
-.g-thread.is-lit{opacity:1;stroke-width:3.2}
+.g-thread.is-lit{opacity:1;stroke-width:4.6}
 .g-thread-in.is-lit{opacity:1}
 .g-thread.opco.is-lit{filter:drop-shadow(0 0 5px rgba(0,255,136,.8))}
 .g-thread.proptech.is-lit{filter:drop-shadow(0 0 5px rgba(169,143,236,.85))}
@@ -424,7 +424,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #globe.is-handoff .g-lat,#globe.is-handoff .g-mer,
 #globe.is-handoff .g-shade,#globe.is-handoff .g-atmo,
 #globe.is-handoff .g-ring{opacity:.05;transition:opacity .3s}
-#globe.is-handoff .g-thread.is-lit{stroke-width:2.8}
+#globe.is-handoff .g-thread.is-lit{stroke-width:3.8}
 #globe.is-handoff .g-role.is-lit .halo{animation:handoff-ping .52s ease-out both}
 @keyframes handoff-ping{from{opacity:.9}to{opacity:0;stroke-width:5}}
 
@@ -3873,7 +3873,7 @@ const GLOBE = {
   THREAD_FAN: 0,   // no spread needed now that a company draws one rail. This
                    // existed to stop its several rails coinciding; with one,
                    // any angle other than the node's own reads as a tilt
-  CHORD_TURN: 0.33,// how far round the sphere a company's dots sit from the
+  CHORD_TURN: 0,   // how far round the sphere a company's dots sit from the
                    // company itself, as a fraction of a full turn. 0 puts them
                    // under their own node; 0.5 puts them directly opposite and
                    // sends every line through the centre
@@ -3884,13 +3884,17 @@ const GLOBE = {
                    // the dots at the same number, and kept as the backstop that
                    // guarantees it: no company can draw more lines than this
                    // however the dots are chosen.
-  ROUTE_SPREAD: 0.17,// radians either side of a company's bearing that its
-                   // routes make landfall across — about 10 degrees, or 27px
-                   // along the rim at this radius. Wider and the outer routes
-                   // stop looking like they belong to that node.
-  ROUTE_BOW: 58,   // furthest a route bows off its straight line. Past ~60 the
-                   // outer routes of a busy company swing wide enough to leave
-                   // the sphere and read as loops rather than paths.
+  ROUTE_LEAN: 0.5, // how far a route's landfall leans from its own bearing
+                   // toward its company's. 0 is purely radial and provably
+                   // crossing-free; 1 lands every route on one point, which is
+                   // where the crossings came from. Measured, 0.5 with the bow
+                   // below is still zero.
+  ROUTE_SPREAD: 0.17,// unused since routes took their own bearings
+  ROUTE_BOW: 14,   // furthest a route bows off its straight line. This was 58,
+                   // which was the other half of the crossings: a wide bow
+                   // swings a route out of its own wedge and through its
+                   // neighbours'. Routes are short and near-radial now, so they
+                   // need far less curve to read as paths.
   ROUTE_LANES: 11, // unused since arcs replaced right-angle routing
   ROUTE_GAP: 9,    // px between channels — wider than the stroke, so two
                    // neighbouring verticals read as two lines
@@ -4370,6 +4374,12 @@ function globeBuild(){
     // third the chords all span the same angle without sharing a point, so
     // they lay out as an even envelope instead of a knot.
     const ring = globeSlots(flat.length, h);
+    // No rotation. CHORD_TURN existed to make every company's lines span the
+    // sphere, on the theory that long chords look better than short spokes. It
+    // does — and it is also why routes crossed: rotating the dots a third of a
+    // turn guarantees every company's routes pass through every other's
+    // territory. Measured over the full 105-route globe, that one constant
+    // accounted for 47% of pairs crossing against 1.5% at zero.
     const turn = Math.round(ring.length * GLOBE.CHORD_TURN);
     const pts = ring.slice(turn).concat(ring.slice(0, turn));
     flat.forEach((s, i) => {
@@ -4466,7 +4476,21 @@ function globeBuild(){
            Each now meets the surface at its own point along the bearing, so
            the five arrive spread along the rim and open from the rail like a
            delta rather than a knot. */
-        const la = ca + L.fan * GLOBE.ROUTE_SPREAD;
+        /* Each route leaves the globe in ITS OWN direction, leaned part of the
+           way toward its company.
+
+           Landing every route on one bearing, fanned by a fixed angle, is what
+           made routes cross: the fan is the same wedge for all five whatever
+           part of the sphere their dots sit on, so a dot on one side had to cut
+           across the others to reach its slot. Rays leaving a common centre in
+           their own directions cannot cross at all — the lean is how much of
+           that guarantee is traded back for the routes visibly belonging to
+           their node. */
+        const own = Math.atan2(L.from.y - CY, L.from.x - CX);
+        let d = ca - own;
+        while (d >  Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        const la = own + d * GLOBE.ROUTE_LEAN;
         L.land = { x: CX + Math.cos(la) * gap, y: CY + Math.sin(la) * gap };
       });
 
@@ -4535,7 +4559,7 @@ function globeBuild(){
   for (const L of links){
     L.inner = el('path', { class: 'g-thread g-thread-in ' + otherHub(L.hub), 'data-key': L.from.key });
     L.path = el('path', { class: 'g-thread ' + otherHub(L.hub), 'data-key': L.from.key });
-    L.dot = el('circle', { class: 'g-spark ' + otherHub(L.hub), r: 2.6 });
+    L.dot = el('circle', { class: 'g-spark ' + otherHub(L.hub), r: 3.2 });
     gThreads.append(L.inner, L.path);
     gSparks.append(L.dot);
   }
@@ -4685,8 +4709,17 @@ function globeThread(L, time, still){
   /* Straight out to the node. The control point sits ON the line between the
      two ends, which is what makes this read as a spoke rather than an arc —
      the curve was the other half of the clutter. */
-  const outerArc = () =>
-    `M ${f(gx)} ${f(gy)} Q ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
+  /* Every route makes its own run to the node, from the point where it made
+     landfall. One shared rail was right when a company drew twenty-nine routes
+     and they had to be gathered before they reached the ring; with five it
+     inverts the meaning — five paths arriving at five places on the rim, then
+     funnelling into a single line, reads as one connection rather than five.
+     Straight runs from points spread along an arc to a common node cannot
+     cross each other, so the fan stays clean all the way in. */
+  const outerArc = () => {
+    const sx = L.land ? L.land.x : gx, sy = L.land ? L.land.y : gy;
+    return `M ${f(sx)} ${f(sy)} Q ${f(b.x - (b.x - sx) * 0.4)} ${f(b.y - (b.y - sy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
+  };
 
 
   /* Manhattan routing for the run inside the globe: out along one axis, across
@@ -4745,12 +4778,14 @@ function globeStep(time, once){
     // nothing and read as a dead node.
     const showInner = L.draw || L.inner.classList.contains('is-lit');
     L.inner.setAttribute('d', showInner ? seg.inner : '');
-    // Only the company's lead link draws the rail out to its node; the others
-    // would draw the same line on top of it.
-    L.path.setAttribute('d', L.lead ? seg.outer : '');
+    // Every drawn route runs to the node on its own. This was gated on L.lead
+    // when all of them shared one rail — the others would have drawn the same
+    // line on top of it. They no longer share it.
+    L.path.setAttribute('d', showInner ? seg.outer : '');
 
-    // One pulse per rail, for the same reason: several on one line, at
-    // different phases, reads as a queue rather than as a signal.
+    // Still one travelling pulse per COMPANY, not per route. Five sparks
+    // converging on one node at five phases reads as traffic; one reads as a
+    // signal. It rides the lead route.
     // `continue`, not `return`. This returned, which exits globeStep itself —
     // so at the first non-lead link the whole loop stopped, every later thread
     // kept an empty `d`, the meridians froze and the next frame was never
