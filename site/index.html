@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V144" />
+<meta name="ff-build" content="RING-V145" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3873,7 +3873,7 @@ const GLOBE = {
   THREAD_FAN: 0,   // no spread needed now that a company draws one rail. This
                    // existed to stop its several rails coinciding; with one,
                    // any angle other than the node's own reads as a tilt
-  CHORD_TURN: 0,   // how far round the sphere a company's dots sit from the
+  CHORD_TURN: 0.33,// how far round the sphere a company's dots sit from the
                    // company itself, as a fraction of a full turn. 0 puts them
                    // under their own node; 0.5 puts them directly opposite and
                    // sends every line through the centre
@@ -3884,17 +3884,13 @@ const GLOBE = {
                    // the dots at the same number, and kept as the backstop that
                    // guarantees it: no company can draw more lines than this
                    // however the dots are chosen.
-  ROUTE_LEAN: 0.5, // how far a route's landfall leans from its own bearing
-                   // toward its company's. 0 is purely radial and provably
-                   // crossing-free; 1 lands every route on one point, which is
-                   // where the crossings came from. Measured, 0.5 with the bow
-                   // below is still zero.
-  ROUTE_SPREAD: 0.17,// unused since routes took their own bearings
-  ROUTE_BOW: 14,   // furthest a route bows off its straight line. This was 58,
-                   // which was the other half of the crossings: a wide bow
-                   // swings a route out of its own wedge and through its
-                   // neighbours'. Routes are short and near-radial now, so they
-                   // need far less curve to read as paths.
+  ROUTE_LEAN: 0,   // unused: routes land where their rail does
+  ROUTE_SPREAD: 0,   // unused: as above
+  ROUTE_BOW: 58,   // furthest a route bows off its straight line. The five
+                   // routes of one company leave their shared landing point in
+                   // five directions and reach right across the sphere, so they
+                   // need real curve — this is what makes them read as paths
+                   // rather than as spokes.
   ROUTE_LANES: 11, // unused since arcs replaced right-angle routing
   ROUTE_GAP: 9,    // px between channels — wider than the stroke, so two
                    // neighbouring verticals read as two lines
@@ -4476,22 +4472,13 @@ function globeBuild(){
            Each now meets the surface at its own point along the bearing, so
            the five arrive spread along the rim and open from the rail like a
            delta rather than a knot. */
-        /* Each route leaves the globe in ITS OWN direction, leaned part of the
-           way toward its company.
-
-           Landing every route on one bearing, fanned by a fixed angle, is what
-           made routes cross: the fan is the same wedge for all five whatever
-           part of the sphere their dots sit on, so a dot on one side had to cut
-           across the others to reach its slot. Rays leaving a common centre in
-           their own directions cannot cross at all — the lean is how much of
-           that guarantee is traded back for the routes visibly belonging to
-           their node. */
-        const own = Math.atan2(L.from.y - CY, L.from.x - CX);
-        let d = ca - own;
-        while (d >  Math.PI) d -= Math.PI * 2;
-        while (d < -Math.PI) d += Math.PI * 2;
-        const la = own + d * GLOBE.ROUTE_LEAN;
-        L.land = { x: CX + Math.cos(la) * gap, y: CY + Math.sin(la) * gap };
+        /* All five meet the sphere where their rail does. Spreading the
+           landfalls was an attempt to stop routes from different companies
+           crossing — but routes are hidden unless their company is picked, so
+           only one company's five are ever on screen together. Those five are
+           untangled below, exactly. Cross-company crossings were a problem I
+           created by drawing all 105 at once. */
+        L.land = null;
       });
 
       /* Untangle, by swapping landfalls between any two routes that cross.
@@ -4716,10 +4703,10 @@ function globeThread(L, time, still){
      funnelling into a single line, reads as one connection rather than five.
      Straight runs from points spread along an arc to a common node cannot
      cross each other, so the fan stays clean all the way in. */
-  const outerArc = () => {
-    const sx = L.land ? L.land.x : gx, sy = L.land ? L.land.y : gy;
-    return `M ${f(sx)} ${f(sy)} Q ${f(b.x - (b.x - sx) * 0.4)} ${f(b.y - (b.y - sy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
-  };
+  /* The rail: node to the sphere, along the company's own bearing. One line,
+     straight, always visible. Everything inside branches from where it lands. */
+  const outerArc = () =>
+    `M ${f(gx)} ${f(gy)} Q ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
 
 
   /* Manhattan routing for the run inside the globe: out along one axis, across
@@ -4733,7 +4720,7 @@ function globeThread(L, time, still){
      Corners are rounded by a few pixels — a true right angle at this stroke
      width reads as a rendering artefact. */
   const arcRoute = () => {
-    const ex = L.land ? L.land.x : gx, ey = L.land ? L.land.y : gy;
+    const ex = gx, ey = gy;
     const ddx = ex - a.x, ddy = ey - a.y;
     const chord = Math.hypot(ddx, ddy) || 1;
     // Perpendicular to the run. Bowing along this is what separates two routes
@@ -4778,10 +4765,12 @@ function globeStep(time, once){
     // nothing and read as a dead node.
     const showInner = L.draw || L.inner.classList.contains('is-lit');
     L.inner.setAttribute('d', showInner ? seg.inner : '');
-    // Every drawn route runs to the node on its own. This was gated on L.lead
-    // when all of them shared one rail — the others would have drawn the same
-    // line on top of it. They no longer share it.
-    L.path.setAttribute('d', showInner ? seg.outer : '');
+    /* One rail per company, and only the lead link draws it.
+       At rest this is the whole picture: 21 thick lines, one per company, node
+       to surface. The routes inside are hidden until a company is picked, so
+       giving every route its own run to the node — which I did two builds ago —
+       put 105 lines on the globe at rest. That is the clutter, not the arcs. */
+    L.path.setAttribute('d', L.lead ? seg.outer : '');
 
     // Still one travelling pulse per COMPANY, not per route. Five sparks
     // converging on one node at five phases reads as traffic; one reads as a
