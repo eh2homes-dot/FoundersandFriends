@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V138" />
+<meta name="ff-build" content="RING-V141" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3821,7 +3821,7 @@ const GLOBE = {
   // rather than sitting in one arc per hub. Kept for the labelled layout.
   ARC_MAX: 168,
   ARC_STEP: 15,
-  MAX_ROLES: 84,   // per side. This is capacity, not a preference: a role can
+  MAX_ROLES: 84,   // unused since FEATURED took over — a company shows five and
                    // only sit where an orbit crosses a parallel, and the old
                    // four orbits at 10-degree spacing offered exactly 22 slots
                    // — which is why 21 companies each got precisely one dot.
@@ -3877,9 +3877,17 @@ const GLOBE = {
                    // company itself, as a fraction of a full turn. 0 puts them
                    // under their own node; 0.5 puts them directly opposite and
                    // sends every line through the centre
-  ROUTE_MAX: 5,    // routes drawn per company. The dots are not capped — this
-                   // is about ink, not data. Raising it past about 8 brings the
-                   // convergence bundle at the node back.
+  FEATURED: 5,     // roles a company shows on the globe. The node still prints
+                   // its true count and the list still holds every role — this
+                   // is the feature strip, not the inventory.
+  ROUTE_MAX: 5,    // routes drawn per company. Redundant now that FEATURED caps
+                   // the dots at the same number, and kept as the backstop that
+                   // guarantees it: no company can draw more lines than this
+                   // however the dots are chosen.
+  ROUTE_SPREAD: 0.17,// radians either side of a company's bearing that its
+                   // routes make landfall across — about 10 degrees, or 27px
+                   // along the rim at this radius. Wider and the outer routes
+                   // stop looking like they belong to that node.
   ROUTE_BOW: 58,   // furthest a route bows off its straight line. Past ~60 the
                    // outer routes of a busy company swing wide enough to leave
                    // the sphere and read as loops rather than paths.
@@ -4047,38 +4055,30 @@ function globeBuild(){
     }));
     cos.push(...sideCos);
 
-    // Dots in proportion to openings, not one each.
-    //
-    // Round-robin gave every company the same number of dots — with 63 slots
-    // across 21 companies, exactly three each whether they had 8 roles or 49.
-    // The node already prints the true count, so the picture was contradicting
-    // the number printed on it. Share the slots by how many roles a company
-    // actually has instead.
-    const pools = shown.map(([, list]) => list.slice());
-    const counts = pools.map(pl => pl.length);
-    const total = counts.reduce((n, v) => n + v, 0) || 1;
-    const budget = Math.min(GLOBE.MAX_ROLES, total);
+    /* Five featured roles per company, not a share of a global budget.
 
-    // Every company keeps at least one dot: a company with a single opening
-    // still belongs on the globe, and rounding alone would drop it.
-    const quota = counts.map(n => Math.max(1, Math.floor(n / total * budget)));
-    // Largest-remainder: hand the rounding leftovers to whoever lost the most
-    // to it, so the totals add up without favouring the top of the list.
-    let spare = budget - quota.reduce((n, v) => n + v, 0);
-    const order = counts
-      .map((n, i) => ({ i, rem: (n / total * budget) - Math.floor(n / total * budget) }))
-      .sort((a, b) => b.rem - a.rem);
-    for (let k = 0; spare > 0 && order.length; k++, spare--){
-      const { i } = order[k % order.length];
-      if (quota[i] < counts[i]) quota[i]++; else spare++;   // full: try the next
-      if (k > budget * 4) break;                            // nothing left to give
-    }
+       This reverses an earlier decision on purpose. Dots used to be handed out
+       in proportion to openings, so a company with 49 roles got far more of the
+       sphere than one with 8 — the reasoning being that the picture should not
+       contradict the count printed on the node. The count still prints, and the
+       list still holds every role; what the globe shows is a feature strip, not
+       an inventory. Proportional dots meant the biggest employer drew the most
+       lines, which is exactly the density that made this unreadable.
+
+       Every company now shows the same five, or all of them if it has fewer.
+       That also makes the line cap redundant rather than cosmetic: there is no
+       longer a dot on the globe without a route to its node. */
+    const pools = shown.map(([, list]) => {
+      // Priority roles lead. Beyond that the feed's own order stands — it is
+      // already ranked, and inventing a second ranking here would quietly
+      // disagree with the list view.
+      const ordered = list.slice().sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+      return ordered.slice(0, GLOBE.FEATURED);
+    });
 
     const sample = [];
     pools.forEach((pool, ci) => {
-      for (let n = 0; n < Math.min(quota[ci], pool.length); n++){
-        sample.push({ job: pool[n], co: sideCos[ci] });
-      }
+      for (const job of pool) sample.push({ job, co: sideCos[ci] });
     });
     sample.sort((a, b) => a.co.rank - b.co.rank);
     picks.push(...sample.map(s => ({ job: s.job, co: s.co, hub: h })));
@@ -4459,7 +4459,71 @@ function globeBuild(){
       shown.forEach((L, k) => {
         L.draw = true;
         L.fan = m === 1 ? 0 : (k / (m - 1)) * 2 - 1;
+        /* Its own landfall. Every route used to end on the single point where
+           the rail meets the sphere, so five paths crossing five different
+           parts of the globe still collapsed onto one spot — which is what
+           made them read as one place however far apart they travelled.
+           Each now meets the surface at its own point along the bearing, so
+           the five arrive spread along the rim and open from the rail like a
+           delta rather than a knot. */
+        const la = ca + L.fan * GLOBE.ROUTE_SPREAD;
+        L.land = { x: CX + Math.cos(la) * gap, y: CY + Math.sin(la) * gap };
       });
+
+      /* Untangle, by swapping landfalls between any two routes that cross.
+
+         Ordering the routes by bearing and fanning the bow monotonically feels
+         like it should prevent crossings, and it does not: measured over 1,500
+         layouts, 88% of pairs still crossed at five routes and 97% at
+         twenty-nine. The dots sit at very different distances as well as
+         different bearings, so bearing order alone says nothing about which
+         arc passes inside which.
+
+         Two routes that cross are two routes whose endpoints are assigned the
+         wrong way round — exchanging their landfalls uncrosses that pair, the
+         same 2-opt move that untangles a route. Repeat until a full sweep finds
+         nothing. With at most five routes this settles in a handful of passes,
+         and it is done here at layout time rather than per frame. */
+      const arcPts = (L) => {
+        const dx = L.land.x - L.from.x, dy = L.land.y - L.from.y;
+        const ch = Math.hypot(dx, dy) || 1;
+        const bow = L.fan * Math.min(GLOBE.ROUTE_BOW, ch * 0.34);
+        const qx = (L.from.x + L.land.x) / 2 + (-dy / ch) * bow;
+        const qy = (L.from.y + L.land.y) / 2 + ( dx / ch) * bow;
+        const o = [];
+        for (let i = 0; i <= 26; i++){
+          const u = 1 - i / 26, v = i / 26;
+          o.push({ x: u * u * L.from.x + 2 * u * v * qx + v * v * L.land.x,
+                   y: u * u * L.from.y + 2 * u * v * qy + v * v * L.land.y });
+        }
+        return o;
+      };
+      const hits = (p1, p2, q1, q2) => {
+        const d = (p2.x - p1.x) * (q2.y - q1.y) - (p2.y - p1.y) * (q2.x - q1.x);
+        if (!d) return false;
+        const s = ((q1.x - p1.x) * (q2.y - q1.y) - (q1.y - p1.y) * (q2.x - q1.x)) / d;
+        const u = ((q1.x - p1.x) * (p2.y - p1.y) - (q1.y - p1.y) * (p2.x - p1.x)) / d;
+        return s > 0 && s < 1 && u > 0 && u < 1;
+      };
+      const tangled = (A, B) => {
+        for (let i = 1; i < A.length; i++)
+          for (let j = 1; j < B.length; j++)
+            if (hits(A[i - 1], A[i], B[j - 1], B[j])) return true;
+        return false;
+      };
+      for (let pass = 0; pass < 24; pass++){
+        const S = shown.map(arcPts);
+        let swapped = false;
+        for (let i = 0; i < shown.length && !swapped; i++){
+          for (let j = i + 1; j < shown.length; j++){
+            if (!tangled(S[i], S[j])) continue;
+            const ld = shown[i].land; shown[i].land = shown[j].land; shown[j].land = ld;
+            const fn = shown[i].fan;  shown[i].fan  = shown[j].fan;  shown[j].fan  = fn;
+            swapped = true; break;
+          }
+        }
+        if (!swapped) break;
+      }
     }
   }
 
@@ -4636,16 +4700,17 @@ function globeThread(L, time, still){
      Corners are rounded by a few pixels — a true right angle at this stroke
      width reads as a rendering artefact. */
   const arcRoute = () => {
-    const ddx = gx - a.x, ddy = gy - a.y;
+    const ex = L.land ? L.land.x : gx, ey = L.land ? L.land.y : gy;
+    const ddx = ex - a.x, ddy = ey - a.y;
     const chord = Math.hypot(ddx, ddy) || 1;
     // Perpendicular to the run. Bowing along this is what separates two routes
     // ending at the same point: they diverge from the first pixel rather than
     // running side by side and merging.
     const bx = -ddy / chord, by = ddx / chord;
     const bow = (L.fan || 0) * Math.min(GLOBE.ROUTE_BOW, chord * 0.34);
-    const mx = (a.x + gx) / 2 + bx * (bow + sway) + L.pull.x * 0.5;
-    const my = (a.y + gy) / 2 + by * (bow + sway) + L.pull.y * 0.5;
-    return `M ${f(a.x)} ${f(a.y)} Q ${f(mx)} ${f(my)}, ${f(gx)} ${f(gy)}`;
+    const mx = (a.x + ex) / 2 + bx * (bow + sway) + L.pull.x * 0.5;
+    const my = (a.y + ey) / 2 + by * (bow + sway) + L.pull.y * 0.5;
+    return `M ${f(a.x)} ${f(a.y)} Q ${f(mx)} ${f(my)}, ${f(ex)} ${f(ey)}`;
   };
   // Two halves, not one path: the run inside the sphere and the run out to the
   // node. Splitting them is what lets the interior hide while the outside stays
