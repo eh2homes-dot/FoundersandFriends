@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V126" />
+<meta name="ff-build" content="RING-V131" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -289,26 +289,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   vector-effect:non-scaling-stroke}
 .g-atmo,.g-shade{pointer-events:none}
 
-/* ---------- the orbital system ---------- */
-.orb-path{fill:none;stroke-width:1.6;opacity:var(--fade);
-  stroke-dasharray:3 10;animation:orb-drift var(--spin) linear infinite var(--dir)}
-/* White rather than the hub colour: the tracks are structure, not data. In
-   green and purple they competed with the role dots and the company nodes,
-   which are the two things on this picture that actually mean something. */
-.orb.opco .orb-path,
-.orb.proptech .orb-path{stroke:rgba(232,238,255,.72);filter:drop-shadow(0 0 4px rgba(200,215,255,.35))}
-/* The dash offset is the rotation: turning the whole ellipse would make it
-   wobble, because a tilted ellipse is not symmetric about its own centre. */
-@keyframes orb-drift{to{stroke-dashoffset:-220}}
-.orb-dot{opacity:1;animation:orb-breathe 4.5s ease-in-out infinite}
-.orb.opco .orb-dot,
-.orb.proptech .orb-dot{fill:#F2F6FF;filter:drop-shadow(0 0 6px rgba(226,236,255,.9))}
-@keyframes orb-breathe{0%,100%{opacity:.55}50%{opacity:1}}
-/* Motion is decoration; anyone who has asked for less of it gets a still
-   picture rather than a broken one. */
-@media(prefers-reduced-motion:reduce){
-  .orb-path,.orb-dot{animation:none}
-}
+
 .g-rim{fill:none;stroke:url(#g-rim-grad);stroke-width:1.2;opacity:.85}
 
 /* the jobs' orbit — a slow drift in the dashes gives it motion without
@@ -328,10 +309,28 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
    company node necessarily leaves the sphere — the nodes sit on the ring — so
    that half is hidden until you pick something, and the web you see at rest is
    entirely contained within the globe. Picking a node reveals its line out. */
-.g-thread-in{opacity:.22;pointer-events:none;transition:opacity .25s}
-.g-thread{opacity:0}
-.g-thread.is-lit{opacity:1;stroke-width:3.2}
-#globe.is-focused .g-thread-in:not(.is-lit){opacity:.07}
+/* Two classes on the same element, so these need to out-specify each other
+   rather than sit in a hopeful order. The interior path carries BOTH
+   .g-thread and .g-thread-in — writing .g-thread{opacity:0} after
+   .g-thread-in{opacity:.22} silently hid the resting web, because equal
+   specificity means the later rule wins. */
+/* Two kinds of line, and only one of them responds to you.
+   .g-thread-in  — inside the globe. This is the data: which role belongs to
+                   which company. It brightens when traced and dims when
+                   another is.
+   .g-thread     — the connector from the surface out to the node. Structure,
+                   not data: it says where a company sits, which does not change
+                   with what you point at. Fixed opacity, fixed width, and left
+                   out of the focus dimming entirely — it carries the travelling
+                   pulse, and a rail that flickers under its own dot reads as a
+                   fault rather than as feedback. */
+.g-thread.g-thread-in{opacity:.24;pointer-events:none;transition:opacity .25s}
+.g-thread.g-thread-in.is-lit{opacity:1;stroke-width:2.4}
+#globe.is-focused .g-thread.g-thread-in:not(.is-lit){opacity:.08}
+
+.g-thread:not(.g-thread-in),
+.g-thread:not(.g-thread-in).is-lit,
+#globe.is-focused .g-thread:not(.g-thread-in){opacity:.3;stroke-width:1.7}
 
 /* The native <title> tooltip gave a grey OS box after a delay and showed only
    one line. This is the job card in miniature: title, company, location, pay —
@@ -1570,7 +1569,6 @@ a.foot-line:hover{color:var(--green)}
             <g class="g-hemi opco" data-goto="opco">
               <circle class="g-half" cx="525" cy="390" r="186"/>
             </g>
-            <g class="g-orbitals" data-cx="525" pointer-events="none"></g>
             <g class="g-mesh" data-cx="525" pointer-events="none"></g>
             <g pointer-events="none">
               <circle class="g-rim" cx="525" cy="390" r="186"/>
@@ -1590,7 +1588,6 @@ a.foot-line:hover{color:var(--green)}
             <g class="g-hemi proptech" data-goto="proptech">
               <circle class="g-half" cx="1575" cy="390" r="186"/>
             </g>
-            <g class="g-orbitals" data-cx="1575" pointer-events="none"></g>
             <g class="g-mesh" data-cx="1575" pointer-events="none"></g>
             <g pointer-events="none">
               <circle class="g-rim" cx="1575" cy="390" r="186"/>
@@ -3867,15 +3864,17 @@ const GLOBE = {
                         // extends away from its neighbour, not towards it. On
                         // one ring all 21 place with no overlaps; staggered,
                         // only 88% did, and the alternating radius was visible.
-  THREAD_START: 8, // px beyond the sphere's rim where a thread becomes
-                   // visible. Small on purpose: at 40 the threads surfaced well
-                   // clear of the sphere and the run to the node was almost all
-                   // outside it, which is what made them look like they were
-                   // reaching past the globe rather than coming out of it.
+  THREAD_START: 0, // the connector meets the sphere's surface exactly. Any gap
+                   // left the line floating off the globe rather than running
+                   // from it out to the node
   THREAD_FAN: 0.05,// radians of spread around a company's bearing. Just enough
                    // that two roles at the same company do not draw the exact
                    // same line; wide enough to fan and the spokes stop reading
                    // as one direction
+  CHORD_TURN: 0.33,// how far round the sphere a company's dots sit from the
+                   // company itself, as a fraction of a full turn. 0 puts them
+                   // under their own node; 0.5 puts them directly opposite and
+                   // sends every line through the centre
   ARC_BOW: 0.26,   // how far a thread bows off the straight line, as a share
                    // of its own length. Long crossings sweep, short ones stay
                    // close to direct — which is what keeps them from tangling
@@ -4348,7 +4347,18 @@ function globeBuild(){
       .sort((g1, g2) => bearing(g1[0].co) - bearing(g2[0].co))
       .flat();
 
-    const pts = globeSlots(flat.length, h);   // already sorted by bearing
+    // Slots are sorted by bearing, so rotating the list moves every company's
+    // dots the same way round the sphere — a company on the left gets dots
+    // over on the right, and its lines cross the globe.
+    //
+    // A third of a turn, not a half. Half would put every company opposite its
+    // own dots, and every one of those chords passes through the centre — the
+    // worst possible overlap, all of them crossing in the same place. At a
+    // third the chords all span the same angle without sharing a point, so
+    // they lay out as an even envelope instead of a knot.
+    const ring = globeSlots(flat.length, h);
+    const turn = Math.round(ring.length * GLOBE.CHORD_TURN);
+    const pts = ring.slice(turn).concat(ring.slice(0, turn));
     flat.forEach((s, i) => {
       const p = pts[i];
       if (!p) return;
@@ -4363,7 +4373,7 @@ function globeBuild(){
         reach: globeHash(roles.length + 137),
         bend: 0.35 + globeHash(roles.length + 17) * 1.15,
         speed: 0.5 + globeHash(roles.length + 7) * 0.5,
-        period: 17000 + globeHash(roles.length + 31) * 11000,
+        period: 26000 + globeHash(roles.length + 31) * 16000,   // a pass every 26–42s
         start: globeHash(roles.length + 53),
         pull: { x: 0, y: 0 },
       });
@@ -4505,7 +4515,9 @@ function globeThread(L, time, still){
   const gx = CX + Math.cos(ca) * gap;
   const gy = CY + Math.sin(ca) * gap;
 
-  // A gentle drift so the bundle breathes, plus the pointer's tug.
+  // The connector itself is a fixed rail. This drift shapes only the run
+  // INSIDE the globe, where a little movement reads as depth; on the connector
+  // it would make the line wander under its own travelling dot.
   const sway = still ? 0 : Math.sin(time * 0.00012 * L.speed + L.phase) * 3 * L.bend;
   const dx = gx - a.x, dy = gy - a.y;
   const len = Math.hypot(dx, dy) || 1;
@@ -4560,12 +4572,13 @@ function globeStep(time, once){
     L.inner.setAttribute('d', seg.inner);
     L.path.setAttribute('d', seg.outer);
 
-    // The spark rides the half that is drawn — the interior one — so it never
-    // travels across empty space outside the globe.
-    const total = L.inner.getTotalLength?.() || 0;
+    // The pulse rides the connector out to the company node. That is the
+    // journey worth animating — a role reaching its employer — and it is where
+    // the eye already follows the line.
+    const total = L.path.getTotalLength?.() || 0;
     if (total){
       const t = still ? 0.5 : (L.start + time / L.period) % 1;
-      const pt = L.inner.getPointAtLength(total * t);
+      const pt = L.path.getPointAtLength(total * t);
       L.dot.setAttribute('cx', pt.x.toFixed(1));
       L.dot.setAttribute('cy', pt.y.toFixed(1));
       // Set inline every frame, so the dimming for a traced path has to be
@@ -4752,87 +4765,6 @@ function globeLatFor(x, y, hub){
    own horizontal line crosses the inner circle — an intersection of two drawn
    lines rather than a dot floating on one. Fainter lines are added between
    them for the web, and the meridians are animated to give the turn. */
-/* The orbital system around each globe: concentric tilted ellipses in the band
-   between the sphere and the company ring, each with a pulse point running its
-   circuit.
-
-   They live INSIDE the company ring on purpose. Outside it is where the labels
-   are, and a moving ring crossing a company name would make the names harder to
-   read — which is the one thing the last dozen builds have been protecting. The
-   band between the sphere's rim and the ring is otherwise empty apart from the
-   threads, so this is where the decoration can go without costing anything.
-
-   Built once. The motion is CSS and SMIL, so it costs nothing per frame in the
-   rAF loop that is already redrawing every thread. */
-function globeOrbitals(){
-  const hosts = [...document.querySelectorAll('#globe .g-orbitals')];
-  if (!hosts.length) return;
-  const { CY, R, RCX } = GLOBE;
-
-  // Four tracks spread across the gap between the sphere's rim and the ring.
-  const TRACKS = [
-    { f: 0.26, ry: 0.30, tilt: -22, dur: 44, dir: 1 },
-    { f: 0.48, ry: 0.44, tilt:  14, dur: 63, dir: -1 },
-    { f: 0.70, ry: 0.26, tilt:  38, dur: 52, dir: 1 },
-    { f: 0.90, ry: 0.58, tilt:  -8, dur: 78, dir: -1 },
-  ];
-  const NS = 'http://www.w3.org/2000/svg';
-
-  for (const host of hosts){
-    if (host.children.length) continue;
-    const cx = Number(host.dataset.cx);
-    const hub = cx === GLOBE.cxOf('proptech') ? 'proptech' : 'opco';
-    const band = RCX - R;
-
-    TRACKS.forEach((t, i) => {
-      const rx = +(R + band * t.f).toFixed(1);
-      const ry = +(rx * t.ry).toFixed(1);
-      // One ellipse expressed as a path, so the ring and the pulse point that
-      // runs it are drawn from the same geometry rather than two definitions
-      // that can drift apart.
-      const d = `M ${-rx},0 a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
-
-      // Built with createElementNS rather than innerHTML. Assigning innerHTML
-      // on an SVG element parses in the HTML namespace on some engines, which
-      // produces elements that exist in the DOM and never paint — invisible
-      // and impossible to tell apart from "the code never ran".
-      const g = document.createElementNS(NS, 'g');
-      g.setAttribute('class', 'orb ' + hub);
-      g.setAttribute('transform', `translate(${cx} ${CY}) rotate(${t.tilt})`);
-      g.style.setProperty('--spin', (t.dur * 2.6).toFixed(0) + 's');
-      g.style.setProperty('--dir', t.dir > 0 ? 'normal' : 'reverse');
-      g.style.setProperty('--fade', (0.85 - i * 0.1).toFixed(2));
-
-      const path = document.createElementNS(NS, 'path');
-      path.setAttribute('class', 'orb-path');
-      path.setAttribute('d', d);
-      g.append(path);
-
-      const dot = document.createElementNS(NS, 'circle');
-      dot.setAttribute('class', 'orb-dot');
-      // At the origin, not at rx. animateMotion applies its own transform on
-      // top of whatever position the element already has, so a cx of rx put the
-      // dot at twice the radius — orbiting outside the ring as a stray white
-      // speck. The fallback caused the bug it was meant to prevent.
-      dot.setAttribute('cx', 0);
-      dot.setAttribute('cy', 0);
-      dot.setAttribute('r', (3.4 - i * 0.3).toFixed(1));
-
-      const motion = document.createElementNS(NS, 'animateMotion');
-      motion.setAttribute('dur', t.dur + 's');
-      motion.setAttribute('repeatCount', 'indefinite');
-      motion.setAttribute('path', d);
-      motion.setAttribute('keyPoints', t.dir > 0 ? '0;1' : '1;0');
-      motion.setAttribute('keyTimes', '0;1');
-      motion.setAttribute('calcMode', 'linear');
-      dot.append(motion);
-      g.append(dot);
-
-      host.append(g);
-    });
-  }
-}
-
 function globeMesh(){
   const worlds = [...document.querySelectorAll('#globe .g-mesh')];
   if (!worlds.length) return;
@@ -4844,8 +4776,6 @@ function globeMesh(){
       .map((r, i) => `<circle class="g-orbit${i ? ' inner' : ''}" cx="${cx}" cy="${GLOBE.CY}" r="${r}"/>`)
       .join('');
   });
-
-  globeOrbitals();
 
   const { CY, R, MERS } = GLOBE;
   const rows = globeRows();
