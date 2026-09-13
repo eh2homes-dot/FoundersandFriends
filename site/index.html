@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V115" />
+<meta name="ff-build" content="RING-V119" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -337,18 +337,23 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   position:absolute;z-index:6;pointer-events:none;opacity:0;
   transform:translate(-50%,-50%);
   transition:opacity .16s ease-out;
-  min-width:210px;max-width:300px;padding:12px 14px;border-radius:12px;
+  /* Bigger, now that it sits in open space rather than beside a node. Capped
+     against the gap between the globes so it never reaches a label column. */
+  /* 18vw tracks the gap itself: the empty span between the two label rings is
+     398 of 2100 canvas units, which is ~19% of whatever width the canvas is
+     rendered at. A fixed 300px overflowed onto the labels on a laptop. */
+  width:min(300px,18vw);min-width:190px;padding:16px 18px;border-radius:14px;
   border:1px solid var(--line-2);background:rgba(9,5,20,.96);
   backdrop-filter:blur(12px);box-shadow:0 14px 40px rgba(0,0,0,.6);
 }
 .g-peek.is-on{opacity:1}
-.g-peek .pk-title{display:block;font-size:14px;line-height:1.3;color:#fff;margin-bottom:5px}
-.g-peek .pk-line{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--ink-dim);line-height:1.6}
-.g-peek .pk-comp{display:block;margin-top:7px;font-family:var(--mono);font-size:11px;color:var(--green)}
+.g-peek .pk-title{display:block;font-size:17px;font-weight:600;line-height:1.3;color:#fff;margin-bottom:7px}
+.g-peek .pk-line{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-dim);line-height:1.65}
+.g-peek .pk-comp{display:block;margin-top:9px;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--green)}
 .g-peek.proptech .pk-comp{color:#C4B0FF}
-.g-peek .pk-go{display:block;margin-top:8px;font-family:var(--mono);font-size:10px;
-  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+.g-peek .pk-go{display:block;margin-top:10px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
 /* No arrow: the card now sits out beyond the ring rather than directly
    above its node, so a pointer on one edge would aim at nothing. The lit
    thread is what ties the two together, and it stays visible. */
@@ -3859,6 +3864,9 @@ const GLOBE = {
                         // extends away from its neighbour, not towards it. On
                         // one ring all 21 place with no overlaps; staggered,
                         // only 88% did, and the alternating radius was visible.
+  THREAD_START: 40,// px beyond the sphere's rim where a thread becomes visible
+  THREAD_FAN: 0.20,// radians of spread around a company's bearing, so its
+                   // threads leave the globe as a fan rather than a bundle
   NODE_CLEAR: 12,  // px of a node's glow beyond its radius. The pulse ring
                    // scales to 1.85x and the core has a drop shadow, so the
                    // circle takes up noticeably more room than r suggests.
@@ -4309,6 +4317,10 @@ function globeBuild(){
       links.push({
         key: 'l:' + s.job.id, from: role, to: s.co, hub: h,
         phase: globeHash(roles.length) * Math.PI * 2,
+        // Fixed per link: where in its company's fan this thread sits, and how
+        // far out it starts. Random each frame would make the fan shimmer.
+        spread: globeHash(roles.length + 91) - 0.5,
+        reach: globeHash(roles.length + 137),
         bend: 0.35 + globeHash(roles.length + 17) * 1.15,
         speed: 0.5 + globeHash(roles.length + 7) * 0.5,
         period: 17000 + globeHash(roles.length + 31) * 11000,
@@ -4430,13 +4442,26 @@ function globeThread(L, time, still){
   const CX = GLOBE.cxOf(L.hub);
   const a = L.from, b = L.to;
 
-  // The corridor: out along the company's own radius, meeting the sphere at its
-  // rim. This used to gather at 0.88R — inside the surface — which is why the
-  // visible run appeared to start within the globe and lie over it. Ending on
-  // the rim makes the thread leave the surface instead of crossing it.
-  const ca = Math.atan2(b.y - CY, b.x - CX);
-  const gx = CX + Math.cos(ca) * R * 0.995;
-  const gy = CY + Math.sin(ca) * R * 0.995;
+  // The corridor: out along the company's own radius, starting CLEAR of the
+  // sphere rather than on its rim.
+  //
+  // At 0.995R every thread began exactly on the surface, so the visible run
+  // and the wireframe met with no separation — dozens of lines appearing to
+  // grow straight out of the mesh. A gap lets each one read as leaving the
+  // globe and travelling to its node, which is the relationship the thread is
+  // there to show. It also stops the dense bundle on the PropTech side, where
+  // twenty-one companies converge, from looking like a single fringe attached
+  // to the rim.
+  // Each thread gets its OWN start point, spread around the company's bearing
+  // rather than all sharing one. Converging on a single point per company made
+  // every company's threads a tight bundle leaving the sphere at one spot; a
+  // spread of a few degrees, plus a little variation in how far out each one
+  // begins, lets them read as separate lines that happen to end together.
+  // L.spread is fixed per link, so the fan is stable rather than shimmering.
+  const ca = Math.atan2(b.y - CY, b.x - CX) + L.spread * GLOBE.THREAD_FAN;
+  const gap = R + GLOBE.THREAD_START + L.reach * 18;
+  const gx = CX + Math.cos(ca) * gap;
+  const gy = CY + Math.sin(ca) * gap;
 
   // A gentle drift so the bundle breathes, plus the pointer's tug.
   const sway = still ? 0 : Math.sin(time * 0.00012 * L.speed + L.phase) * 3 * L.bend;
@@ -4577,34 +4602,28 @@ function globePeek(key, svg){
       `<span class="pk-go">Click to see them</span>`;
   }
 
-  // Pushed OUTWARD from the globe's centre, not stacked above the node.
+  // Parked in the gap between the two globes, in the same place every time.
   //
-  // Sitting directly over a role dot, the card covered the sphere's interior —
-  // which is exactly where that role's thread had just lit up. The card was
-  // hiding the connection it was there to explain. Moving it radially outward
-  // puts it in the space beyond the ring, where nothing is drawn, so the lit
-  // thread stays visible the whole time the card is open.
+  // Following the node meant the card was always somewhere over the artwork —
+  // and when the thread it describes lights up, the card is the thing covering
+  // it. The middle of the canvas is the one region where nothing is ever drawn:
+  // the label rings reach x 851 on the left and x 1249 on the right, leaving
+  // ~400 units of permanent empty space. A card that lives there can never
+  // obscure a thread on either globe, and because it no longer has to squeeze
+  // beside a node, it can be twice the size.
   const rect = svg.getBoundingClientRect();
   const host = svg.parentElement.getBoundingClientRect();
   const sx = rect.width / GLOBE.VW, sy = rect.height / GLOBE.VH;
 
-  const gcx = GLOBE.cxOf(node.hub);
-  let ux = node.x - gcx, uy = node.y - GLOBE.CY;
-  const len = Math.hypot(ux, uy) || 1;
-  ux /= len; uy /= len;
-
-  // Far enough out to clear the company ring and its labels, so the card never
-  // lands on a name either.
-  const outRadius = GLOBE.RCX + 76;
-  const px = gcx + ux * outRadius;
-  const py = GLOBE.CY + uy * outRadius;
+  const px = GLOBE.VW / 2;          // dead centre between the globes
+  const py = GLOBE.CY;              // level with their equators
 
   let left = (rect.left - host.left) + px * sx;
   let top  = (rect.top - host.top)  + py * sy;
 
-  // Keep it on screen: a card hanging off the edge is worse than an offset one.
-  const halfW = (box.offsetWidth || 240) / 2;
-  const halfH = (box.offsetHeight || 90) / 2;
+  // Still clamped: on a narrow window the gap shrinks with everything else.
+  const halfW = (box.offsetWidth || 260) / 2;
+  const halfH = (box.offsetHeight || 120) / 2;
   left = Math.max(halfW + 6, Math.min(host.width - halfW - 6, left));
   top = Math.max(halfH + 6, Math.min(rect.height - halfH - 6, top));
 
