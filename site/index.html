@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V137" />
+<meta name="ff-build" content="RING-V138" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3877,6 +3877,9 @@ const GLOBE = {
                    // company itself, as a fraction of a full turn. 0 puts them
                    // under their own node; 0.5 puts them directly opposite and
                    // sends every line through the centre
+  ROUTE_MAX: 5,    // routes drawn per company. The dots are not capped — this
+                   // is about ink, not data. Raising it past about 8 brings the
+                   // convergence bundle at the node back.
   ROUTE_BOW: 58,   // furthest a route bows off its straight line. Past ~60 the
                    // outer routes of a busy company swing wide enough to leave
                    // the sphere and read as loops rather than paths.
@@ -4431,11 +4434,31 @@ function globeBuild(){
         return d;
       };
       group.sort((p, q) => rel(p) - rel(q));
-      group.forEach((L, k) => {
-        // -1 to 1 across the company. The middle route runs straight and the
-        // rest bow either side of it by a share of their OWN length, so a long
-        // route across the sphere arcs generously and a short one stays tight.
-        L.fan = n === 1 ? 0 : (k / (n - 1)) * 2 - 1;
+
+      /* At most ROUTE_MAX routes are drawn per company, picked evenly across
+         the bearing order rather than off the front of it. Taking the first
+         five would draw five neighbours and leave three quarters of the sphere
+         bare; spacing them keeps the fan spanning the same spread it did at
+         twenty-nine, with a fraction of the ink.
+
+         The roles that lose their route keep their dot. Nothing is hidden —
+         the count on the node is still the truth, and hovering any dot draws
+         its own route on demand. */
+      const cap = Math.min(n, GLOBE.ROUTE_MAX);
+      const shown = [];
+      for (let i = 0; i < cap; i++){
+        const L = group[cap === 1 ? Math.floor((n - 1) / 2)
+                                  : Math.round(i * (n - 1) / (cap - 1))];
+        if (!shown.includes(L)) shown.push(L);
+      }
+      group.forEach((L) => { L.draw = false; });
+      // -1 to 1 across the routes actually drawn. Spreading the bow over the
+      // full roster instead would leave the five survivors sharing a narrow
+      // band of it, which is the clumping this cap exists to avoid.
+      const m = shown.length;
+      shown.forEach((L, k) => {
+        L.draw = true;
+        L.fan = m === 1 ? 0 : (k / (m - 1)) * 2 - 1;
       });
     }
   }
@@ -4652,7 +4675,11 @@ function globeStep(time, once){
     L.pull.x += (tx - L.pull.x) * 0.06;
     L.pull.y += (ty - L.pull.y) * 0.06;
     const seg = globeThread(L, time, still);
-    L.inner.setAttribute('d', seg.inner);
+    // Capped companies draw only their sample, but a route you are pointing
+    // at always draws — otherwise hovering a dot outside the five would light
+    // nothing and read as a dead node.
+    const showInner = L.draw || L.inner.classList.contains('is-lit');
+    L.inner.setAttribute('d', showInner ? seg.inner : '');
     // Only the company's lead link draws the rail out to its node; the others
     // would draw the same line on top of it.
     L.path.setAttribute('d', L.lead ? seg.outer : '');
