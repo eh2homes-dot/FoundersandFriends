@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V109" />
+<meta name="ff-build" content="RING-V110" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -466,10 +466,11 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 @media(max-width:760px){.hub-cards{grid-template-columns:1fr}}
 
 .hub-card{
-  /* Equal height and content flush to the top, so the two cards read as a pair
-     rather than two boxes that happen to sit side by side. */
+  /* Equal height, with the content centred in it. Flush to the top left the
+     text riding high against the card's padding — the card is taller than what
+     is in it, so the spare room belongs above and below equally. */
   height:100%;
-  position:relative;display:flex;flex-direction:column;gap:8px;justify-content:flex-start;
+  position:relative;display:flex;flex-direction:column;gap:8px;justify-content:center;
   padding:15px 18px 14px;border-radius:14px;overflow:hidden;cursor:pointer;
   border:1px solid var(--line);
   background:linear-gradient(150deg,rgba(43,16,85,.46),rgba(11,6,24,.86));
@@ -489,14 +490,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hub-card.opco:hover,.hub-card.opco.is-current{border-color:rgba(0,255,136,.42);box-shadow:0 0 0 1px rgba(0,255,136,.14),0 24px 56px rgba(4,2,10,.5)}
 .hub-card.proptech:hover,.hub-card.proptech.is-current{border-color:rgba(127,77,224,.52);box-shadow:0 0 0 1px rgba(127,77,224,.18),0 24px 56px rgba(4,2,10,.5)}
 
-/* Align to the FIRST line, not the block's middle. The name is two lines — the
-   title and the kicker under it — so centring put the icon and the count pill
-   in the gap between them instead of level with the title. */
-.hc-top{display:flex;align-items:flex-start;gap:10px}
-/* The icon is 34px and a line of the title is ~21px, so nudge it to sit level
-   with that line rather than starting flush with it. */
-.hc-mark{margin-top:-2px}
-.hc-count{margin-top:3px}
+/* The icon and the count pill centre against the name block as a whole. The
+   block is two lines — title and kicker — and centring on it is what keeps the
+   row balanced now that the whole card is centred too. */
+.hc-top{display:flex;align-items:center;gap:10px}
 .hc-mark{
   width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;
   color:var(--hue);border:1px solid currentColor;
