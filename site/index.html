@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V113" />
+<meta name="ff-build" content="RING-V114" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -446,21 +446,10 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hemi-label.opco{fill:#A98FEC}
 .hemi-label.proptech{fill:#00FF88}
 
-/* The stage is the SVG's own box, so the button can be placed against the
-   canvas rather than against a container whose height also depends on the
-   status row below it. */
+/* Kept as a wrapper: the hover card measures against the SVG's own box, and
+   that stays true whatever sits below it. */
 .globe-stage{position:relative}
-.orbit-more{
-  position:absolute;left:50%;
-  /* The hub labels sit at y 806 of an 836-tall canvas. */
-  top:96.4%;
-  transform:translate(-50%,-50%);
-  display:flex;justify-content:center;z-index:4;
-}
-@media(max-width:640px){
-  /* The globes are hidden at this width, so there is no gap to sit in. */
-  .orbit-more{position:static;transform:none;margin-top:14px}
-}
+.orbit-more{display:flex;justify-content:center}
 .orbit-more[hidden]{display:none}
 .all-cos{
   display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border-radius:11px;
@@ -1613,19 +1602,21 @@ a.foot-line:hover{color:var(--green)}
           <g id="g-roles"></g>
           <g id="g-cos"></g>
         </svg>
-          <!-- Between the two globes, level with their hub labels. The gap down
-               the middle of the canvas is the one piece of empty space on this
-               picture, and a button there reads as belonging to both hubs
-               rather than to whichever one it sits nearer. -->
-          <div class="orbit-more">
-            <button type="button" class="all-cos" id="all-cos"></button>
-          </div>
         </div>
+        <!-- Beside the status line rather than in the gap between the globes.
+             That gap looked empty in the geometry, but the button there is
+             pinned to a percentage of the canvas height — so it drifts towards
+             the hub labels on a short viewport, and sits in the middle of the
+             picture rather than beneath it. Here it is out of the artwork, on a
+             row that was already measured to clear the fold. -->
         <div class="orbit-foot">
           <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
             <span class="ds-dot" aria-hidden="true"></span>
             <span class="ds-msg"></span>
           </p>
+          <div class="orbit-more">
+            <button type="button" class="all-cos" id="all-cos"></button>
+          </div>
         </div>
         <p class="orbit-hint" id="orbit-hint"></p>
       </div>
