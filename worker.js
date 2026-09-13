@@ -683,21 +683,54 @@ async function listApplications(request, env) {
   const hub = url.searchParams.get('hub');
   const status = url.searchParams.get('status');
 
+  /* Archived rows are hidden by default.
+
+     Archiving is deliberately NOT a status. A declined application is a real
+     outcome worth keeping and worth counting; archiving only says "I am done
+     looking at this". Folding the two together would mean you could not tell
+     a decline you have dealt with from one you have not, and un-archiving
+     would have to invent a status to put the row back into.
+
+     ?archived=only  to review what has been put away
+     ?archived=all   to ignore the distinction entirely */
+  const archived = url.searchParams.get('archived') || 'hide';
+
   let sql = `SELECT id, ref, job_title, company, hub, category, location, apply_url,
                     first_name, middle_initial, last_name, email, phone,
                     current_company, current_position, linkedin, background,
                     score, strengths, gaps, reviewed_by, status, notes,
                     sent_to_employer_at, send_error, declined_at, decline_reason,
-                    created_at
+                    archived_at, created_at
                FROM applications`;
   const where = [], binds = [];
   if (hub && hub !== 'all') { binds.push(hub); where.push('hub = ?' + binds.length); }
   if (status && status !== 'all') { binds.push(status); where.push('status = ?' + binds.length); }
+  if (archived === 'only') where.push('archived_at IS NOT NULL');
+  else if (archived !== 'all') where.push('archived_at IS NULL');
   if (where.length) sql += ' WHERE ' + where.join(' AND ');
   sql += ' ORDER BY created_at DESC LIMIT 500';
 
-  const rows = await env.DB.prepare(sql).bind(...binds).all();
+  let rows;
+  try {
+    rows = await env.DB.prepare(sql).bind(...binds).all();
+  } catch (err) {
+    // The column may not be added yet. Falling back keeps the panel working
+    // rather than showing an empty list and no explanation.
+    if (!/no such column/i.test(err.message)) throw err;
+    rows = await env.DB.prepare(
+      sql.replace(/, archived_at/, '')
+         .replace(/ AND archived_at IS (NOT )?NULL/g, '')
+         .replace(/ WHERE archived_at IS (NOT )?NULL/g, '')
+    ).bind(...binds).all();
+  }
+
   const counts = await env.DB.prepare('SELECT status, COUNT(*) n FROM applications GROUP BY status').all();
+  let archivedCount = 0;
+  try {
+    const a = await env.DB.prepare(
+      'SELECT COUNT(*) n FROM applications WHERE archived_at IS NOT NULL').first();
+    archivedCount = a?.n || 0;
+  } catch (_) { /* column not added yet */ }
 
   return new Response(JSON.stringify({
     applications: (rows.results || []).map((r) => ({
@@ -706,7 +739,46 @@ async function listApplications(request, env) {
       gaps: JSON.parse(r.gaps || '[]'),
     })),
     counts: Object.fromEntries((counts.results || []).map((c) => [c.status, c.n])),
+    archived: archivedCount,
   }), { headers: JSON_HEADERS });
+}
+
+/* Put an application away, or bring it back.
+
+   Takes a list, because the reason this exists is a backlog: archiving thirty
+   old declines one request at a time is the same chore in a different shape. */
+async function archiveApplications(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const refs = (Array.isArray(body.refs) ? body.refs : [body.ref])
+    .map((r) => clean(r, 20)).filter(Boolean);
+  if (!refs.length) return new Response(JSON.stringify({ error: 'No ref given.' }), { status: 400, headers: JSON_HEADERS });
+
+  const undo = body.archived === false;
+  const marks = refs.map((_, i) => '?' + (i + 1)).join(',');
+
+  try {
+    const res = await env.DB.prepare(
+      `UPDATE applications
+          SET archived_at = ${undo ? 'NULL' : "datetime('now')"},
+              updated_at = datetime('now')
+        WHERE ref IN (${marks})`).bind(...refs).run();
+    return new Response(JSON.stringify({
+      ok: true, archived: !undo, changed: res.meta?.changes ?? refs.length,
+    }), { headers: JSON_HEADERS });
+  } catch (err) {
+    if (/no such column/i.test(err.message)) {
+      return new Response(JSON.stringify({
+        error: 'Add the archived_at column first — see db/archive-d1.sql.',
+      }), { status: 503, headers: JSON_HEADERS });
+    }
+    throw err;
+  }
 }
 
 async function updateApplication(request, env) {
@@ -801,8 +873,16 @@ async function decline(request, env) {
   // Status first. The record is correct even if the email fails.
   try {
     await env.DB.prepare(
+      /* Declining archives it too.
+
+         A decline is a finished decision, and leaving finished decisions in the
+         default list is the whole problem — they accumulate forever and the
+         handful of applications that still need a decision get buried among
+         them. The row is not deleted or hidden from the record: it is still
+         counted, still in the Declined filter, and one click from coming back. */
       `UPDATE applications
           SET status = 'passed', declined_at = datetime('now'),
+              archived_at = COALESCE(archived_at, datetime('now')),
               decline_reason = ?2, updated_at = datetime('now')
         WHERE ref = ?1`).bind(row.ref, reason).run();
   } catch (_) {
@@ -2508,6 +2588,7 @@ export default {
     if (pathname === '/api/admin/login'   && request.method === 'POST') return adminLogin(request, env);
     if (pathname === '/api/applications'  && request.method === 'GET')  return listApplications(request, env);
     if (pathname === '/api/applications'  && request.method === 'POST') return updateApplication(request, env);
+    if (pathname === '/api/applications/archive' && request.method === 'POST') return archiveApplications(request, env);
     if (pathname === '/api/forward'       && request.method === 'POST') return introduce(request, env);
     if (pathname === '/api/decline'       && request.method === 'POST') return decline(request, env);
     if (pathname === '/api/applications/delete' && request.method === 'POST') return deleteApplication(request, env);
