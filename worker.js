@@ -65,21 +65,6 @@ async function recordClick(request, env) {
   return new Response(null, { status: 204 });
 }
 
-/* ===========================================================================
-   IMPRESSIONS — the missing top of the funnel
-   ---------------------------------------------------------------------------
-   job_clicks records intent: opened, started an application, left for the
-   employer. What it could never record is a role being SEEN and ignored, so
-   "eleven clicks" had no denominator and a role nobody ever scrolled past
-   looked identical to one everybody saw and skipped.
-
-   Batched on purpose. A visitor scrolling a fifty-role board would otherwise
-   fire fifty requests; the page collects sightings and posts them in groups,
-   so a busy scroll costs one write instead of fifty.
-
-   Unauthenticated and best-effort, exactly like recordClick: a failure here is
-   logged for you and invisible to the visitor. Analytics never breaks a board.
-   =========================================================================== */
 async function recordImpressions(request, env) {
   if (!env.DB) return new Response(null, { status: 204 });   // tracking off
 
@@ -132,12 +117,6 @@ async function recordImpressions(request, env) {
   return new Response(null, { status: 204 });
 }
 
-/* The funnel, end to end: seen → opened → applied.
-
-   Rates are per SIGHTING, not per person. Nothing here identifies a visitor,
-   so one person looking at a role five times is five sightings — the same
-   trade the click table already makes, and worth stating plainly next to a
-   percentage that would otherwise read as "share of people". */
 async function funnel(request, env) {
   if (!adminAuthed(request, env)) {
     return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
@@ -224,6 +203,40 @@ async function funnel(request, env) {
     browse: browse.results || [],
     roles: roles.slice(0, limit),
   }), { headers: JSON_HEADERS });
+}
+
+async function archiveApplications(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const refs = (Array.isArray(body.refs) ? body.refs : [body.ref])
+    .map((r) => clean(r, 20)).filter(Boolean);
+  if (!refs.length) return new Response(JSON.stringify({ error: 'No ref given.' }), { status: 400, headers: JSON_HEADERS });
+
+  const undo = body.archived === false;
+  const marks = refs.map((_, i) => '?' + (i + 1)).join(',');
+
+  try {
+    const res = await env.DB.prepare(
+      `UPDATE applications
+          SET archived_at = ${undo ? 'NULL' : "datetime('now')"},
+              updated_at = datetime('now')
+        WHERE ref IN (${marks})`).bind(...refs).run();
+    return new Response(JSON.stringify({
+      ok: true, archived: !undo, changed: res.meta?.changes ?? refs.length,
+    }), { headers: JSON_HEADERS });
+  } catch (err) {
+    if (/no such column/i.test(err.message)) {
+      return new Response(JSON.stringify({
+        error: 'Add the archived_at column first — see db/archive-d1.sql.',
+      }), { status: 503, headers: JSON_HEADERS });
+    }
+    throw err;
+  }
 }
 
 async function stats(request, env, asCsv) {
@@ -405,118 +418,6 @@ const asList = (v) => {
   return [];
 };
 
-/* ===========================================================================
-   RÉSUMÉ FILES
-   ---------------------------------------------------------------------------
-   The application form only ever took pasted text. That is enough to screen a
-   candidate and not enough to introduce one: an employer asks for the CV, and
-   a wall of plain text is not the document they mean.
-
-   Files go to R2, not to D1. A 2MB PDF in a database column bloats every query
-   that touches the row — including the admin list, which selects the whole
-   table — and D1 is not built to hand back binaries. R2 holds the file; the row
-   holds a key.
-
-   Uploaded BEFORE the application is submitted, because the form posts JSON and
-   a file does not belong in it. That leaves a window where a file exists with
-   no application attached to it, which the cron sweep below clears.
-   =========================================================================== */
-
-const RESUME_MAX = 5 * 1024 * 1024;         // 5MB
-const RESUME_TYPES = {
-  'application/pdf': 'pdf',
-  'application/msword': 'doc',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-  'text/plain': 'txt',
-  'application/rtf': 'rtf',
-  'text/rtf': 'rtf',
-};
-
-async function uploadResume(request, env) {
-  if (!env.RESUMES) {
-    return new Response(JSON.stringify({ error: 'File uploads are not configured yet.' }), { status: 503, headers: JSON_HEADERS });
-  }
-
-  const type = (request.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-  const ext = RESUME_TYPES[type];
-  if (!ext) {
-    return new Response(JSON.stringify({
-      error: 'That file type is not accepted. Send a PDF, Word document, RTF or plain text.',
-    }), { status: 415, headers: JSON_HEADERS });
-  }
-
-  const declared = Number(request.headers.get('content-length') || 0);
-  if (declared > RESUME_MAX) {
-    return new Response(JSON.stringify({ error: 'That file is over 5MB.' }), { status: 413, headers: JSON_HEADERS });
-  }
-
-  const body = await request.arrayBuffer();
-  // Checked again on what actually arrived. Content-Length is what the client
-  // claims, and this endpoint takes anonymous uploads.
-  if (body.byteLength > RESUME_MAX) {
-    return new Response(JSON.stringify({ error: 'That file is over 5MB.' }), { status: 413, headers: JSON_HEADERS });
-  }
-  if (!body.byteLength) {
-    return new Response(JSON.stringify({ error: 'That file is empty.' }), { status: 400, headers: JSON_HEADERS });
-  }
-
-  // The candidate's filename is kept for display only and never used as the
-  // key. A name is attacker-controlled and can carry path separators; the key
-  // is ours and is random.
-  const name = clean(request.headers.get('x-filename'), 160) || ('resume.' + ext);
-  const key = 'resumes/' + new Date().toISOString().slice(0, 10) + '/' + crypto.randomUUID() + '.' + ext;
-
-  try {
-    await env.RESUMES.put(key, body, {
-      httpMetadata: { contentType: type },
-      customMetadata: { filename: name, uploaded_at: new Date().toISOString() },
-    });
-  } catch (err) {
-    console.error('resume upload failed:', err.message);
-    return new Response(JSON.stringify({ error: 'Could not store the file. Please try again.' }), { status: 500, headers: JSON_HEADERS });
-  }
-
-  return new Response(JSON.stringify({
-    ok: true, key, name, size: body.byteLength, type,
-  }), { headers: JSON_HEADERS });
-}
-
-/* Hand the file back. Admin only, and by application ref rather than by key:
-   the key is guessable-adjacent and appears in the database, whereas the ref is
-   what the Command Center already knows. */
-async function downloadResume(request, env) {
-  if (!adminAuthed(request, env)) {
-    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
-  }
-  if (!env.DB || !env.RESUMES) {
-    return new Response(JSON.stringify({ error: 'File storage is not configured.' }), { status: 503, headers: JSON_HEADERS });
-  }
-
-  const ref = clean(new URL(request.url).searchParams.get('ref'), 20);
-  const row = await env.DB.prepare(
-    'SELECT resume_key, resume_name, resume_type, first_name, last_name FROM applications WHERE ref = ?1'
-  ).bind(ref).first().catch(() => null);
-
-  if (!row || !row.resume_key) {
-    return new Response(JSON.stringify({ error: 'No résumé on file for that application.' }), { status: 404, headers: JSON_HEADERS });
-  }
-
-  const obj = await env.RESUMES.get(row.resume_key);
-  if (!obj) return new Response(JSON.stringify({ error: 'The file is missing from storage.' }), { status: 404, headers: JSON_HEADERS });
-
-  // Named after the candidate, not after whatever their file was called. A
-  // folder of "resume.pdf" is useless once you have downloaded three of them.
-  const who = [row.first_name, row.last_name].filter(Boolean).join(' ') || ref;
-  const ext = (row.resume_name || '').split('.').pop() || 'pdf';
-  return new Response(obj.body, {
-    headers: {
-      'content-type': row.resume_type || 'application/octet-stream',
-      'content-disposition': `attachment; filename="${who.replace(/[^\w .-]/g, '')} - ${ref}.${ext}"`,
-      'cache-control': 'private, no-store',
-    },
-  });
-}
-
 async function receiveApplication(request, env) {
   if (!env.DB) {
     return new Response(JSON.stringify({ error: 'Applications are not configured yet.' }), { status: 503, headers: JSON_HEADERS });
@@ -545,11 +446,6 @@ async function receiveApplication(request, env) {
     last_name: clean(a.last_name, 80), email: clean(email, 200), phone: clean(a.phone, 40),
     current_company: clean(a.current_company, 120), current_position: clean(a.current_position, 120),
     linkedin: clean(a.linkedin, 200), background: clean(a.background, 20000),
-    // Written by the upload step just before this call. Validated there, so
-    // what arrives here is only ever a key we issued.
-    resume_key: clean(a.resume_key, 200), resume_name: clean(a.resume_name, 160),
-    resume_type: clean(a.resume_type, 120),
-    resume_size: Number.isFinite(+a.resume_size) ? Math.max(0, Math.round(+a.resume_size)) : null,
     score: Number.isFinite(+a.score) ? Math.max(0, Math.min(100, Math.round(+a.score))) : null,
     strengths: JSON.stringify(asList(a.strengths)), gaps: JSON.stringify(asList(a.gaps)),
     reviewed_by: a.reviewed_by === 'ai' ? 'ai' : 'keyword',
@@ -561,15 +457,13 @@ async function receiveApplication(request, env) {
          (ref, job_id, job_title, company, hub, category, location, apply_url,
           first_name, middle_initial, last_name, email, phone,
           current_company, current_position, linkedin, background,
-          score, strengths, gaps, reviewed_by,
-          resume_key, resume_name, resume_type, resume_size)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25)`
+          score, strengths, gaps, reviewed_by)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)`
     ).bind(
       row.ref, row.job_id, row.job_title, row.company, row.hub, row.category, row.location, row.apply_url,
       row.first_name, row.middle_initial, row.last_name, row.email, row.phone,
       row.current_company, row.current_position, row.linkedin, row.background,
-      row.score, row.strengths, row.gaps, row.reviewed_by,
-      row.resume_key, row.resume_name, row.resume_type, row.resume_size
+      row.score, row.strengths, row.gaps, row.reviewed_by
     ).run();
   } catch (err) {
     // The unique index on (email, job_id) catches a double submit. Tell the
@@ -645,39 +539,6 @@ async function notifyEmployer(env, row, opts = {}) {
       </p>
     </div>`;
 
-  /* The résumé rides along on a FULL introduction only.
-
-     Never on the teaser. The teaser exists to describe a candidate without
-     identifying them, so that the employer has to come back to you to get the
-     person — and a CV has their name, their email and their employment history
-     on the first page. Attaching it there would hand over the entire asset in
-     the message designed to withhold it, which is the one mistake this whole
-     flow is built to prevent. */
-  const attachments = [];
-  if (full && row.resume_key && env.RESUMES) {
-    try {
-      const obj = await env.RESUMES.get(row.resume_key);
-      if (obj) {
-        const buf = new Uint8Array(await obj.arrayBuffer());
-        // Chunked rather than one spread call: String.fromCharCode(...buf) on a
-        // multi-megabyte file blows the argument limit and throws.
-        let binary = '';
-        for (let i = 0; i < buf.length; i += 8192) {
-          binary += String.fromCharCode.apply(null, buf.subarray(i, i + 8192));
-        }
-        const ext = (row.resume_name || 'resume.pdf').split('.').pop();
-        attachments.push({
-          filename: `${name} - ${row.ref}.${ext}`.replace(/[^\w .-]/g, ''),
-          content: btoa(binary),
-        });
-      }
-    } catch (err) {
-      // The introduction still goes. A missing attachment is worth a log line,
-      // not a failed send that you then have to notice and repeat.
-      console.error('resume attach failed for ' + row.ref + ':', err.message);
-    }
-  }
-
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -692,7 +553,6 @@ async function notifyEmployer(env, row, opts = {}) {
           ? `${name} → ${row.job_title || 'a role'} at ${row.company || ''} (${row.ref})`
           : `Candidate for ${row.job_title || 'your role'}${row.score != null ? ` · ${row.score}/100 match` : ''} (${row.ref})`,
         html,
-        ...(attachments.length ? { attachments } : {}),
       }),
     });
     if (!res.ok) return { ok: false, error: 'Resend ' + res.status + ' ' + (await res.text().catch(() => '')).slice(0, 200) };
@@ -836,55 +696,21 @@ async function listApplications(request, env) {
   const hub = url.searchParams.get('hub');
   const status = url.searchParams.get('status');
 
-  /* Archived rows are hidden by default.
-
-     Archiving is deliberately NOT a status. A declined application is a real
-     outcome worth keeping and worth counting; archiving only says "I am done
-     looking at this". Folding the two together would mean you could not tell
-     a decline you have dealt with from one you have not, and un-archiving
-     would have to invent a status to put the row back into.
-
-     ?archived=only  to review what has been put away
-     ?archived=all   to ignore the distinction entirely */
-  const archived = url.searchParams.get('archived') || 'hide';
-
   let sql = `SELECT id, ref, job_title, company, hub, category, location, apply_url,
                     first_name, middle_initial, last_name, email, phone,
                     current_company, current_position, linkedin, background,
                     score, strengths, gaps, reviewed_by, status, notes,
                     sent_to_employer_at, send_error, declined_at, decline_reason,
-                    archived_at, resume_name, resume_size, created_at
+                    created_at
                FROM applications`;
   const where = [], binds = [];
   if (hub && hub !== 'all') { binds.push(hub); where.push('hub = ?' + binds.length); }
   if (status && status !== 'all') { binds.push(status); where.push('status = ?' + binds.length); }
-  if (archived === 'only') where.push('archived_at IS NOT NULL');
-  else if (archived !== 'all') where.push('archived_at IS NULL');
   if (where.length) sql += ' WHERE ' + where.join(' AND ');
   sql += ' ORDER BY created_at DESC LIMIT 500';
 
-  let rows;
-  try {
-    rows = await env.DB.prepare(sql).bind(...binds).all();
-  } catch (err) {
-    // The column may not be added yet. Falling back keeps the panel working
-    // rather than showing an empty list and no explanation.
-    if (!/no such column/i.test(err.message)) throw err;
-    rows = await env.DB.prepare(
-      sql.replace(/, archived_at/, '')
-         .replace(/, resume_name, resume_size/, '')
-         .replace(/ AND archived_at IS (NOT )?NULL/g, '')
-         .replace(/ WHERE archived_at IS (NOT )?NULL/g, '')
-    ).bind(...binds).all();
-  }
-
+  const rows = await env.DB.prepare(sql).bind(...binds).all();
   const counts = await env.DB.prepare('SELECT status, COUNT(*) n FROM applications GROUP BY status').all();
-  let archivedCount = 0;
-  try {
-    const a = await env.DB.prepare(
-      'SELECT COUNT(*) n FROM applications WHERE archived_at IS NOT NULL').first();
-    archivedCount = a?.n || 0;
-  } catch (_) { /* column not added yet */ }
 
   return new Response(JSON.stringify({
     applications: (rows.results || []).map((r) => ({
@@ -893,46 +719,7 @@ async function listApplications(request, env) {
       gaps: JSON.parse(r.gaps || '[]'),
     })),
     counts: Object.fromEntries((counts.results || []).map((c) => [c.status, c.n])),
-    archived: archivedCount,
   }), { headers: JSON_HEADERS });
-}
-
-/* Put an application away, or bring it back.
-
-   Takes a list, because the reason this exists is a backlog: archiving thirty
-   old declines one request at a time is the same chore in a different shape. */
-async function archiveApplications(request, env) {
-  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
-  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
-
-  let body;
-  try { body = await request.json(); }
-  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
-
-  const refs = (Array.isArray(body.refs) ? body.refs : [body.ref])
-    .map((r) => clean(r, 20)).filter(Boolean);
-  if (!refs.length) return new Response(JSON.stringify({ error: 'No ref given.' }), { status: 400, headers: JSON_HEADERS });
-
-  const undo = body.archived === false;
-  const marks = refs.map((_, i) => '?' + (i + 1)).join(',');
-
-  try {
-    const res = await env.DB.prepare(
-      `UPDATE applications
-          SET archived_at = ${undo ? 'NULL' : "datetime('now')"},
-              updated_at = datetime('now')
-        WHERE ref IN (${marks})`).bind(...refs).run();
-    return new Response(JSON.stringify({
-      ok: true, archived: !undo, changed: res.meta?.changes ?? refs.length,
-    }), { headers: JSON_HEADERS });
-  } catch (err) {
-    if (/no such column/i.test(err.message)) {
-      return new Response(JSON.stringify({
-        error: 'Add the archived_at column first — see db/archive-d1.sql.',
-      }), { status: 503, headers: JSON_HEADERS });
-    }
-    throw err;
-  }
 }
 
 async function updateApplication(request, env) {
@@ -1027,16 +814,8 @@ async function decline(request, env) {
   // Status first. The record is correct even if the email fails.
   try {
     await env.DB.prepare(
-      /* Declining archives it too.
-
-         A decline is a finished decision, and leaving finished decisions in the
-         default list is the whole problem — they accumulate forever and the
-         handful of applications that still need a decision get buried among
-         them. The row is not deleted or hidden from the record: it is still
-         counted, still in the Declined filter, and one click from coming back. */
       `UPDATE applications
           SET status = 'passed', declined_at = datetime('now'),
-              archived_at = COALESCE(archived_at, datetime('now')),
               decline_reason = ?2, updated_at = datetime('now')
         WHERE ref = ?1`).bind(row.ref, reason).run();
   } catch (_) {
@@ -1953,15 +1732,6 @@ async function recordDetection(request, env) {
 
 const DISCOVERY_MODEL = 'claude-sonnet-5';
 
-/* How long any single outbound request may take.
-
-   Every fetch in here used to have no timeout at all. One careers page that
-   accepts a connection and then never answers would hold the whole discovery
-   run open until Cloudflare gave up on it, and the browser would sit on
-   "Searching and verifying" with nothing ever coming back. A slow company
-   should cost its own verification, not the whole run. */
-const PROBE_MS = 8000;
-
 /** Probes a careers URL and returns what is really there. */
 async function verifyCompany(url) {
   let res;
@@ -1969,12 +1739,9 @@ async function verifyCompany(url) {
     res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FoundersAndFriendsBot/1.0)' },
       redirect: 'follow',
-      signal: AbortSignal.timeout(PROBE_MS),
     });
   } catch (err) {
-    return { verified: false, error: /timeout|abort/i.test(err.message || '')
-      ? 'careers page did not respond in ' + (PROBE_MS / 1000) + 's'
-      : 'unreachable: ' + err.message };
+    return { verified: false, error: 'unreachable: ' + err.message };
   }
   if (!res.ok) return { verified: false, error: 'HTTP ' + res.status };
 
@@ -2018,10 +1785,7 @@ async function countRoles(method, slug) {
     breezy: `https://${slug}.breezy.hr/json`,
   };
   try {
-    const r = await fetch(urls[method], {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(PROBE_MS),
-    });
+    const r = await fetch(urls[method], { headers: { Accept: 'application/json' } });
     if (!r.ok) return { count: 0, titles: [] };
     const b = await r.json();
     const list = b.jobs || b.results || (Array.isArray(b) ? b : []);
@@ -2173,56 +1937,24 @@ Accuracy matters more than quantity. A company that does not exist, or a URL tha
 Return at most 8. Reply as JSON only:
 {"companies":[{"name":"...","careers_url":"https://...","website":"https://...","segment":"...","why":"one line on why they fit"}]}`;
 
-  /* The whole run has to answer before Cloudflare stops waiting.
-
-     An edge request that produces no response for about 100 seconds is closed
-     with a 524, and the browser sees a dead connection rather than an error —
-     which is exactly the symptom: the button fires and the status line never
-     changes. This call alone could reach that on its own. Eight web searches
-     took as long as they took, and then eight careers pages were probed one
-     after another, each without a timeout.
-
-     So: a hard 55s budget for the model, and the search count comes down to
-     five. Fewer searches is a real cost in coverage, and a run that finishes
-     with six companies beats one that finds ten and never returns them. */
-  let res;
-  try {
-    res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: DISCOVERY_MODEL,
-        max_tokens: 4000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
-        messages: [{ role: 'user', content: prompt }],
-      }),
-      signal: AbortSignal.timeout(55000),
-    });
-  } catch (err) {
-    console.error('discovery: model call failed —', err.message);
-    return new Response(JSON.stringify({
-      error: /timeout|abort/i.test(err.message || '')
-        ? 'The search took too long and was stopped. Try again — it usually succeeds on a second run.'
-        : 'Could not reach the discovery service.',
-    }), { status: 504, headers: JSON_HEADERS });
-  }
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: DISCOVERY_MODEL,
+      max_tokens: 4000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 8 }],
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
 
   if (!res.ok) {
-    const detail = (await res.text().catch(() => '')).slice(0, 300);
-    console.error('discovery: Anthropic ' + res.status + ' ' + detail);
-    // The status is worth passing on. "Unavailable" reads the same whether the
-    // key is wrong, the credit has run out, or the model name is stale, and
-    // those need completely different fixes.
-    return new Response(JSON.stringify({
-      error: res.status === 401 ? 'ANTHROPIC_API_KEY was rejected.'
-           : res.status === 404 ? 'The discovery model name is not recognised: ' + DISCOVERY_MODEL
-           : res.status === 429 ? 'Rate limited by the API. Wait a minute and try again.'
-           : 'The discovery service returned HTTP ' + res.status + '.',
-    }), { status: 502, headers: JSON_HEADERS });
+    console.error('discovery: Anthropic ' + res.status + ' ' + (await res.text().catch(() => '')).slice(0, 300));
+    return new Response(JSON.stringify({ error: 'The discovery service is unavailable.' }), { status: 502, headers: JSON_HEADERS });
   }
 
   // The reply mixes text and tool-use blocks; the JSON is in the text ones.
@@ -2243,26 +1975,13 @@ Return at most 8. Reply as JSON only:
   const runId = new Date().toISOString().slice(0, 16);
   let verified = 0, queued = 0;
 
-  /* Probed together rather than one after another.
+  for (const c of proposed.slice(0, 8)) {
+    const name = clean(c.name, 120);
+    const careers = clean(c.careers_url, 500);
+    if (!name || !careers) continue;
 
-     Eight companies checked in series is eight page loads plus eight ATS calls
-     end to end — a minute on its own, on top of the model call, for work that
-     has no ordering between the items. In parallel it costs one slow company
-     instead of the sum of all of them. The database writes stay sequential;
-     D1 is the one thing here that does not like being hammered. */
-  const candidates = proposed.slice(0, 8)
-    .map((c) => ({ c, name: clean(c.name, 120), careers: clean(c.careers_url, 500) }))
-    .filter((x) => x.name && x.careers);
-
-  const checks = await Promise.all(
-    candidates.map((x) => verifyCompany(x.careers)
-      .catch((err) => ({ verified: false, error: 'probe failed: ' + err.message })))
-  );
-
-  for (let i = 0; i < candidates.length; i++) {
-    const { c, name, careers } = candidates[i];
-    const v = checks[i];
     const id = slugify(name);
+    const v = await verifyCompany(careers);
     if (v.verified) verified++;
 
     try {
@@ -2739,8 +2458,6 @@ export default {
     if (pathname === '/api/stats.csv') return stats(request, env, true);
 
     if (pathname === '/api/apply'         && request.method === 'POST') return receiveApplication(request, env);
-    if (pathname === '/api/resume'        && request.method === 'POST') return uploadResume(request, env);
-    if (pathname === '/api/resume'        && request.method === 'GET')  return downloadResume(request, env);
     if (pathname === '/api/admin/login'   && request.method === 'POST') return adminLogin(request, env);
     if (pathname === '/api/applications'  && request.method === 'GET')  return listApplications(request, env);
     if (pathname === '/api/applications'  && request.method === 'POST') return updateApplication(request, env);
