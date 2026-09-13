@@ -1558,6 +1558,15 @@ async function recordDetection(request, env) {
 
 const DISCOVERY_MODEL = 'claude-sonnet-5';
 
+/* How long any single outbound request may take.
+
+   Every fetch in here used to have no timeout at all. One careers page that
+   accepts a connection and then never answers would hold the whole discovery
+   run open until Cloudflare gave up on it, and the browser would sit on
+   "Searching and verifying" with nothing ever coming back. A slow company
+   should cost its own verification, not the whole run. */
+const PROBE_MS = 8000;
+
 /** Probes a careers URL and returns what is really there. */
 async function verifyCompany(url) {
   let res;
@@ -1565,9 +1574,12 @@ async function verifyCompany(url) {
     res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FoundersAndFriendsBot/1.0)' },
       redirect: 'follow',
+      signal: AbortSignal.timeout(PROBE_MS),
     });
   } catch (err) {
-    return { verified: false, error: 'unreachable: ' + err.message };
+    return { verified: false, error: /timeout|abort/i.test(err.message || '')
+      ? 'careers page did not respond in ' + (PROBE_MS / 1000) + 's'
+      : 'unreachable: ' + err.message };
   }
   if (!res.ok) return { verified: false, error: 'HTTP ' + res.status };
 
@@ -1611,7 +1623,10 @@ async function countRoles(method, slug) {
     breezy: `https://${slug}.breezy.hr/json`,
   };
   try {
-    const r = await fetch(urls[method], { headers: { Accept: 'application/json' } });
+    const r = await fetch(urls[method], {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(PROBE_MS),
+    });
     if (!r.ok) return { count: 0, titles: [] };
     const b = await r.json();
     const list = b.jobs || b.results || (Array.isArray(b) ? b : []);
@@ -1763,24 +1778,56 @@ Accuracy matters more than quantity. A company that does not exist, or a URL tha
 Return at most 8. Reply as JSON only:
 {"companies":[{"name":"...","careers_url":"https://...","website":"https://...","segment":"...","why":"one line on why they fit"}]}`;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: DISCOVERY_MODEL,
-      max_tokens: 4000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 8 }],
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
+  /* The whole run has to answer before Cloudflare stops waiting.
+
+     An edge request that produces no response for about 100 seconds is closed
+     with a 524, and the browser sees a dead connection rather than an error —
+     which is exactly the symptom: the button fires and the status line never
+     changes. This call alone could reach that on its own. Eight web searches
+     took as long as they took, and then eight careers pages were probed one
+     after another, each without a timeout.
+
+     So: a hard 55s budget for the model, and the search count comes down to
+     five. Fewer searches is a real cost in coverage, and a run that finishes
+     with six companies beats one that finds ten and never returns them. */
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: DISCOVERY_MODEL,
+        max_tokens: 4000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: AbortSignal.timeout(55000),
+    });
+  } catch (err) {
+    console.error('discovery: model call failed —', err.message);
+    return new Response(JSON.stringify({
+      error: /timeout|abort/i.test(err.message || '')
+        ? 'The search took too long and was stopped. Try again — it usually succeeds on a second run.'
+        : 'Could not reach the discovery service.',
+    }), { status: 504, headers: JSON_HEADERS });
+  }
 
   if (!res.ok) {
-    console.error('discovery: Anthropic ' + res.status + ' ' + (await res.text().catch(() => '')).slice(0, 300));
-    return new Response(JSON.stringify({ error: 'The discovery service is unavailable.' }), { status: 502, headers: JSON_HEADERS });
+    const detail = (await res.text().catch(() => '')).slice(0, 300);
+    console.error('discovery: Anthropic ' + res.status + ' ' + detail);
+    // The status is worth passing on. "Unavailable" reads the same whether the
+    // key is wrong, the credit has run out, or the model name is stale, and
+    // those need completely different fixes.
+    return new Response(JSON.stringify({
+      error: res.status === 401 ? 'ANTHROPIC_API_KEY was rejected.'
+           : res.status === 404 ? 'The discovery model name is not recognised: ' + DISCOVERY_MODEL
+           : res.status === 429 ? 'Rate limited by the API. Wait a minute and try again.'
+           : 'The discovery service returned HTTP ' + res.status + '.',
+    }), { status: 502, headers: JSON_HEADERS });
   }
 
   // The reply mixes text and tool-use blocks; the JSON is in the text ones.
@@ -1801,13 +1848,26 @@ Return at most 8. Reply as JSON only:
   const runId = new Date().toISOString().slice(0, 16);
   let verified = 0, queued = 0;
 
-  for (const c of proposed.slice(0, 8)) {
-    const name = clean(c.name, 120);
-    const careers = clean(c.careers_url, 500);
-    if (!name || !careers) continue;
+  /* Probed together rather than one after another.
 
+     Eight companies checked in series is eight page loads plus eight ATS calls
+     end to end — a minute on its own, on top of the model call, for work that
+     has no ordering between the items. In parallel it costs one slow company
+     instead of the sum of all of them. The database writes stay sequential;
+     D1 is the one thing here that does not like being hammered. */
+  const candidates = proposed.slice(0, 8)
+    .map((c) => ({ c, name: clean(c.name, 120), careers: clean(c.careers_url, 500) }))
+    .filter((x) => x.name && x.careers);
+
+  const checks = await Promise.all(
+    candidates.map((x) => verifyCompany(x.careers)
+      .catch((err) => ({ verified: false, error: 'probe failed: ' + err.message })))
+  );
+
+  for (let i = 0; i < candidates.length; i++) {
+    const { c, name, careers } = candidates[i];
+    const v = checks[i];
     const id = slugify(name);
-    const v = await verifyCompany(careers);
     if (v.verified) verified++;
 
     try {
