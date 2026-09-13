@@ -65,6 +65,167 @@ async function recordClick(request, env) {
   return new Response(null, { status: 204 });
 }
 
+/* ===========================================================================
+   IMPRESSIONS — the missing top of the funnel
+   ---------------------------------------------------------------------------
+   job_clicks records intent: opened, started an application, left for the
+   employer. What it could never record is a role being SEEN and ignored, so
+   "eleven clicks" had no denominator and a role nobody ever scrolled past
+   looked identical to one everybody saw and skipped.
+
+   Batched on purpose. A visitor scrolling a fifty-role board would otherwise
+   fire fifty requests; the page collects sightings and posts them in groups,
+   so a busy scroll costs one write instead of fifty.
+
+   Unauthenticated and best-effort, exactly like recordClick: a failure here is
+   logged for you and invisible to the visitor. Analytics never breaks a board.
+   =========================================================================== */
+async function recordImpressions(request, env) {
+  if (!env.DB) return new Response(null, { status: 204 });   // tracking off
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'expected JSON' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const items = Array.isArray(body?.items) ? body.items : [];
+  if (!items.length) return new Response(null, { status: 204 });
+
+  // A cap, because this endpoint takes anonymous input. Fifty is more than a
+  // real page of roles, so an honest client never reaches it.
+  const day = new Date().toISOString().slice(0, 10);
+  const seen = new Map();
+  for (const it of items.slice(0, 50)) {
+    const id = clean(it?.job_id, 120);
+    if (!id) continue;
+    // Count repeats within one batch rather than writing the same row twice.
+    const prior = seen.get(id);
+    if (prior) { prior.n++; continue; }
+    seen.set(id, {
+      n: 1,
+      title: clean(it?.job_title),
+      company: clean(it?.company, 120),
+      hub: clean(it?.hub, 20),
+      category: clean(it?.category, 60),
+    });
+  }
+  if (!seen.size) return new Response(null, { status: 204 });
+
+  try {
+    // One statement per role, sent as a batch: D1 runs them in a single round
+    // trip, and one bad row cannot take the others down with it.
+    await env.DB.batch([...seen].map(([id, r]) => env.DB.prepare(
+      `INSERT INTO job_impressions (job_id, day, job_title, company, hub, category, seen)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+       ON CONFLICT(job_id, day) DO UPDATE SET
+         seen = seen + ?7,
+         job_title = COALESCE(excluded.job_title, job_title),
+         company   = COALESCE(excluded.company, company)`
+    ).bind(id, day, r.title, r.company, r.hub, r.category, r.n)));
+  } catch (err) {
+    if (/no such table/i.test(err.message)) {
+      console.error('impressions: run db/impressions-d1.sql');
+    } else {
+      console.error('impression insert failed:', err.message);
+    }
+  }
+
+  return new Response(null, { status: 204 });
+}
+
+/* The funnel, end to end: seen → opened → applied.
+
+   Rates are per SIGHTING, not per person. Nothing here identifies a visitor,
+   so one person looking at a role five times is five sightings — the same
+   trade the click table already makes, and worth stating plainly next to a
+   percentage that would otherwise read as "share of people". */
+async function funnel(request, env) {
+  if (!adminAuthed(request, env)) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+
+  const url = new URL(request.url);
+  const days = Math.min(365, Math.max(1, Number(url.searchParams.get('days')) || 30));
+  const since = '-' + days + ' days';
+  const sinceDay = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+  const limit = Math.min(100, Math.max(5, Number(url.searchParams.get('limit')) || 25));
+
+  let impressions = [];
+  let missing = false;
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT job_id, MAX(job_title) AS job_title, MAX(company) AS company,
+              MAX(hub) AS hub, SUM(seen) AS seen
+         FROM job_impressions WHERE day >= ?1
+        GROUP BY job_id`).bind(sinceDay).all();
+    impressions = rows.results || [];
+  } catch (err) {
+    // The rest still works without it — you get clicks with no denominator,
+    // which is what you had before this existed.
+    if (/no such table/i.test(err.message)) missing = true;
+    else console.error('funnel impressions failed:', err.message);
+  }
+
+  const clickRows = await env.DB.prepare(
+    `SELECT job_id, kind, COUNT(*) AS n
+       FROM job_clicks
+      WHERE clicked_at > datetime('now', ?1) AND job_id IS NOT NULL
+      GROUP BY job_id, kind`).bind(since).all();
+
+  const byJob = new Map();
+  for (const r of impressions) {
+    byJob.set(r.job_id, {
+      job_id: r.job_id, job_title: r.job_title, company: r.company, hub: r.hub,
+      seen: Number(r.seen) || 0, opened: 0, applied: 0, outbound: 0,
+    });
+  }
+  for (const r of (clickRows.results || [])) {
+    const e = byJob.get(r.job_id) || {
+      job_id: r.job_id, job_title: null, company: null, hub: null,
+      seen: 0, opened: 0, applied: 0, outbound: 0,
+    };
+    if (r.kind === 'open_role')    e.opened   += Number(r.n) || 0;
+    if (r.kind === 'submit_apply') e.applied  += Number(r.n) || 0;
+    if (r.kind === 'outbound')     e.outbound += Number(r.n) || 0;
+    byJob.set(r.job_id, e);
+  }
+
+  const rate = (a, b) => (b > 0 ? Math.round((a / b) * 1000) / 10 : null);
+  const roles = [...byJob.values()].map((e) => ({
+    ...e,
+    // Null, not zero, when there is no denominator. A role with no recorded
+    // sightings has an UNKNOWN open rate, and printing 0% would read as
+    // "everybody ignored it" — the opposite of what the data says.
+    open_rate: rate(e.opened, e.seen),
+    apply_rate: rate(e.applied, e.opened),
+  })).sort((a, b) => b.seen - a.seen || b.opened - a.opened);
+
+  const totals = roles.reduce((acc, r) => ({
+    seen: acc.seen + r.seen, opened: acc.opened + r.opened,
+    applied: acc.applied + r.applied, outbound: acc.outbound + r.outbound,
+  }), { seen: 0, opened: 0, applied: 0, outbound: 0 });
+  totals.open_rate = rate(totals.opened, totals.seen);
+  totals.apply_rate = rate(totals.applied, totals.opened);
+
+  // Browsing, from the events the board already sent: which hub people land on
+  // and how often a company's list gets opened.
+  const browse = await env.DB.prepare(
+    `SELECT kind, hub, COUNT(*) AS n
+       FROM job_clicks
+      WHERE clicked_at > datetime('now', ?1) AND kind IN ('view_hub','open_company')
+      GROUP BY kind, hub`).bind(since).all();
+
+  return new Response(JSON.stringify({
+    days,
+    note: missing
+      ? 'No impressions recorded yet — run db/impressions-d1.sql, then reload the board once.'
+      : 'Rates are per sighting, not per person: nothing here identifies a visitor.',
+    totals,
+    browse: browse.results || [],
+    roles: roles.slice(0, limit),
+  }), { headers: JSON_HEADERS });
+}
+
 async function stats(request, env, asCsv) {
   if (!env.DB) {
     return new Response(JSON.stringify({ error: 'No D1 binding. See db/click-tracking-d1.sql.' }), { status: 503, headers: JSON_HEADERS });
@@ -2337,6 +2498,8 @@ export default {
     const { pathname } = new URL(request.url);
 
     if (pathname === '/api/click'  && request.method === 'POST') return recordClick(request, env);
+    if (pathname === '/api/impressions' && request.method === 'POST') return recordImpressions(request, env);
+    if (pathname === '/api/funnel' && request.method === 'GET')  return funnel(request, env);
     if (pathname === '/api/screen' && request.method === 'POST') return screen(request, env);
     if (pathname === '/api/stats') return stats(request, env, false);
     if (pathname === '/api/stats.csv') return stats(request, env, true);
