@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V124" />
+<meta name="ff-build" content="RING-V126" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3821,7 +3821,7 @@ const GLOBE = {
   // rather than sitting in one arc per hub. Kept for the labelled layout.
   ARC_MAX: 168,
   ARC_STEP: 15,
-  MAX_ROLES: 63,   // per side. This is capacity, not a preference: a role can
+  MAX_ROLES: 84,   // per side. This is capacity, not a preference: a role can
                    // only sit where an orbit crosses a parallel, and the old
                    // four orbits at 10-degree spacing offered exactly 22 slots
                    // — which is why 21 companies each got precisely one dot.
@@ -4037,20 +4037,39 @@ function globeBuild(){
     }));
     cos.push(...sideCos);
 
-    // One role from each company in turn, so a single busy company cannot
-    // fill the whole half.
+    // Dots in proportion to openings, not one each.
+    //
+    // Round-robin gave every company the same number of dots — with 63 slots
+    // across 21 companies, exactly three each whether they had 8 roles or 49.
+    // The node already prints the true count, so the picture was contradicting
+    // the number printed on it. Share the slots by how many roles a company
+    // actually has instead.
     const pools = shown.map(([, list]) => list.slice());
-    const sample = [];
-    for (let round = 0; sample.length < GLOBE.MAX_ROLES; round++){
-      let took = 0;
-      pools.forEach((pool, ci) => {
-        if (round < pool.length && sample.length < GLOBE.MAX_ROLES){
-          sample.push({ job: pool[round], co: sideCos[ci] });
-          took++;
-        }
-      });
-      if (!took) break;
+    const counts = pools.map(pl => pl.length);
+    const total = counts.reduce((n, v) => n + v, 0) || 1;
+    const budget = Math.min(GLOBE.MAX_ROLES, total);
+
+    // Every company keeps at least one dot: a company with a single opening
+    // still belongs on the globe, and rounding alone would drop it.
+    const quota = counts.map(n => Math.max(1, Math.floor(n / total * budget)));
+    // Largest-remainder: hand the rounding leftovers to whoever lost the most
+    // to it, so the totals add up without favouring the top of the list.
+    let spare = budget - quota.reduce((n, v) => n + v, 0);
+    const order = counts
+      .map((n, i) => ({ i, rem: (n / total * budget) - Math.floor(n / total * budget) }))
+      .sort((a, b) => b.rem - a.rem);
+    for (let k = 0; spare > 0 && order.length; k++, spare--){
+      const { i } = order[k % order.length];
+      if (quota[i] < counts[i]) quota[i]++; else spare++;   // full: try the next
+      if (k > budget * 4) break;                            // nothing left to give
     }
+
+    const sample = [];
+    pools.forEach((pool, ci) => {
+      for (let n = 0; n < Math.min(quota[ci], pool.length); n++){
+        sample.push({ job: pool[n], co: sideCos[ci] });
+      }
+    });
     sample.sort((a, b) => a.co.rank - b.co.rank);
     picks.push(...sample.map(s => ({ job: s.job, co: s.co, hub: h })));
   }
@@ -4315,7 +4334,16 @@ function globeBuild(){
       groups.get(s.co.key).push(s);
     }
     const cx = GLOBE.cxOf(h);
-    const bearing = (c) => globeRel(c.x, c.y, side, cx);
+    // Plain atan2 — the SAME measure the slots are sorted by.
+    //
+    // This used globeRel(), which mirrors the angle when `side` is negative.
+    // That mirroring dates from when one sphere was split into two hemispheres
+    // and the left half had to be read inward. Each hub has its own whole globe
+    // now, so there is nothing to mirror — but it still reversed one globe's
+    // company order against its own slot order, which puts a node on the right
+    // onto dots on the left and the reverse. Two different conventions for the
+    // same angle, one of them obsolete.
+    const bearing = (c) => Math.atan2(c.y - GLOBE.CY, c.x - cx);
     const flat = [...groups.values()]
       .sort((g1, g2) => bearing(g1[0].co) - bearing(g2[0].co))
       .flat();
