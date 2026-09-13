@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V121" />
+<meta name="ff-build" content="RING-V124" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -324,11 +324,14 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .g-thread{fill:none;stroke-width:1.7;opacity:.2;transition:opacity .3s,stroke-width .3s}
 .g-thread.opco{stroke:#00FF88}
 .g-thread.proptech{stroke:#A98FEC}
-/* The stretch inside the sphere stays hidden until you pick a dot or a node.
-   126 threads crossing the interior at once is noise whichever way they are
-   routed; on demand, one at a time, the same line is information. The outside
-   run stays visible so the sphere still reads as connected to the ring. */
-.g-thread-in{opacity:0;pointer-events:none;transition:opacity .25s}
+/* Inside the globe is the half that shows. The run from a role dot out to its
+   company node necessarily leaves the sphere — the nodes sit on the ring — so
+   that half is hidden until you pick something, and the web you see at rest is
+   entirely contained within the globe. Picking a node reveals its line out. */
+.g-thread-in{opacity:.22;pointer-events:none;transition:opacity .25s}
+.g-thread{opacity:0}
+.g-thread.is-lit{opacity:1;stroke-width:3.2}
+#globe.is-focused .g-thread-in:not(.is-lit){opacity:.07}
 
 /* The native <title> tooltip gave a grey OS box after a delay and showed only
    one line. This is the job card in miniature: title, company, location, pay —
@@ -3166,7 +3169,7 @@ function stepWeb(time){
     const total = L.path.getTotalLength();
     if (total){
       L.offset = (L.offset + 0.00075 * (0.6 + L.speed)) % 1;
-      const pt = L.path.getPointAtLength(total * L.offset);
+      const pt = L.inner.getPointAtLength(total * L.offset);
       L.dot.setAttribute('cx', pt.x);
       L.dot.setAttribute('cy', pt.y);
       L.dot.setAttribute('r', (2.2 + near*1.8).toFixed(2));
@@ -3864,9 +3867,15 @@ const GLOBE = {
                         // extends away from its neighbour, not towards it. On
                         // one ring all 21 place with no overlaps; staggered,
                         // only 88% did, and the alternating radius was visible.
-  THREAD_START: 40,// px beyond the sphere's rim where a thread becomes visible
-  THREAD_FAN: 0.20,// radians of spread around a role's bearing, so threads
-                   // leaving the globe near each other still separate
+  THREAD_START: 8, // px beyond the sphere's rim where a thread becomes
+                   // visible. Small on purpose: at 40 the threads surfaced well
+                   // clear of the sphere and the run to the node was almost all
+                   // outside it, which is what made them look like they were
+                   // reaching past the globe rather than coming out of it.
+  THREAD_FAN: 0.05,// radians of spread around a company's bearing. Just enough
+                   // that two roles at the same company do not draw the exact
+                   // same line; wide enough to fan and the spokes stop reading
+                   // as one direction
   ARC_BOW: 0.26,   // how far a thread bows off the straight line, as a share
                    // of its own length. Long crossings sweep, short ones stay
                    // close to direct — which is what keeps them from tangling
@@ -4455,20 +4464,18 @@ function globeThread(L, time, still){
   // there to show. It also stops the dense bundle on the PropTech side, where
   // twenty-one companies converge, from looking like a single fringe attached
   // to the rim.
-  // The thread leaves the globe above its OWN role, not above its company.
+  // Back to the company's bearing. Each company's threads converge on one
+  // point just off the rim and run straight out to its node — a spoke.
   //
-  // Every version until now projected outward along the company's bearing, so
-  // all of a company's threads surfaced in the same place whatever part of the
-  // sphere their roles sat on — a bundle at one point on the rim. Projecting
-  // each role's own position instead means a thread emerges where its dot
-  // actually is and then travels to the node, crossing the face of the globe
-  // when the two are far apart. That is what gives the OpCo side its long
-  // reaching lines: with seven companies its roles are spread right around the
-  // sphere, so its threads already had distance to cover.
-  const ra = Math.atan2(a.y - CY, a.x - CX) + L.spread * GLOBE.THREAD_FAN;
-  const gap = R + GLOBE.THREAD_START + L.reach * 18;
-  const gx = CX + Math.cos(ra) * gap;
-  const gy = CY + Math.sin(ra) * gap;
+  // I moved this to each role's own bearing to make the lines "reach across",
+  // and that is what made them cluttered: forty-two threads each taking their
+  // own diagonal, crossing every other one on the way. Spokes read cleanly at
+  // any density precisely because they all point the same way; the crossing
+  // version cannot, however elegantly each individual line is drawn.
+  const ca = Math.atan2(b.y - CY, b.x - CX) + L.spread * GLOBE.THREAD_FAN;
+  const gap = R + GLOBE.THREAD_START;
+  const gx = CX + Math.cos(ca) * gap;
+  const gy = CY + Math.sin(ca) * gap;
 
   // A gentle drift so the bundle breathes, plus the pointer's tug.
   const sway = still ? 0 : Math.sin(time * 0.00012 * L.speed + L.phase) * 3 * L.bend;
@@ -4487,26 +4494,11 @@ function globeThread(L, time, still){
   const c2x = gx + (gx - CX) * 0.1;
   const c2y = gy + (gy - CY) * 0.1;
 
-  /* The long sweep.
-     The old control point sat ON the straight line between the two ends, at
-     40% of the way — so the "curve" was a straight line with extra steps. A
-     real arc needs the control point pushed PERPENDICULAR to that line, and
-     pushed further the longer the run, which is what makes a thread crossing
-     the whole globe bow generously while a short one stays nearly direct.
-     The direction alternates per thread, so neighbouring arcs bow opposite
-     ways and separate instead of stacking. */
-  const outerArc = () => {
-    const vx = b.x - gx, vy = b.y - gy;
-    const span = Math.hypot(vx, vy) || 1;
-    const px = -vy / span, py = vx / span;        // perpendicular
-    // Sign and depth fixed per thread; depth scales with the run so the bow
-    // stays in proportion rather than looking flat on long arcs.
-    const dir = L.spread >= 0 ? 1 : -1;
-    const depth = span * GLOBE.ARC_BOW * (0.55 + Math.abs(L.spread)) * dir;
-    const mx = gx + vx * 0.5 + px * depth;
-    const my = gy + vy * 0.5 + py * depth;
-    return `M ${f(gx)} ${f(gy)} Q ${f(mx)} ${f(my)}, ${f(b.x)} ${f(b.y)}`;
-  };
+  /* Straight out to the node. The control point sits ON the line between the
+     two ends, which is what makes this read as a spoke rather than an arc —
+     the curve was the other half of the clutter. */
+  const outerArc = () =>
+    `M ${f(gx)} ${f(gy)} Q ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
 
   const f = (v) => v.toFixed(1);
   // Two halves, not one path: the run inside the sphere and the run out to the
@@ -4540,12 +4532,12 @@ function globeStep(time, once){
     L.inner.setAttribute('d', seg.inner);
     L.path.setAttribute('d', seg.outer);
 
-    // The spark now rides the outer half only — it would otherwise travel
-    // invisibly inside the sphere for the first part of every pass.
-    const total = L.path.getTotalLength?.() || 0;
+    // The spark rides the half that is drawn — the interior one — so it never
+    // travels across empty space outside the globe.
+    const total = L.inner.getTotalLength?.() || 0;
     if (total){
       const t = still ? 0.5 : (L.start + time / L.period) % 1;
-      const pt = L.path.getPointAtLength(total * t);
+      const pt = L.inner.getPointAtLength(total * t);
       L.dot.setAttribute('cx', pt.x.toFixed(1));
       L.dot.setAttribute('cy', pt.y.toFixed(1));
       // Set inline every frame, so the dimming for a traced path has to be
