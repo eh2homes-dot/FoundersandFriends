@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V110" />
+<meta name="ff-build" content="RING-V113" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -419,7 +419,24 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 #globe.is-handoff .g-role.is-lit .halo{animation:handoff-ping .52s ease-out both}
 @keyframes handoff-ping{from{opacity:.9}to{opacity:0;stroke-width:5}}
 
-.hemi-label{text-anchor:middle;font-family:var(--mono);font-size:20px;letter-spacing:.26em;text-transform:uppercase}
+/* Centred properly: with text-anchor:middle the browser centres the string
+   INCLUDING the trailing space letter-spacing adds after the last character,
+   so a widely tracked word always sits a little left of true centre. The x
+   positions carry a compensating offset. Tracking comes down from .26em, which
+   was pulling the letters apart faster than the word read as one thing. */
+.hemi-label{
+  text-anchor:middle;font-family:var(--mono);font-size:20px;font-weight:700;
+  letter-spacing:.13em;text-transform:uppercase;
+  dominant-baseline:central;
+  animation:hemi-glow 4s ease-in-out infinite;
+}
+/* The effect is on the glow, not the letters: these sit under a globe that is
+   already in motion, and animating the type would compete with it. */
+@keyframes hemi-glow{
+  0%,100%{opacity:.74;filter:drop-shadow(0 0 0 transparent)}
+  50%{opacity:1;filter:drop-shadow(0 0 10px currentColor)}
+}
+@media(prefers-reduced-motion:reduce){ .hemi-label{animation:none;opacity:.92} }
 /* The plate behind each hub name. The globes sit on a gradient that runs from
    near-black to deep violet, so a name with no backing reads differently at
    each end of the canvas — the plate gives it one consistent ground. */
@@ -429,7 +446,21 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .hemi-label.opco{fill:#A98FEC}
 .hemi-label.proptech{fill:#00FF88}
 
-.orbit-more{display:flex;justify-content:center}
+/* The stage is the SVG's own box, so the button can be placed against the
+   canvas rather than against a container whose height also depends on the
+   status row below it. */
+.globe-stage{position:relative}
+.orbit-more{
+  position:absolute;left:50%;
+  /* The hub labels sit at y 806 of an 836-tall canvas. */
+  top:96.4%;
+  transform:translate(-50%,-50%);
+  display:flex;justify-content:center;z-index:4;
+}
+@media(max-width:640px){
+  /* The globes are hidden at this width, so there is no gap to sit in. */
+  .orbit-more{position:static;transform:none;margin-top:14px}
+}
 .orbit-more[hidden]{display:none}
 .all-cos{
   display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border-radius:11px;
@@ -500,16 +531,42 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
   background:rgba(7,4,15,.6);box-shadow:0 0 22px -6px currentColor;
 }
 .hc-mark svg{width:18px;height:18px;display:block}
-.hc-name{font-family:var(--head);font-size:16px;font-weight:600;letter-spacing:0;color:var(--ink);display:block}
+.hc-name{font-family:var(--head);font-size:16px;font-weight:700;letter-spacing:0;color:var(--ink);display:block}
 .hc-kicker{
   display:block;margin-top:2px;
-  font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);
+  font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-dim);
 }
 .hc-count{
+  /* inline-flex with centring on both axes. As an inline span the text sat on
+     its baseline inside the padding box, which reads as slightly high — the
+     descender space below a line of capitals is dead room and there are no
+     descenders in "102 ROLES" to use it. */
   margin-left:auto;flex:none;
-  font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
-  padding:4px 10px;border-radius:100px;color:var(--hue);
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:22px;
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  /* Down from .12em. Tracking that wide on a short uppercase string pulls the
+     characters apart faster than the padding grows, so the text stops looking
+     centred even when it is. The last letter also carries a trailing space of
+     its own, which is what the padding compensation below removes. */
+  letter-spacing:.05em;text-indent:.05em;
+  text-transform:uppercase;line-height:1;
+  padding:5px 12px;border-radius:100px;color:var(--hue);
   border:1px solid currentColor;background:rgba(7,4,15,.5);white-space:nowrap;
+  transition:box-shadow .3s,border-color .3s,transform .3s var(--ease);
+}
+/* A slow breath on the glow rather than on the text: animating the letters
+   themselves would drag the eye away from the name beside them, which is the
+   thing the card is actually for. */
+.hc-count{animation:hc-pulse 3.6s ease-in-out infinite}
+@keyframes hc-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}
+  50%{box-shadow:0 0 14px -2px var(--hue)}
+}
+.hub-card:hover .hc-count{transform:scale(1.05);box-shadow:0 0 18px -2px var(--hue)}
+@media(prefers-reduced-motion:reduce){
+  .hc-count{animation:none}
+  .hub-card:hover .hc-count{transform:none}
 }
 /* The blurb is what made these tall. Two lines of description under a name
    the globes already show — cut on desktop, kept on mobile where the orbit
@@ -1456,6 +1513,7 @@ a.foot-line:hover{color:var(--green)}
              per role: 126 hidden cards would be 126 more nodes on every frame
              of an animation that already redraws every thread. -->
         <div class="g-peek" id="g-peek" role="tooltip" aria-hidden="true"></div>
+        <div class="globe-stage">
         <svg id="globe" viewBox="0 0 2100 836" role="img" aria-label="Two globes: OpCo roles and PropTech roles, each connected to the company hiring">
           <defs>
             <linearGradient id="gs-opco" x1="0" y1="0" x2="1" y2="0">
@@ -1526,7 +1584,7 @@ a.foot-line:hover{color:var(--green)}
             <circle class="g-shade" cx="525" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
             <g class="hub-plate opco">
               <rect x="420" y="782" width="210" height="42" rx="21"/>
-              <text class="hemi-label opco" x="527.6" y="806">OpCo</text>
+              <text class="hemi-label opco" x="526.3" y="806">OpCo</text>
             </g>
           </g>
 
@@ -1546,7 +1604,7 @@ a.foot-line:hover{color:var(--green)}
             <circle class="g-shade" cx="1575" cy="390" r="186" fill="url(#g-shade)" pointer-events="none"/>
             <g class="hub-plate proptech">
               <rect x="1470" y="782" width="210" height="42" rx="21"/>
-              <text class="hemi-label proptech" x="1577.6" y="806">PropTech</text>
+              <text class="hemi-label proptech" x="1576.3" y="806">PropTech</text>
             </g>
           </g>
 
@@ -1555,19 +1613,19 @@ a.foot-line:hover{color:var(--green)}
           <g id="g-roles"></g>
           <g id="g-cos"></g>
         </svg>
-        <!-- The status line lives under the globe now: it carries the same
-             counts the old caption did, so running both was saying the same
-             thing twice, once above the picture and once below it. -->
-        <!-- One row, two cards. Stacked they cost two rows of height for two
-             short lines, which is what pushed the button below the fold. -->
+          <!-- Between the two globes, level with their hub labels. The gap down
+               the middle of the canvas is the one piece of empty space on this
+               picture, and a button there reads as belonging to both hubs
+               rather than to whichever one it sits nearer. -->
+          <div class="orbit-more">
+            <button type="button" class="all-cos" id="all-cos"></button>
+          </div>
+        </div>
         <div class="orbit-foot">
           <p class="data-status" id="data-status" role="status" aria-live="polite" hidden>
             <span class="ds-dot" aria-hidden="true"></span>
             <span class="ds-msg"></span>
           </p>
-          <div class="orbit-more">
-            <button type="button" class="all-cos" id="all-cos"></button>
-          </div>
         </div>
         <p class="orbit-hint" id="orbit-hint"></p>
       </div>
@@ -4815,7 +4873,11 @@ function paintOrbits(){
   if (btn){
     btn.textContent = 'See all companies';
     // Nothing is hidden when they all fit, so the button would be a detour.
-    btn.closest('.orbit-more').hidden = total <= shown;
+    // Always shown. It used to hide itself when every company already fitted
+    // on the globes — true now that both rings carry their full roster — but
+    // the list view it opens has filters, search and the full detail, which is
+    // worth reaching whether or not a company is missing from the picture.
+    btn.closest('.orbit-more').hidden = false;
     const hiddenN = Math.max(0, total - shown);
     btn.setAttribute('aria-label',
       `See all ${total} companies, including the ${hiddenN} not shown on the globe`);
