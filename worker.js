@@ -405,6 +405,118 @@ const asList = (v) => {
   return [];
 };
 
+/* ===========================================================================
+   RÉSUMÉ FILES
+   ---------------------------------------------------------------------------
+   The application form only ever took pasted text. That is enough to screen a
+   candidate and not enough to introduce one: an employer asks for the CV, and
+   a wall of plain text is not the document they mean.
+
+   Files go to R2, not to D1. A 2MB PDF in a database column bloats every query
+   that touches the row — including the admin list, which selects the whole
+   table — and D1 is not built to hand back binaries. R2 holds the file; the row
+   holds a key.
+
+   Uploaded BEFORE the application is submitted, because the form posts JSON and
+   a file does not belong in it. That leaves a window where a file exists with
+   no application attached to it, which the cron sweep below clears.
+   =========================================================================== */
+
+const RESUME_MAX = 5 * 1024 * 1024;         // 5MB
+const RESUME_TYPES = {
+  'application/pdf': 'pdf',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'text/plain': 'txt',
+  'application/rtf': 'rtf',
+  'text/rtf': 'rtf',
+};
+
+async function uploadResume(request, env) {
+  if (!env.RESUMES) {
+    return new Response(JSON.stringify({ error: 'File uploads are not configured yet.' }), { status: 503, headers: JSON_HEADERS });
+  }
+
+  const type = (request.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  const ext = RESUME_TYPES[type];
+  if (!ext) {
+    return new Response(JSON.stringify({
+      error: 'That file type is not accepted. Send a PDF, Word document, RTF or plain text.',
+    }), { status: 415, headers: JSON_HEADERS });
+  }
+
+  const declared = Number(request.headers.get('content-length') || 0);
+  if (declared > RESUME_MAX) {
+    return new Response(JSON.stringify({ error: 'That file is over 5MB.' }), { status: 413, headers: JSON_HEADERS });
+  }
+
+  const body = await request.arrayBuffer();
+  // Checked again on what actually arrived. Content-Length is what the client
+  // claims, and this endpoint takes anonymous uploads.
+  if (body.byteLength > RESUME_MAX) {
+    return new Response(JSON.stringify({ error: 'That file is over 5MB.' }), { status: 413, headers: JSON_HEADERS });
+  }
+  if (!body.byteLength) {
+    return new Response(JSON.stringify({ error: 'That file is empty.' }), { status: 400, headers: JSON_HEADERS });
+  }
+
+  // The candidate's filename is kept for display only and never used as the
+  // key. A name is attacker-controlled and can carry path separators; the key
+  // is ours and is random.
+  const name = clean(request.headers.get('x-filename'), 160) || ('resume.' + ext);
+  const key = 'resumes/' + new Date().toISOString().slice(0, 10) + '/' + crypto.randomUUID() + '.' + ext;
+
+  try {
+    await env.RESUMES.put(key, body, {
+      httpMetadata: { contentType: type },
+      customMetadata: { filename: name, uploaded_at: new Date().toISOString() },
+    });
+  } catch (err) {
+    console.error('resume upload failed:', err.message);
+    return new Response(JSON.stringify({ error: 'Could not store the file. Please try again.' }), { status: 500, headers: JSON_HEADERS });
+  }
+
+  return new Response(JSON.stringify({
+    ok: true, key, name, size: body.byteLength, type,
+  }), { headers: JSON_HEADERS });
+}
+
+/* Hand the file back. Admin only, and by application ref rather than by key:
+   the key is guessable-adjacent and appears in the database, whereas the ref is
+   what the Command Center already knows. */
+async function downloadResume(request, env) {
+  if (!adminAuthed(request, env)) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+  if (!env.DB || !env.RESUMES) {
+    return new Response(JSON.stringify({ error: 'File storage is not configured.' }), { status: 503, headers: JSON_HEADERS });
+  }
+
+  const ref = clean(new URL(request.url).searchParams.get('ref'), 20);
+  const row = await env.DB.prepare(
+    'SELECT resume_key, resume_name, resume_type, first_name, last_name FROM applications WHERE ref = ?1'
+  ).bind(ref).first().catch(() => null);
+
+  if (!row || !row.resume_key) {
+    return new Response(JSON.stringify({ error: 'No résumé on file for that application.' }), { status: 404, headers: JSON_HEADERS });
+  }
+
+  const obj = await env.RESUMES.get(row.resume_key);
+  if (!obj) return new Response(JSON.stringify({ error: 'The file is missing from storage.' }), { status: 404, headers: JSON_HEADERS });
+
+  // Named after the candidate, not after whatever their file was called. A
+  // folder of "resume.pdf" is useless once you have downloaded three of them.
+  const who = [row.first_name, row.last_name].filter(Boolean).join(' ') || ref;
+  const ext = (row.resume_name || '').split('.').pop() || 'pdf';
+  return new Response(obj.body, {
+    headers: {
+      'content-type': row.resume_type || 'application/octet-stream',
+      'content-disposition': `attachment; filename="${who.replace(/[^\w .-]/g, '')} - ${ref}.${ext}"`,
+      'cache-control': 'private, no-store',
+    },
+  });
+}
+
 async function receiveApplication(request, env) {
   if (!env.DB) {
     return new Response(JSON.stringify({ error: 'Applications are not configured yet.' }), { status: 503, headers: JSON_HEADERS });
@@ -433,6 +545,11 @@ async function receiveApplication(request, env) {
     last_name: clean(a.last_name, 80), email: clean(email, 200), phone: clean(a.phone, 40),
     current_company: clean(a.current_company, 120), current_position: clean(a.current_position, 120),
     linkedin: clean(a.linkedin, 200), background: clean(a.background, 20000),
+    // Written by the upload step just before this call. Validated there, so
+    // what arrives here is only ever a key we issued.
+    resume_key: clean(a.resume_key, 200), resume_name: clean(a.resume_name, 160),
+    resume_type: clean(a.resume_type, 120),
+    resume_size: Number.isFinite(+a.resume_size) ? Math.max(0, Math.round(+a.resume_size)) : null,
     score: Number.isFinite(+a.score) ? Math.max(0, Math.min(100, Math.round(+a.score))) : null,
     strengths: JSON.stringify(asList(a.strengths)), gaps: JSON.stringify(asList(a.gaps)),
     reviewed_by: a.reviewed_by === 'ai' ? 'ai' : 'keyword',
@@ -444,13 +561,15 @@ async function receiveApplication(request, env) {
          (ref, job_id, job_title, company, hub, category, location, apply_url,
           first_name, middle_initial, last_name, email, phone,
           current_company, current_position, linkedin, background,
-          score, strengths, gaps, reviewed_by)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)`
+          score, strengths, gaps, reviewed_by,
+          resume_key, resume_name, resume_type, resume_size)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25)`
     ).bind(
       row.ref, row.job_id, row.job_title, row.company, row.hub, row.category, row.location, row.apply_url,
       row.first_name, row.middle_initial, row.last_name, row.email, row.phone,
       row.current_company, row.current_position, row.linkedin, row.background,
-      row.score, row.strengths, row.gaps, row.reviewed_by
+      row.score, row.strengths, row.gaps, row.reviewed_by,
+      row.resume_key, row.resume_name, row.resume_type, row.resume_size
     ).run();
   } catch (err) {
     // The unique index on (email, job_id) catches a double submit. Tell the
@@ -526,6 +645,39 @@ async function notifyEmployer(env, row, opts = {}) {
       </p>
     </div>`;
 
+  /* The résumé rides along on a FULL introduction only.
+
+     Never on the teaser. The teaser exists to describe a candidate without
+     identifying them, so that the employer has to come back to you to get the
+     person — and a CV has their name, their email and their employment history
+     on the first page. Attaching it there would hand over the entire asset in
+     the message designed to withhold it, which is the one mistake this whole
+     flow is built to prevent. */
+  const attachments = [];
+  if (full && row.resume_key && env.RESUMES) {
+    try {
+      const obj = await env.RESUMES.get(row.resume_key);
+      if (obj) {
+        const buf = new Uint8Array(await obj.arrayBuffer());
+        // Chunked rather than one spread call: String.fromCharCode(...buf) on a
+        // multi-megabyte file blows the argument limit and throws.
+        let binary = '';
+        for (let i = 0; i < buf.length; i += 8192) {
+          binary += String.fromCharCode.apply(null, buf.subarray(i, i + 8192));
+        }
+        const ext = (row.resume_name || 'resume.pdf').split('.').pop();
+        attachments.push({
+          filename: `${name} - ${row.ref}.${ext}`.replace(/[^\w .-]/g, ''),
+          content: btoa(binary),
+        });
+      }
+    } catch (err) {
+      // The introduction still goes. A missing attachment is worth a log line,
+      // not a failed send that you then have to notice and repeat.
+      console.error('resume attach failed for ' + row.ref + ':', err.message);
+    }
+  }
+
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -540,6 +692,7 @@ async function notifyEmployer(env, row, opts = {}) {
           ? `${name} → ${row.job_title || 'a role'} at ${row.company || ''} (${row.ref})`
           : `Candidate for ${row.job_title || 'your role'}${row.score != null ? ` · ${row.score}/100 match` : ''} (${row.ref})`,
         html,
+        ...(attachments.length ? { attachments } : {}),
       }),
     });
     if (!res.ok) return { ok: false, error: 'Resend ' + res.status + ' ' + (await res.text().catch(() => '')).slice(0, 200) };
@@ -700,7 +853,7 @@ async function listApplications(request, env) {
                     current_company, current_position, linkedin, background,
                     score, strengths, gaps, reviewed_by, status, notes,
                     sent_to_employer_at, send_error, declined_at, decline_reason,
-                    archived_at, created_at
+                    archived_at, resume_name, resume_size, created_at
                FROM applications`;
   const where = [], binds = [];
   if (hub && hub !== 'all') { binds.push(hub); where.push('hub = ?' + binds.length); }
@@ -719,6 +872,7 @@ async function listApplications(request, env) {
     if (!/no such column/i.test(err.message)) throw err;
     rows = await env.DB.prepare(
       sql.replace(/, archived_at/, '')
+         .replace(/, resume_name, resume_size/, '')
          .replace(/ AND archived_at IS (NOT )?NULL/g, '')
          .replace(/ WHERE archived_at IS (NOT )?NULL/g, '')
     ).bind(...binds).all();
@@ -2585,6 +2739,8 @@ export default {
     if (pathname === '/api/stats.csv') return stats(request, env, true);
 
     if (pathname === '/api/apply'         && request.method === 'POST') return receiveApplication(request, env);
+    if (pathname === '/api/resume'        && request.method === 'POST') return uploadResume(request, env);
+    if (pathname === '/api/resume'        && request.method === 'GET')  return downloadResume(request, env);
     if (pathname === '/api/admin/login'   && request.method === 'POST') return adminLogin(request, env);
     if (pathname === '/api/applications'  && request.method === 'GET')  return listApplications(request, env);
     if (pathname === '/api/applications'  && request.method === 'POST') return updateApplication(request, env);
