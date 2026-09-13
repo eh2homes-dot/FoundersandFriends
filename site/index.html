@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V131" />
+<meta name="ff-build" content="RING-V132" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -324,9 +324,12 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
                    out of the focus dimming entirely — it carries the travelling
                    pulse, and a rail that flickers under its own dot reads as a
                    fault rather than as feedback. */
-.g-thread.g-thread-in{opacity:.24;pointer-events:none;transition:opacity .25s}
+/* Hidden until asked for. Eighty-four of these inside one sphere is the
+   "messy hair" whatever shape they take — right angles make each line
+   followable, but only once there are few enough to follow. On hover the one
+   set you asked about appears against an otherwise empty globe. */
+.g-thread.g-thread-in{opacity:0;pointer-events:none;transition:opacity .2s}
 .g-thread.g-thread-in.is-lit{opacity:1;stroke-width:2.4}
-#globe.is-focused .g-thread.g-thread-in:not(.is-lit){opacity:.08}
 
 .g-thread:not(.g-thread-in),
 .g-thread:not(.g-thread-in).is-lit,
@@ -4541,11 +4544,42 @@ function globeThread(L, time, still){
     `M ${f(gx)} ${f(gy)} Q ${f(b.x - (b.x - gx) * 0.4)} ${f(b.y - (b.y - gy) * 0.4)}, ${f(b.x)} ${f(b.y)}`;
 
   const f = (v) => v.toFixed(1);
+
+  /* Manhattan routing for the run inside the globe: out along one axis, across
+     on the other, then in — never a diagonal.
+     A diagonal takes the shortest line between two points, which is also the
+     line most likely to pass through whatever is in between. Right angles are
+     longer but predictable: two lines sharing a direction run parallel instead
+     of crossing at a shallow angle, and the eye can follow one of them.
+     The turn is taken at the midpoint of the horizontal run, so lines from
+     different roles to the same company stack rather than converge.
+     Corners are rounded by a few pixels — a true right angle at this stroke
+     width reads as a rendering artefact. */
+  const orthoRoute = () => {
+    const midX = a.x + (gx - a.x) * 0.5;
+    const dirX = Math.sign(midX - a.x) || 1;
+    const dirY = Math.sign(gy - a.y) || 1;
+    // Never round a corner by more than the segment it sits on.
+    const rq = Math.max(0, Math.min(7,
+      Math.abs(midX - a.x) * 0.5, Math.abs(gy - a.y) * 0.5, Math.abs(gx - midX) * 0.5));
+
+    if (rq < 1){
+      // Degenerate: the three legs are too short to bend, so a straight run is
+      // both honest and tidier than three near-zero segments.
+      return `M ${f(a.x)} ${f(a.y)} L ${f(gx)} ${f(gy)}`;
+    }
+    return `M ${f(a.x)} ${f(a.y)}`
+      + ` H ${f(midX - dirX * rq)}`
+      + ` Q ${f(midX)} ${f(a.y)}, ${f(midX)} ${f(a.y + dirY * rq)}`
+      + ` V ${f(gy - dirY * rq)}`
+      + ` Q ${f(midX)} ${f(gy)}, ${f(midX + dirX * rq)} ${f(gy)}`
+      + ` H ${f(gx)}`;
+  };
   // Two halves, not one path: the run inside the sphere and the run out to the
   // node. Splitting them is what lets the interior hide while the outside stays
   // visible — a single path can only be shown or hidden as a whole.
   return {
-    inner: `M ${f(a.x)} ${f(a.y)} C ${f(c1x)} ${f(c1y)}, ${f(c2x)} ${f(c2y)}, ${f(gx)} ${f(gy)}`,
+    inner: orthoRoute(),
     outer: outerArc(),
   };
 }
