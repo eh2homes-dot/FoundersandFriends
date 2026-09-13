@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V119" />
+<meta name="ff-build" content="RING-V120" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -4452,16 +4452,20 @@ function globeThread(L, time, still){
   // there to show. It also stops the dense bundle on the PropTech side, where
   // twenty-one companies converge, from looking like a single fringe attached
   // to the rim.
-  // Each thread gets its OWN start point, spread around the company's bearing
-  // rather than all sharing one. Converging on a single point per company made
-  // every company's threads a tight bundle leaving the sphere at one spot; a
-  // spread of a few degrees, plus a little variation in how far out each one
-  // begins, lets them read as separate lines that happen to end together.
-  // L.spread is fixed per link, so the fan is stable rather than shimmering.
-  const ca = Math.atan2(b.y - CY, b.x - CX) + L.spread * GLOBE.THREAD_FAN;
+  // The thread leaves the globe above its OWN role, not above its company.
+  //
+  // Every version until now projected outward along the company's bearing, so
+  // all of a company's threads surfaced in the same place whatever part of the
+  // sphere their roles sat on — a bundle at one point on the rim. Projecting
+  // each role's own position instead means a thread emerges where its dot
+  // actually is and then travels to the node, crossing the face of the globe
+  // when the two are far apart. That is what gives the OpCo side its long
+  // reaching lines: with seven companies its roles are spread right around the
+  // sphere, so its threads already had distance to cover.
+  const ra = Math.atan2(a.y - CY, a.x - CX) + L.spread * GLOBE.THREAD_FAN;
   const gap = R + GLOBE.THREAD_START + L.reach * 18;
-  const gx = CX + Math.cos(ca) * gap;
-  const gy = CY + Math.sin(ca) * gap;
+  const gx = CX + Math.cos(ra) * gap;
+  const gy = CY + Math.sin(ra) * gap;
 
   // A gentle drift so the bundle breathes, plus the pointer's tug.
   const sway = still ? 0 : Math.sin(time * 0.00012 * L.speed + L.phase) * 3 * L.bend;
