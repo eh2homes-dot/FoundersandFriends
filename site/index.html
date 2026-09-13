@@ -2018,6 +2018,11 @@ function renderCards(){
       <path class="rail-path-glow" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" style="opacity:0"/>
     </g>`).join('');
 
+  // The cards are replaced wholesale on every render — filter, page, hub — so
+  // the impression observer has to be pointed at the new ones. Roles already
+  // counted this visit are skipped inside, not here.
+  watchRoleCards();
+
   anchors.clear(); paths.clear(); dotEls.clear(); groups.clear();
   list.forEach(j => {
     anchors.set(j.id, cardsEl.querySelector(`[data-id="${j.id}"] .drag-anchor`));
@@ -5305,6 +5310,113 @@ function track(event, job, extra) {
     }).catch(() => {});
   } catch (_) { /* never block the interaction */ }
 }
+
+/* ==========================================================================
+   IMPRESSIONS — a role appearing in front of someone
+   --------------------------------------------------------------------------
+   The funnel recorded intent and never the chance to act on it, so a role with
+   two clicks could mean two people out of three or two out of four hundred,
+   and there was no way to tell those apart.
+
+   Three decisions worth keeping:
+
+   A sighting needs half the card visible for a full second. Anything looser
+   counts roles that flew past during a scroll to the bottom, and an impression
+   that nobody could have read makes every rate below it a lie.
+
+   Once per role per visit. Scrolling up and down a list would otherwise inflate
+   a role's sightings by however restless the visitor is, and a role near the
+   top of the page would always look the most seen.
+
+   Batched, and flushed on the way out. Fifty cards on screen is fifty writes
+   if each reports itself; collecting them costs one. `sendBeacon` is what makes
+   the last batch survive the tab closing — a plain fetch at that moment is
+   cancelled, which loses precisely the sightings of whatever someone was
+   looking at when they decided to leave.
+   ========================================================================== */
+
+const IMPRESSIONS = {
+  endpoint: '/api/impressions',
+  minVisible: 0.5,      // half the card
+  dwellMs: 1000,        // for a full second
+  flushMs: 5000,        // send at most every five seconds
+};
+
+const seenRoles = new Set();   // once per role per visit
+let impressionQueue = [];
+let impressionTimer = null;
+
+function flushImpressions(final) {
+  if (!impressionQueue.length || !IMPRESSIONS.endpoint) return;
+  const items = impressionQueue;
+  impressionQueue = [];
+  clearTimeout(impressionTimer);
+  impressionTimer = null;
+
+  const payload = JSON.stringify({ items });
+  try {
+    // On the way out, a fetch gets cancelled with the page. sendBeacon does not.
+    if (final && navigator.sendBeacon) {
+      navigator.sendBeacon(IMPRESSIONS.endpoint, new Blob([payload], { type: 'application/json' }));
+      return;
+    }
+    fetch(IMPRESSIONS.endpoint, {
+      method: 'POST', keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+    }).catch(() => {});
+  } catch (_) { /* never block the board for analytics */ }
+}
+
+function queueImpression(job) {
+  if (!job || seenRoles.has(job.id)) return;
+  seenRoles.add(job.id);
+  impressionQueue.push({
+    job_id: job.id, job_title: job.title, company: job.company,
+    hub: job.hub, category: job.category,
+  });
+  if (TRACK.debug) console.log('[seen]', job.title);
+  if (!impressionTimer) impressionTimer = setTimeout(() => flushImpressions(false), IMPRESSIONS.flushMs);
+}
+
+const dwelling = new Map();    // card element → the timer proving it stayed
+
+const roleWatcher = ('IntersectionObserver' in window)
+  ? new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const el = entry.target;
+        if (entry.isIntersecting) {
+          if (dwelling.has(el)) continue;
+          dwelling.set(el, setTimeout(() => {
+            dwelling.delete(el);
+            roleWatcher.unobserve(el);      // counted; stop watching it
+            const id = el.dataset.id;
+            queueImpression(hubJobs().find((j) => j.id === id));
+          }, IMPRESSIONS.dwellMs));
+        } else {
+          // Scrolled away before the second was up. It was never really seen.
+          clearTimeout(dwelling.get(el));
+          dwelling.delete(el);
+        }
+      }
+    }, { threshold: IMPRESSIONS.minVisible })
+  : null;
+
+/** Called after the board renders, since the cards are replaced wholesale. */
+function watchRoleCards() {
+  if (!roleWatcher) return;
+  document.querySelectorAll('.job-card[data-id]').forEach((el) => {
+    if (!seenRoles.has(el.dataset.id)) roleWatcher.observe(el);
+  });
+}
+
+// Both events, deliberately. `pagehide` is the one that fires on iOS Safari,
+// where `beforeunload` does not; `visibilitychange` covers switching tabs and
+// then never coming back, which on mobile is how most visits actually end.
+window.addEventListener('pagehide', () => flushImpressions(true));
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushImpressions(true);
+});
 
 /* Outbound clicks: every link that leaves the site, captured in one place so
    new links are covered automatically rather than needing their own handler. */
