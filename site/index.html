@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V132" />
+<meta name="ff-build" content="RING-V134" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -3870,14 +3870,16 @@ const GLOBE = {
   THREAD_START: 0, // the connector meets the sphere's surface exactly. Any gap
                    // left the line floating off the globe rather than running
                    // from it out to the node
-  THREAD_FAN: 0.05,// radians of spread around a company's bearing. Just enough
-                   // that two roles at the same company do not draw the exact
-                   // same line; wide enough to fan and the spokes stop reading
-                   // as one direction
+  THREAD_FAN: 0,   // no spread needed now that a company draws one rail. This
+                   // existed to stop its several rails coinciding; with one,
+                   // any angle other than the node's own reads as a tilt
   CHORD_TURN: 0.33,// how far round the sphere a company's dots sit from the
                    // company itself, as a fraction of a full turn. 0 puts them
                    // under their own node; 0.5 puts them directly opposite and
                    // sends every line through the centre
+  ROUTE_LANES: 11, // vertical channels the interior lines turn in
+  ROUTE_GAP: 9,    // px between channels — wider than the stroke, so two
+                   // neighbouring verticals read as two lines
   ARC_BOW: 0.26,   // how far a thread bows off the straight line, as a share
                    // of its own length. Long crossings sweep, short ones stay
                    // close to direct — which is what keeps them from tangling
@@ -4322,6 +4324,8 @@ function globeBuild(){
     }
   }
 
+  const ledBy = new Set();   // companies whose connector rail is already drawn
+
   // Roles sit on their hub's side of the sphere, and within it near the bearing
   // of the company they belong to. Both together are what keep the threads
   // short and radial: the side decides which half, the bearing decides where in
@@ -4373,6 +4377,16 @@ function globeBuild(){
         // Fixed per link: where in its company's fan this thread sits, and how
         // far out it starts. Random each frame would make the fan shimmer.
         spread: globeHash(roles.length + 91) - 0.5,
+        // Which vertical channel this line turns in. Orthogonal routing only
+        // separates lines if they turn at DIFFERENT x — turning at the midpoint
+        // of each run put every line with similar endpoints on the same column.
+        lane: roles.length,
+        // One connector per COMPANY, not per role. Every role at a company ends
+        // at the same node, so three roles drew three rails converging on one
+        // point — overlapping by construction, and no routing can separate
+        // lines that share both ends. The first link of each company owns the
+        // rail and its travelling pulse; the rest keep their interior line only.
+        lead: !ledBy.has(s.co.key) && (ledBy.add(s.co.key), true),
         reach: globeHash(roles.length + 137),
         bend: 0.35 + globeHash(roles.length + 17) * 1.15,
         speed: 0.5 + globeHash(roles.length + 7) * 0.5,
@@ -4556,7 +4570,16 @@ function globeThread(L, time, still){
      Corners are rounded by a few pixels — a true right angle at this stroke
      width reads as a rendering artefact. */
   const orthoRoute = () => {
-    const midX = a.x + (gx - a.x) * 0.5;
+    // Each line turns in its own channel. Lanes are spread either side of the
+    // midpoint, spaced wider than the stroke so two verticals in adjacent
+    // lanes read as two lines rather than a thick one.
+    const lanes = GLOBE.ROUTE_LANES;
+    const slot = ((L.lane % lanes) - (lanes - 1) / 2) * GLOBE.ROUTE_GAP;
+    const span = gx - a.x;
+    // Clamped to the middle 70% of the run: a channel pushed past either end
+    // would double the line back on itself.
+    const midX = a.x + span * 0.5 + Math.max(-Math.abs(span) * 0.35,
+      Math.min(Math.abs(span) * 0.35, slot));
     const dirX = Math.sign(midX - a.x) || 1;
     const dirY = Math.sign(gy - a.y) || 1;
     // Never round a corner by more than the segment it sits on.
@@ -4604,11 +4627,13 @@ function globeStep(time, once){
     L.pull.y += (ty - L.pull.y) * 0.06;
     const seg = globeThread(L, time, still);
     L.inner.setAttribute('d', seg.inner);
-    L.path.setAttribute('d', seg.outer);
+    // Only the company's lead link draws the rail out to its node; the others
+    // would draw the same line on top of it.
+    L.path.setAttribute('d', L.lead ? seg.outer : '');
 
-    // The pulse rides the connector out to the company node. That is the
-    // journey worth animating — a role reaching its employer — and it is where
-    // the eye already follows the line.
+    // One pulse per rail, for the same reason: several on one line, at
+    // different phases, reads as a queue rather than as a signal.
+    if (!L.lead){ L.dot.setAttribute('r', '0'); return; }
     const total = L.path.getTotalLength?.() || 0;
     if (total){
       const t = still ? 0.5 : (L.start + time / L.period) % 1;
