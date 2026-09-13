@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.propertyandtechnologyjobs.com/" />
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0B0618" />
-<meta name="ff-build" content="RING-V134" />
+<meta name="ff-build" content="RING-V135" />
 
 <!-- Open Graph: what Slack, LinkedIn and iMessage show when the link is
      shared. Without these a share renders as a bare URL. -->
@@ -333,7 +333,7 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 
 .g-thread:not(.g-thread-in),
 .g-thread:not(.g-thread-in).is-lit,
-#globe.is-focused .g-thread:not(.g-thread-in){opacity:.3;stroke-width:1.7}
+#globe.is-focused .g-thread:not(.g-thread-in){opacity:.6;stroke-width:3.2;stroke-linecap:round}
 
 /* The native <title> tooltip gave a grey OS box after a delay and showed only
    one line. This is the job card in miniature: title, company, location, pay —
@@ -3878,6 +3878,10 @@ const GLOBE = {
                    // under their own node; 0.5 puts them directly opposite and
                    // sends every line through the centre
   ROUTE_LANES: 11, // vertical channels the interior lines turn in
+  ROUTE_SPAN: 54,  // widest a company's whole fan of branches may spread. The
+                   // pitch shrinks to fit inside this, so a company with two
+                   // roles gets a generous gap and one with twelve stays inside
+                   // the sphere instead of fanning out through the rim.
   ROUTE_GAP: 9,    // px between channels — wider than the stroke, so two
                    // neighbouring verticals read as two lines
   ARC_BOW: 0.26,   // how far a thread bows off the straight line, as a share
@@ -4366,9 +4370,15 @@ function globeBuild(){
     const ring = globeSlots(flat.length, h);
     const turn = Math.round(ring.length * GLOBE.CHORD_TURN);
     const pts = ring.slice(turn).concat(ring.slice(0, turn));
+    // How many branches each company has, and which one this is. The lane
+    // was the running role count before, so `lane % 11` handed two branches of
+    // the same company the same channel whenever their indices were 11 apart —
+    // and two lines in one channel are one thick line.
+    const laneOf = new Map();
     flat.forEach((s, i) => {
       const p = pts[i];
       if (!p) return;
+      laneOf.set(s.co.key, (laneOf.get(s.co.key) || 0) + 1);
       const role = { key: 'j:' + s.job.id, job: s.job, hub: h, x: p.x, y: p.y };
       roles.push(role);
       links.push({
@@ -4380,7 +4390,8 @@ function globeBuild(){
         // Which vertical channel this line turns in. Orthogonal routing only
         // separates lines if they turn at DIFFERENT x — turning at the midpoint
         // of each run put every line with similar endpoints on the same column.
-        lane: roles.length,
+        lane: (laneOf.get(s.co.key) || 1) - 1,
+        lanes: (groups.get(s.co.key) || []).length,
         // One connector per COMPANY, not per role. Every role at a company ends
         // at the same node, so three roles drew three rails converging on one
         // point — overlapping by construction, and no routing can separate
@@ -4395,6 +4406,62 @@ function globeBuild(){
         pull: { x: 0, y: 0 },
       });
     });
+  }
+
+  /* Channels are assigned once per layout, not per frame, and every branch of
+     a company offsets from a base the whole company shares.
+
+     Offsetting from each branch's OWN midpoint was the residual bug: two
+     branches whose roles sit at different distances have different midpoints,
+     so lane 2 of one and lane 5 of another could land on the same column. A
+     shared base makes the columns distinct by construction — k * pitch apart,
+     always, whatever the roles are doing. */
+  {
+    const byCo = new Map();
+    for (const L of links){
+      if (!byCo.has(L.to.key)) byCo.set(L.to.key, []);
+      byCo.get(L.to.key).push(L);
+    }
+    for (const group of byCo.values()){
+      const CX = GLOBE.cxOf(group[0].hub), CY = GLOBE.CY;
+      const b = group[0].to;
+      const ca = Math.atan2(b.y - CY, b.x - CX);
+      const gap = GLOBE.R + GLOBE.THREAD_START;
+      const gx = CX + Math.cos(ca) * gap, gy = CY + Math.sin(ca) * gap;
+      const n = group.length;
+      const pitch = Math.min(GLOBE.ROUTE_GAP, GLOBE.ROUTE_SPAN / Math.max(1, n - 1));
+
+      // Each branch would rather turn at the midpoint of its own run, and each
+      // has a band it must stay inside or the line doubles back on itself. Two
+      // sweeps push them apart to `pitch` without leaving those bands — the
+      // same relaxation the company labels use, applied to columns instead of
+      // rows.
+      //
+      // A single formula cannot do this. Offsetting from each branch's own
+      // midpoint puts different lanes on the same column; offsetting from a
+      // shared base pushes branches outside their own runs and the clamp then
+      // piles them back together. Separation has to be negotiated between the
+      // branches, which means doing it once here with all of them in hand
+      // rather than per-branch inside the draw.
+      group.forEach((L) => {
+        const lo = Math.min(L.from.x, gx) + 9, hi = Math.max(L.from.x, gx) - 9;
+        L.chanLo = Math.min(lo, hi);
+        L.chanHi = Math.max(lo, hi);
+        L.chanX = (L.from.x + gx) / 2;
+      });
+      group.sort((p, q) => p.chanX - q.chanX);
+      const hold = (L, v) => Math.max(L.chanLo, Math.min(L.chanHi, v));
+      for (let pass = 0; pass < 4; pass++){
+        for (let i = 1; i < n; i++)
+          group[i].chanX = hold(group[i], Math.max(group[i].chanX, group[i - 1].chanX + pitch));
+        for (let i = n - 2; i >= 0; i--)
+          group[i].chanX = hold(group[i], Math.min(group[i].chanX, group[i + 1].chanX - pitch));
+      }
+      group.forEach((L, k) => {
+        L.runOff = (k - (n - 1) / 2) * pitch;   // its own homeward horizontal
+        L.entry = { x: gx, y: gy };
+      });
+    }
   }
 
   // Threads and their sparks carry the OTHER hub's colour. A purple node ends a
@@ -4570,33 +4637,42 @@ function globeThread(L, time, still){
      Corners are rounded by a few pixels — a true right angle at this stroke
      width reads as a rendering artefact. */
   const orthoRoute = () => {
-    // Each line turns in its own channel. Lanes are spread either side of the
-    // midpoint, spaced wider than the stroke so two verticals in adjacent
-    // lanes read as two lines rather than a thick one.
-    const lanes = GLOBE.ROUTE_LANES;
-    const slot = ((L.lane % lanes) - (lanes - 1) / 2) * GLOBE.ROUTE_GAP;
-    const span = gx - a.x;
-    // Clamped to the middle 70% of the run: a channel pushed past either end
-    // would double the line back on itself.
-    const midX = a.x + span * 0.5 + Math.max(-Math.abs(span) * 0.35,
-      Math.min(Math.abs(span) * 0.35, slot));
+    // Each branch gets its own channel AND its own homeward horizontal.
+    //
+    // The previous version separated the vertical runs and then sent every
+    // branch home along y = gy, the entry point's own row. Sharing one axis is
+    // sharing a line: three branches laid on top of each other for the last
+    // stretch, which is exactly the stacking in the screenshots. They now run
+    // home at gy + offset and converge on the entry point only in the final
+    // rounded corner, so no two branches of a company share any segment.
+    // Assigned at build time against a base shared by the whole company, then
+    // held inside this branch's own run so it cannot double back on itself.
+    const midX = L.chanX ?? (a.x + gx) / 2;
+    const runY = gy + (L.runOff || 0);
+
     const dirX = Math.sign(midX - a.x) || 1;
-    const dirY = Math.sign(gy - a.y) || 1;
-    // Never round a corner by more than the segment it sits on.
+    const dirY = Math.sign(runY - a.y) || 1;
+    const toEnd = gx - midX;
+    const dirE = Math.sign(toEnd) || 1;
+    const merge = Math.min(18, Math.abs(toEnd) * 0.45);
+    const mx = gx - dirE * merge;
+
+    // Never round a corner by more than half the segment it sits on.
     const rq = Math.max(0, Math.min(7,
-      Math.abs(midX - a.x) * 0.5, Math.abs(gy - a.y) * 0.5, Math.abs(gx - midX) * 0.5));
+      Math.abs(midX - a.x) * 0.5, Math.abs(runY - a.y) * 0.5, Math.abs(mx - midX) * 0.5));
 
     if (rq < 1){
-      // Degenerate: the three legs are too short to bend, so a straight run is
-      // both honest and tidier than three near-zero segments.
+      // Too short to bend: a straight run is honest and tidier than three
+      // near-zero segments.
       return `M ${f(a.x)} ${f(a.y)} L ${f(gx)} ${f(gy)}`;
     }
     return `M ${f(a.x)} ${f(a.y)}`
       + ` H ${f(midX - dirX * rq)}`
       + ` Q ${f(midX)} ${f(a.y)}, ${f(midX)} ${f(a.y + dirY * rq)}`
-      + ` V ${f(gy - dirY * rq)}`
-      + ` Q ${f(midX)} ${f(gy)}, ${f(midX + dirX * rq)} ${f(gy)}`
-      + ` H ${f(gx)}`;
+      + ` V ${f(runY - dirY * rq)}`
+      + ` Q ${f(midX)} ${f(runY)}, ${f(midX + dirE * rq)} ${f(runY)}`
+      + ` H ${f(mx)}`
+      + ` Q ${f(gx)} ${f(runY)}, ${f(gx)} ${f(gy)}`;
   };
   // Two halves, not one path: the run inside the sphere and the run out to the
   // node. Splitting them is what lets the interior hide while the outside stays
@@ -4633,7 +4709,11 @@ function globeStep(time, once){
 
     // One pulse per rail, for the same reason: several on one line, at
     // different phases, reads as a queue rather than as a signal.
-    if (!L.lead){ L.dot.setAttribute('r', '0'); return; }
+    // `continue`, not `return`. This used to return, which exits globeStep
+    // itself — so at the first non-lead link the whole loop stopped, every
+    // later thread kept an empty `d`, the meridians froze and the next frame
+    // was never requested. One keyword, and it read as a routing bug.
+    if (!L.lead){ L.dot.setAttribute('r', '0'); continue; }
     const total = L.path.getTotalLength?.() || 0;
     if (total){
       const t = still ? 0.5 : (L.start + time / L.period) % 1;
