@@ -1224,6 +1224,23 @@ h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:0;text-wrap:bala
 .wiz-step b{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink-soft)}
 
 .wiz-body{padding:24px 30px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:16px}
+.f input[type="file"]{
+  width:100%;padding:11px 13px;border-radius:10px;cursor:pointer;
+  border:1px dashed rgba(255,255,255,.22);background:rgba(255,255,255,.03);
+  color:var(--ink-dim);font:inherit;font-size:13px;
+  transition:border-color .2s,background .2s;
+}
+.f input[type="file"]:hover{border-color:rgba(127,77,224,.55);background:rgba(127,77,224,.06)}
+.f input[type="file"]::file-selector-button{
+  margin-right:12px;padding:6px 13px;border-radius:100px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;
+  font:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+}
+.file-state{margin-top:8px;font-size:12.5px;color:var(--ink-dim);min-height:1em}
+.file-state strong{color:var(--ink)}
+.file-state .is-err{color:#ff8f8f}
+.hint-inline{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-left:8px}
+
 .wiz-intro{font-size:13.5px;color:var(--ink-dim);line-height:1.6}
 .wiz-foot{padding:18px 30px 24px;border-top:1px solid var(--line);display:flex;gap:12px;align-items:center}
 .wiz-foot .spacer{flex:1}
@@ -2481,7 +2498,15 @@ function stageTwo(){
       <label for="a-background">Résumé / professional background <span class="req">*</span></label>
       <textarea id="a-background" placeholder="Paste your résumé, or write a few sentences: years of experience, scope you own, and the numbers you are measured on.">${esc(d.background || '')}</textarea>
       <div class="char-count" id="cc"></div>
-      <span class="hint">A résumé file upload sits here in the live version — this preview takes text only.</span>
+    </div>
+
+    <div class="f" data-for="resume">
+      <label for="a-resume">Résumé file <span class="hint-inline">optional</span></label>
+      <input type="file" id="a-resume" accept=".pdf,.doc,.docx,.rtf,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/rtf,text/plain" />
+      <div class="file-state" id="a-resume-state">${d.resume_name
+        ? `<strong>${esc(d.resume_name)}</strong> attached`
+        : ''}</div>
+      <span class="hint">PDF, Word, RTF or plain text, up to 5MB. The text above is what the review reads; the file is what gets passed to an employer if you are introduced.</span>
     </div>`;
 
   $('wiz-foot').innerHTML = `
@@ -2497,6 +2522,51 @@ function stageTwo(){
     if (n > 0 && n < 180) cc.textContent = n + ' characters — a little more detail sharpens the review';
   };
   ta.addEventListener('input', sync); sync();
+
+  /* Uploaded on selection, not at submit.
+
+     Doing it at submit means the slowest part of the whole flow happens after
+     the candidate has committed, behind a "Sending…" message, with a file that
+     might be rejected for size or type at the very last moment. Uploading now
+     means any problem surfaces while they can still do something about it, and
+     the submit itself stays a small JSON post. */
+  const fileEl = $('a-resume'), fileState = $('a-resume-state');
+  fileEl?.addEventListener('change', async () => {
+    const file = fileEl.files?.[0];
+    if (!file) return;
+
+    // Checked here as well as on the server: a 5MB rule enforced only after a
+    // slow upload finishes is not much of a rule.
+    if (file.size > 5 * 1024 * 1024) {
+      fileState.innerHTML = '<span class="is-err">That file is over 5MB.</span>';
+      fileEl.value = '';
+      return;
+    }
+
+    fileState.textContent = 'Uploading ' + file.name + '…';
+    try {
+      const res = await fetch('/api/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-Filename': file.name },
+        body: file,
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok || !out.key) throw new Error(out.error || 'Upload failed.');
+
+      apply.data.resume_key = out.key;
+      apply.data.resume_name = out.name || file.name;
+      apply.data.resume_type = out.type || file.type;
+      apply.data.resume_size = out.size ?? file.size;
+      fileState.innerHTML = '<strong>' + esc(apply.data.resume_name) + '</strong> attached';
+    } catch (err) {
+      // The application can still go without it. Saying so matters — otherwise
+      // a failed upload reads as a failed application and they abandon it.
+      fileState.innerHTML = '<span class="is-err">' + esc(err.message) +
+        ' You can still submit — paste the text above instead.</span>';
+      fileEl.value = '';
+      apply.data.resume_key = null;
+    }
+  });
 
   $('wiz-back').addEventListener('click', () => { apply.data.background = ta.value; apply.step = 1; renderApply(); });
   $('wiz-next').addEventListener('click', () => {
@@ -2772,6 +2842,10 @@ async function submitApply(){
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        resume_key: data.resume_key || null,
+        resume_name: data.resume_name || null,
+        resume_type: data.resume_type || null,
+        resume_size: data.resume_size || null,
         job_id: job.id, job_title: job.title, company: job.company,
         hub: job.hub, category: job.category, location: job.location,
         apply_url: job.applyUrl || null,
