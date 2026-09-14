@@ -65,6 +65,167 @@ async function recordClick(request, env) {
   return new Response(null, { status: 204 });
 }
 
+/* ===========================================================================
+   IMPRESSIONS — the missing top of the funnel
+   ---------------------------------------------------------------------------
+   job_clicks records intent: opened, started an application, left for the
+   employer. What it could never record is a role being SEEN and ignored, so
+   "eleven clicks" had no denominator and a role nobody ever scrolled past
+   looked identical to one everybody saw and skipped.
+
+   Batched on purpose. A visitor scrolling a fifty-role board would otherwise
+   fire fifty requests; the page collects sightings and posts them in groups,
+   so a busy scroll costs one write instead of fifty.
+
+   Unauthenticated and best-effort, exactly like recordClick: a failure here is
+   logged for you and invisible to the visitor. Analytics never breaks a board.
+   =========================================================================== */
+async function recordImpressions(request, env) {
+  if (!env.DB) return new Response(null, { status: 204 });   // tracking off
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'expected JSON' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const items = Array.isArray(body?.items) ? body.items : [];
+  if (!items.length) return new Response(null, { status: 204 });
+
+  // A cap, because this endpoint takes anonymous input. Fifty is more than a
+  // real page of roles, so an honest client never reaches it.
+  const day = new Date().toISOString().slice(0, 10);
+  const seen = new Map();
+  for (const it of items.slice(0, 50)) {
+    const id = clean(it?.job_id, 120);
+    if (!id) continue;
+    // Count repeats within one batch rather than writing the same row twice.
+    const prior = seen.get(id);
+    if (prior) { prior.n++; continue; }
+    seen.set(id, {
+      n: 1,
+      title: clean(it?.job_title),
+      company: clean(it?.company, 120),
+      hub: clean(it?.hub, 20),
+      category: clean(it?.category, 60),
+    });
+  }
+  if (!seen.size) return new Response(null, { status: 204 });
+
+  try {
+    // One statement per role, sent as a batch: D1 runs them in a single round
+    // trip, and one bad row cannot take the others down with it.
+    await env.DB.batch([...seen].map(([id, r]) => env.DB.prepare(
+      `INSERT INTO job_impressions (job_id, day, job_title, company, hub, category, seen)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+       ON CONFLICT(job_id, day) DO UPDATE SET
+         seen = seen + ?7,
+         job_title = COALESCE(excluded.job_title, job_title),
+         company   = COALESCE(excluded.company, company)`
+    ).bind(id, day, r.title, r.company, r.hub, r.category, r.n)));
+  } catch (err) {
+    if (/no such table/i.test(err.message)) {
+      console.error('impressions: run db/impressions-d1.sql');
+    } else {
+      console.error('impression insert failed:', err.message);
+    }
+  }
+
+  return new Response(null, { status: 204 });
+}
+
+/* The funnel, end to end: seen → opened → applied.
+
+   Rates are per SIGHTING, not per person. Nothing here identifies a visitor,
+   so one person looking at a role five times is five sightings — the same
+   trade the click table already makes, and worth stating plainly next to a
+   percentage that would otherwise read as "share of people". */
+async function funnel(request, env) {
+  if (!adminAuthed(request, env)) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+
+  const url = new URL(request.url);
+  const days = Math.min(365, Math.max(1, Number(url.searchParams.get('days')) || 30));
+  const since = '-' + days + ' days';
+  const sinceDay = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+  const limit = Math.min(100, Math.max(5, Number(url.searchParams.get('limit')) || 25));
+
+  let impressions = [];
+  let missing = false;
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT job_id, MAX(job_title) AS job_title, MAX(company) AS company,
+              MAX(hub) AS hub, SUM(seen) AS seen
+         FROM job_impressions WHERE day >= ?1
+        GROUP BY job_id`).bind(sinceDay).all();
+    impressions = rows.results || [];
+  } catch (err) {
+    // The rest still works without it — you get clicks with no denominator,
+    // which is what you had before this existed.
+    if (/no such table/i.test(err.message)) missing = true;
+    else console.error('funnel impressions failed:', err.message);
+  }
+
+  const clickRows = await env.DB.prepare(
+    `SELECT job_id, kind, COUNT(*) AS n
+       FROM job_clicks
+      WHERE clicked_at > datetime('now', ?1) AND job_id IS NOT NULL
+      GROUP BY job_id, kind`).bind(since).all();
+
+  const byJob = new Map();
+  for (const r of impressions) {
+    byJob.set(r.job_id, {
+      job_id: r.job_id, job_title: r.job_title, company: r.company, hub: r.hub,
+      seen: Number(r.seen) || 0, opened: 0, applied: 0, outbound: 0,
+    });
+  }
+  for (const r of (clickRows.results || [])) {
+    const e = byJob.get(r.job_id) || {
+      job_id: r.job_id, job_title: null, company: null, hub: null,
+      seen: 0, opened: 0, applied: 0, outbound: 0,
+    };
+    if (r.kind === 'open_role')    e.opened   += Number(r.n) || 0;
+    if (r.kind === 'submit_apply') e.applied  += Number(r.n) || 0;
+    if (r.kind === 'outbound')     e.outbound += Number(r.n) || 0;
+    byJob.set(r.job_id, e);
+  }
+
+  const rate = (a, b) => (b > 0 ? Math.round((a / b) * 1000) / 10 : null);
+  const roles = [...byJob.values()].map((e) => ({
+    ...e,
+    // Null, not zero, when there is no denominator. A role with no recorded
+    // sightings has an UNKNOWN open rate, and printing 0% would read as
+    // "everybody ignored it" — the opposite of what the data says.
+    open_rate: rate(e.opened, e.seen),
+    apply_rate: rate(e.applied, e.opened),
+  })).sort((a, b) => b.seen - a.seen || b.opened - a.opened);
+
+  const totals = roles.reduce((acc, r) => ({
+    seen: acc.seen + r.seen, opened: acc.opened + r.opened,
+    applied: acc.applied + r.applied, outbound: acc.outbound + r.outbound,
+  }), { seen: 0, opened: 0, applied: 0, outbound: 0 });
+  totals.open_rate = rate(totals.opened, totals.seen);
+  totals.apply_rate = rate(totals.applied, totals.opened);
+
+  // Browsing, from the events the board already sent: which hub people land on
+  // and how often a company's list gets opened.
+  const browse = await env.DB.prepare(
+    `SELECT kind, hub, COUNT(*) AS n
+       FROM job_clicks
+      WHERE clicked_at > datetime('now', ?1) AND kind IN ('view_hub','open_company')
+      GROUP BY kind, hub`).bind(since).all();
+
+  return new Response(JSON.stringify({
+    days,
+    note: missing
+      ? 'No impressions recorded yet — run db/impressions-d1.sql, then reload the board once.'
+      : 'Rates are per sighting, not per person: nothing here identifies a visitor.',
+    totals,
+    browse: browse.results || [],
+    roles: roles.slice(0, limit),
+  }), { headers: JSON_HEADERS });
+}
+
 async function stats(request, env, asCsv) {
   if (!env.DB) {
     return new Response(JSON.stringify({ error: 'No D1 binding. See db/click-tracking-d1.sql.' }), { status: 503, headers: JSON_HEADERS });
@@ -244,6 +405,118 @@ const asList = (v) => {
   return [];
 };
 
+/* ===========================================================================
+   RÉSUMÉ FILES
+   ---------------------------------------------------------------------------
+   The application form only ever took pasted text. That is enough to screen a
+   candidate and not enough to introduce one: an employer asks for the CV, and
+   a wall of plain text is not the document they mean.
+
+   Files go to R2, not to D1. A 2MB PDF in a database column bloats every query
+   that touches the row — including the admin list, which selects the whole
+   table — and D1 is not built to hand back binaries. R2 holds the file; the row
+   holds a key.
+
+   Uploaded BEFORE the application is submitted, because the form posts JSON and
+   a file does not belong in it. That leaves a window where a file exists with
+   no application attached to it, which the cron sweep below clears.
+   =========================================================================== */
+
+const RESUME_MAX = 5 * 1024 * 1024;         // 5MB
+const RESUME_TYPES = {
+  'application/pdf': 'pdf',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'text/plain': 'txt',
+  'application/rtf': 'rtf',
+  'text/rtf': 'rtf',
+};
+
+async function uploadResume(request, env) {
+  if (!env.RESUMES) {
+    return new Response(JSON.stringify({ error: 'File uploads are not configured yet.' }), { status: 503, headers: JSON_HEADERS });
+  }
+
+  const type = (request.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  const ext = RESUME_TYPES[type];
+  if (!ext) {
+    return new Response(JSON.stringify({
+      error: 'That file type is not accepted. Send a PDF, Word document, RTF or plain text.',
+    }), { status: 415, headers: JSON_HEADERS });
+  }
+
+  const declared = Number(request.headers.get('content-length') || 0);
+  if (declared > RESUME_MAX) {
+    return new Response(JSON.stringify({ error: 'That file is over 5MB.' }), { status: 413, headers: JSON_HEADERS });
+  }
+
+  const body = await request.arrayBuffer();
+  // Checked again on what actually arrived. Content-Length is what the client
+  // claims, and this endpoint takes anonymous uploads.
+  if (body.byteLength > RESUME_MAX) {
+    return new Response(JSON.stringify({ error: 'That file is over 5MB.' }), { status: 413, headers: JSON_HEADERS });
+  }
+  if (!body.byteLength) {
+    return new Response(JSON.stringify({ error: 'That file is empty.' }), { status: 400, headers: JSON_HEADERS });
+  }
+
+  // The candidate's filename is kept for display only and never used as the
+  // key. A name is attacker-controlled and can carry path separators; the key
+  // is ours and is random.
+  const name = clean(request.headers.get('x-filename'), 160) || ('resume.' + ext);
+  const key = 'resumes/' + new Date().toISOString().slice(0, 10) + '/' + crypto.randomUUID() + '.' + ext;
+
+  try {
+    await env.RESUMES.put(key, body, {
+      httpMetadata: { contentType: type },
+      customMetadata: { filename: name, uploaded_at: new Date().toISOString() },
+    });
+  } catch (err) {
+    console.error('resume upload failed:', err.message);
+    return new Response(JSON.stringify({ error: 'Could not store the file. Please try again.' }), { status: 500, headers: JSON_HEADERS });
+  }
+
+  return new Response(JSON.stringify({
+    ok: true, key, name, size: body.byteLength, type,
+  }), { headers: JSON_HEADERS });
+}
+
+/* Hand the file back. Admin only, and by application ref rather than by key:
+   the key is guessable-adjacent and appears in the database, whereas the ref is
+   what the Command Center already knows. */
+async function downloadResume(request, env) {
+  if (!adminAuthed(request, env)) {
+    return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  }
+  if (!env.DB || !env.RESUMES) {
+    return new Response(JSON.stringify({ error: 'File storage is not configured.' }), { status: 503, headers: JSON_HEADERS });
+  }
+
+  const ref = clean(new URL(request.url).searchParams.get('ref'), 20);
+  const row = await env.DB.prepare(
+    'SELECT resume_key, resume_name, resume_type, first_name, last_name FROM applications WHERE ref = ?1'
+  ).bind(ref).first().catch(() => null);
+
+  if (!row || !row.resume_key) {
+    return new Response(JSON.stringify({ error: 'No résumé on file for that application.' }), { status: 404, headers: JSON_HEADERS });
+  }
+
+  const obj = await env.RESUMES.get(row.resume_key);
+  if (!obj) return new Response(JSON.stringify({ error: 'The file is missing from storage.' }), { status: 404, headers: JSON_HEADERS });
+
+  // Named after the candidate, not after whatever their file was called. A
+  // folder of "resume.pdf" is useless once you have downloaded three of them.
+  const who = [row.first_name, row.last_name].filter(Boolean).join(' ') || ref;
+  const ext = (row.resume_name || '').split('.').pop() || 'pdf';
+  return new Response(obj.body, {
+    headers: {
+      'content-type': row.resume_type || 'application/octet-stream',
+      'content-disposition': `attachment; filename="${who.replace(/[^\w .-]/g, '')} - ${ref}.${ext}"`,
+      'cache-control': 'private, no-store',
+    },
+  });
+}
+
 async function receiveApplication(request, env) {
   if (!env.DB) {
     return new Response(JSON.stringify({ error: 'Applications are not configured yet.' }), { status: 503, headers: JSON_HEADERS });
@@ -272,6 +545,11 @@ async function receiveApplication(request, env) {
     last_name: clean(a.last_name, 80), email: clean(email, 200), phone: clean(a.phone, 40),
     current_company: clean(a.current_company, 120), current_position: clean(a.current_position, 120),
     linkedin: clean(a.linkedin, 200), background: clean(a.background, 20000),
+    // Written by the upload step just before this call. Validated there, so
+    // what arrives here is only ever a key we issued.
+    resume_key: clean(a.resume_key, 200), resume_name: clean(a.resume_name, 160),
+    resume_type: clean(a.resume_type, 120),
+    resume_size: Number.isFinite(+a.resume_size) ? Math.max(0, Math.round(+a.resume_size)) : null,
     score: Number.isFinite(+a.score) ? Math.max(0, Math.min(100, Math.round(+a.score))) : null,
     strengths: JSON.stringify(asList(a.strengths)), gaps: JSON.stringify(asList(a.gaps)),
     reviewed_by: a.reviewed_by === 'ai' ? 'ai' : 'keyword',
@@ -283,13 +561,15 @@ async function receiveApplication(request, env) {
          (ref, job_id, job_title, company, hub, category, location, apply_url,
           first_name, middle_initial, last_name, email, phone,
           current_company, current_position, linkedin, background,
-          score, strengths, gaps, reviewed_by)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)`
+          score, strengths, gaps, reviewed_by,
+          resume_key, resume_name, resume_type, resume_size)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25)`
     ).bind(
       row.ref, row.job_id, row.job_title, row.company, row.hub, row.category, row.location, row.apply_url,
       row.first_name, row.middle_initial, row.last_name, row.email, row.phone,
       row.current_company, row.current_position, row.linkedin, row.background,
-      row.score, row.strengths, row.gaps, row.reviewed_by
+      row.score, row.strengths, row.gaps, row.reviewed_by,
+      row.resume_key, row.resume_name, row.resume_type, row.resume_size
     ).run();
   } catch (err) {
     // The unique index on (email, job_id) catches a double submit. Tell the
@@ -365,6 +645,39 @@ async function notifyEmployer(env, row, opts = {}) {
       </p>
     </div>`;
 
+  /* The résumé rides along on a FULL introduction only.
+
+     Never on the teaser. The teaser exists to describe a candidate without
+     identifying them, so that the employer has to come back to you to get the
+     person — and a CV has their name, their email and their employment history
+     on the first page. Attaching it there would hand over the entire asset in
+     the message designed to withhold it, which is the one mistake this whole
+     flow is built to prevent. */
+  const attachments = [];
+  if (full && row.resume_key && env.RESUMES) {
+    try {
+      const obj = await env.RESUMES.get(row.resume_key);
+      if (obj) {
+        const buf = new Uint8Array(await obj.arrayBuffer());
+        // Chunked rather than one spread call: String.fromCharCode(...buf) on a
+        // multi-megabyte file blows the argument limit and throws.
+        let binary = '';
+        for (let i = 0; i < buf.length; i += 8192) {
+          binary += String.fromCharCode.apply(null, buf.subarray(i, i + 8192));
+        }
+        const ext = (row.resume_name || 'resume.pdf').split('.').pop();
+        attachments.push({
+          filename: `${name} - ${row.ref}.${ext}`.replace(/[^\w .-]/g, ''),
+          content: btoa(binary),
+        });
+      }
+    } catch (err) {
+      // The introduction still goes. A missing attachment is worth a log line,
+      // not a failed send that you then have to notice and repeat.
+      console.error('resume attach failed for ' + row.ref + ':', err.message);
+    }
+  }
+
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -379,6 +692,7 @@ async function notifyEmployer(env, row, opts = {}) {
           ? `${name} → ${row.job_title || 'a role'} at ${row.company || ''} (${row.ref})`
           : `Candidate for ${row.job_title || 'your role'}${row.score != null ? ` · ${row.score}/100 match` : ''} (${row.ref})`,
         html,
+        ...(attachments.length ? { attachments } : {}),
       }),
     });
     if (!res.ok) return { ok: false, error: 'Resend ' + res.status + ' ' + (await res.text().catch(() => '')).slice(0, 200) };
@@ -522,21 +836,55 @@ async function listApplications(request, env) {
   const hub = url.searchParams.get('hub');
   const status = url.searchParams.get('status');
 
+  /* Archived rows are hidden by default.
+
+     Archiving is deliberately NOT a status. A declined application is a real
+     outcome worth keeping and worth counting; archiving only says "I am done
+     looking at this". Folding the two together would mean you could not tell
+     a decline you have dealt with from one you have not, and un-archiving
+     would have to invent a status to put the row back into.
+
+     ?archived=only  to review what has been put away
+     ?archived=all   to ignore the distinction entirely */
+  const archived = url.searchParams.get('archived') || 'hide';
+
   let sql = `SELECT id, ref, job_title, company, hub, category, location, apply_url,
                     first_name, middle_initial, last_name, email, phone,
                     current_company, current_position, linkedin, background,
                     score, strengths, gaps, reviewed_by, status, notes,
                     sent_to_employer_at, send_error, declined_at, decline_reason,
-                    created_at
+                    archived_at, resume_name, resume_size, created_at
                FROM applications`;
   const where = [], binds = [];
   if (hub && hub !== 'all') { binds.push(hub); where.push('hub = ?' + binds.length); }
   if (status && status !== 'all') { binds.push(status); where.push('status = ?' + binds.length); }
+  if (archived === 'only') where.push('archived_at IS NOT NULL');
+  else if (archived !== 'all') where.push('archived_at IS NULL');
   if (where.length) sql += ' WHERE ' + where.join(' AND ');
   sql += ' ORDER BY created_at DESC LIMIT 500';
 
-  const rows = await env.DB.prepare(sql).bind(...binds).all();
+  let rows;
+  try {
+    rows = await env.DB.prepare(sql).bind(...binds).all();
+  } catch (err) {
+    // The column may not be added yet. Falling back keeps the panel working
+    // rather than showing an empty list and no explanation.
+    if (!/no such column/i.test(err.message)) throw err;
+    rows = await env.DB.prepare(
+      sql.replace(/, archived_at/, '')
+         .replace(/, resume_name, resume_size/, '')
+         .replace(/ AND archived_at IS (NOT )?NULL/g, '')
+         .replace(/ WHERE archived_at IS (NOT )?NULL/g, '')
+    ).bind(...binds).all();
+  }
+
   const counts = await env.DB.prepare('SELECT status, COUNT(*) n FROM applications GROUP BY status').all();
+  let archivedCount = 0;
+  try {
+    const a = await env.DB.prepare(
+      'SELECT COUNT(*) n FROM applications WHERE archived_at IS NOT NULL').first();
+    archivedCount = a?.n || 0;
+  } catch (_) { /* column not added yet */ }
 
   return new Response(JSON.stringify({
     applications: (rows.results || []).map((r) => ({
@@ -545,7 +893,46 @@ async function listApplications(request, env) {
       gaps: JSON.parse(r.gaps || '[]'),
     })),
     counts: Object.fromEntries((counts.results || []).map((c) => [c.status, c.n])),
+    archived: archivedCount,
   }), { headers: JSON_HEADERS });
+}
+
+/* Put an application away, or bring it back.
+
+   Takes a list, because the reason this exists is a backlog: archiving thirty
+   old declines one request at a time is the same chore in a different shape. */
+async function archiveApplications(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+
+  let body;
+  try { body = await request.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const refs = (Array.isArray(body.refs) ? body.refs : [body.ref])
+    .map((r) => clean(r, 20)).filter(Boolean);
+  if (!refs.length) return new Response(JSON.stringify({ error: 'No ref given.' }), { status: 400, headers: JSON_HEADERS });
+
+  const undo = body.archived === false;
+  const marks = refs.map((_, i) => '?' + (i + 1)).join(',');
+
+  try {
+    const res = await env.DB.prepare(
+      `UPDATE applications
+          SET archived_at = ${undo ? 'NULL' : "datetime('now')"},
+              updated_at = datetime('now')
+        WHERE ref IN (${marks})`).bind(...refs).run();
+    return new Response(JSON.stringify({
+      ok: true, archived: !undo, changed: res.meta?.changes ?? refs.length,
+    }), { headers: JSON_HEADERS });
+  } catch (err) {
+    if (/no such column/i.test(err.message)) {
+      return new Response(JSON.stringify({
+        error: 'Add the archived_at column first — see db/archive-d1.sql.',
+      }), { status: 503, headers: JSON_HEADERS });
+    }
+    throw err;
+  }
 }
 
 async function updateApplication(request, env) {
@@ -640,8 +1027,16 @@ async function decline(request, env) {
   // Status first. The record is correct even if the email fails.
   try {
     await env.DB.prepare(
+      /* Declining archives it too.
+
+         A decline is a finished decision, and leaving finished decisions in the
+         default list is the whole problem — they accumulate forever and the
+         handful of applications that still need a decision get buried among
+         them. The row is not deleted or hidden from the record: it is still
+         counted, still in the Declined filter, and one click from coming back. */
       `UPDATE applications
           SET status = 'passed', declined_at = datetime('now'),
+              archived_at = COALESCE(archived_at, datetime('now')),
               decline_reason = ?2, updated_at = datetime('now')
         WHERE ref = ?1`).bind(row.ref, reason).run();
   } catch (_) {
@@ -1558,6 +1953,15 @@ async function recordDetection(request, env) {
 
 const DISCOVERY_MODEL = 'claude-sonnet-5';
 
+/* How long any single outbound request may take.
+
+   Every fetch in here used to have no timeout at all. One careers page that
+   accepts a connection and then never answers would hold the whole discovery
+   run open until Cloudflare gave up on it, and the browser would sit on
+   "Searching and verifying" with nothing ever coming back. A slow company
+   should cost its own verification, not the whole run. */
+const PROBE_MS = 8000;
+
 /** Probes a careers URL and returns what is really there. */
 async function verifyCompany(url) {
   let res;
@@ -1565,9 +1969,12 @@ async function verifyCompany(url) {
     res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FoundersAndFriendsBot/1.0)' },
       redirect: 'follow',
+      signal: AbortSignal.timeout(PROBE_MS),
     });
   } catch (err) {
-    return { verified: false, error: 'unreachable: ' + err.message };
+    return { verified: false, error: /timeout|abort/i.test(err.message || '')
+      ? 'careers page did not respond in ' + (PROBE_MS / 1000) + 's'
+      : 'unreachable: ' + err.message };
   }
   if (!res.ok) return { verified: false, error: 'HTTP ' + res.status };
 
@@ -1611,7 +2018,10 @@ async function countRoles(method, slug) {
     breezy: `https://${slug}.breezy.hr/json`,
   };
   try {
-    const r = await fetch(urls[method], { headers: { Accept: 'application/json' } });
+    const r = await fetch(urls[method], {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(PROBE_MS),
+    });
     if (!r.ok) return { count: 0, titles: [] };
     const b = await r.json();
     const list = b.jobs || b.results || (Array.isArray(b) ? b : []);
@@ -1763,24 +2173,56 @@ Accuracy matters more than quantity. A company that does not exist, or a URL tha
 Return at most 8. Reply as JSON only:
 {"companies":[{"name":"...","careers_url":"https://...","website":"https://...","segment":"...","why":"one line on why they fit"}]}`;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: DISCOVERY_MODEL,
-      max_tokens: 4000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 8 }],
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
+  /* The whole run has to answer before Cloudflare stops waiting.
+
+     An edge request that produces no response for about 100 seconds is closed
+     with a 524, and the browser sees a dead connection rather than an error —
+     which is exactly the symptom: the button fires and the status line never
+     changes. This call alone could reach that on its own. Eight web searches
+     took as long as they took, and then eight careers pages were probed one
+     after another, each without a timeout.
+
+     So: a hard 55s budget for the model, and the search count comes down to
+     five. Fewer searches is a real cost in coverage, and a run that finishes
+     with six companies beats one that finds ten and never returns them. */
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: DISCOVERY_MODEL,
+        max_tokens: 4000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: AbortSignal.timeout(55000),
+    });
+  } catch (err) {
+    console.error('discovery: model call failed —', err.message);
+    return new Response(JSON.stringify({
+      error: /timeout|abort/i.test(err.message || '')
+        ? 'The search took too long and was stopped. Try again — it usually succeeds on a second run.'
+        : 'Could not reach the discovery service.',
+    }), { status: 504, headers: JSON_HEADERS });
+  }
 
   if (!res.ok) {
-    console.error('discovery: Anthropic ' + res.status + ' ' + (await res.text().catch(() => '')).slice(0, 300));
-    return new Response(JSON.stringify({ error: 'The discovery service is unavailable.' }), { status: 502, headers: JSON_HEADERS });
+    const detail = (await res.text().catch(() => '')).slice(0, 300);
+    console.error('discovery: Anthropic ' + res.status + ' ' + detail);
+    // The status is worth passing on. "Unavailable" reads the same whether the
+    // key is wrong, the credit has run out, or the model name is stale, and
+    // those need completely different fixes.
+    return new Response(JSON.stringify({
+      error: res.status === 401 ? 'ANTHROPIC_API_KEY was rejected.'
+           : res.status === 404 ? 'The discovery model name is not recognised: ' + DISCOVERY_MODEL
+           : res.status === 429 ? 'Rate limited by the API. Wait a minute and try again.'
+           : 'The discovery service returned HTTP ' + res.status + '.',
+    }), { status: 502, headers: JSON_HEADERS });
   }
 
   // The reply mixes text and tool-use blocks; the JSON is in the text ones.
@@ -1801,13 +2243,26 @@ Return at most 8. Reply as JSON only:
   const runId = new Date().toISOString().slice(0, 16);
   let verified = 0, queued = 0;
 
-  for (const c of proposed.slice(0, 8)) {
-    const name = clean(c.name, 120);
-    const careers = clean(c.careers_url, 500);
-    if (!name || !careers) continue;
+  /* Probed together rather than one after another.
 
+     Eight companies checked in series is eight page loads plus eight ATS calls
+     end to end — a minute on its own, on top of the model call, for work that
+     has no ordering between the items. In parallel it costs one slow company
+     instead of the sum of all of them. The database writes stay sequential;
+     D1 is the one thing here that does not like being hammered. */
+  const candidates = proposed.slice(0, 8)
+    .map((c) => ({ c, name: clean(c.name, 120), careers: clean(c.careers_url, 500) }))
+    .filter((x) => x.name && x.careers);
+
+  const checks = await Promise.all(
+    candidates.map((x) => verifyCompany(x.careers)
+      .catch((err) => ({ verified: false, error: 'probe failed: ' + err.message })))
+  );
+
+  for (let i = 0; i < candidates.length; i++) {
+    const { c, name, careers } = candidates[i];
+    const v = checks[i];
     const id = slugify(name);
-    const v = await verifyCompany(careers);
     if (v.verified) verified++;
 
     try {
@@ -2254,6 +2709,386 @@ async function runScheduledReports(env, { days = 7 } = {}) {
   return { ok: true };
 }
 
+/* ===========================================================================
+   SEARCH: REAL PAGES FOR REAL ROLES
+   ---------------------------------------------------------------------------
+   The board is a single-page app addressed entirely by hash — #/, #/roles,
+   #/proptech-hub. A fragment is not a URL as far as a crawler is concerned:
+   everything after the # is stripped before the request is ever made, so
+   Google has only ever seen one page here. Five hundred and fifty open roles,
+   one indexable address, and nothing to rank for except the homepage.
+
+   That is not a meta-tag problem and no amount of title tuning fixes it. It
+   needs addresses, and addresses need a server. The Worker is already in front
+   of every request, so the pages are rendered here:
+
+     /jobs/<id>              one page per role
+     /jobs/in/<city>         one page per market
+     /jobs/at/<company>      one page per employer
+     /sitemap.xml            everything above, with dates
+     /robots.txt             pointing at the sitemap
+
+   Rendered as HTML rather than handed to the SPA. A crawler that has to run
+   JavaScript to see content gets a second-class crawl at best, and Google Jobs
+   — which is where job-board traffic actually comes from — reads the JobPosting
+   block out of the initial response or not at all.
+
+   These pages are not a second site. Each one carries the real content, says
+   what it is, and links into the app for anyone who wants to browse rather
+   than read.
+   =========================================================================== */
+
+/* The feed, cached per isolate.
+
+   Every one of these pages needs the whole feed, and a crawler hitting fifty
+   role pages in a burst would otherwise mean fifty fetches of the same 2MB
+   file. Cached for five minutes: long enough to absorb a crawl, short enough
+   that a scrape publishing at noon is live before anyone notices. */
+let FEED_CACHE = { at: 0, data: null };
+const FEED_TTL_MS = 5 * 60 * 1000;
+
+async function feedFor(request, env) {
+  const now = Date.now();
+  if (FEED_CACHE.data && (now - FEED_CACHE.at) < FEED_TTL_MS) return FEED_CACHE.data;
+  try {
+    const res = await env.ASSETS.fetch(new Request(new URL('/jobs.json', request.url)));
+    if (!res.ok) return FEED_CACHE.data;          // keep the stale copy over nothing
+    const data = await res.json();
+    FEED_CACHE = { at: now, data };
+    return data;
+  } catch (_) {
+    return FEED_CACHE.data;
+  }
+}
+
+const slug = (s) => String(s || '')
+  .toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+
+const htmlEsc = (s) => String(s ?? '')
+  .replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const SITE = 'https://www.propertyandtechnologyjobs.com';
+
+/* A role's own address. Built from the title and company rather than the raw
+   id, because `greenhouse:entrata:4567891` tells a person nothing and a URL is
+   read by people in search results, not only by crawlers. The id stays on the
+   end so two identically-titled roles at one company cannot collide. */
+function jobPath(j) {
+  const short = String(j.id || '').split(':').pop().slice(-10);
+  return `/jobs/${slug(j.title)}-at-${slug(j.company)}-${short}`;
+}
+
+/* The city, as a place rather than a string.
+
+   Locations arrive as "Dallas, TX", "Remote", "Greenwood Village, CO" and
+   occasionally "Multiple locations". Only the ones that name a real place get
+   a page: a "jobs in multiple locations" page is the kind of empty, generated
+   result that thin-content penalties exist for. */
+function cityOf(j) {
+  const raw = String(j.location || '').trim();
+  if (!raw) return null;
+  if (/^(remote|anywhere|nationwide|various|multiple)/i.test(raw)) return null;
+  const m = raw.match(/^([^,]+),\s*([A-Z]{2})\b/);
+  if (!m) return null;
+  return { city: m[1].trim(), state: m[2], label: `${m[1].trim()}, ${m[2]}` };
+}
+
+const PAGE_CSS = `
+:root{--bg:#0B0618;--ink:#EDE9F7;--dim:#9B93B5;--line:rgba(255,255,255,.12);--acc:#A98FEC}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.65 Georgia,'Times New Roman',serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:28px 22px 80px}
+a{color:var(--acc)}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:34px}
+.brand{font-weight:700;letter-spacing:.01em;text-decoration:none;color:var(--ink)}
+.back{font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;
+  text-transform:uppercase;text-decoration:none;color:var(--dim);
+  border:1px solid var(--line);border-radius:100px;padding:9px 15px}
+.back:hover{color:var(--ink);border-color:var(--acc)}
+h1{font-size:clamp(1.6rem,4vw,2.3rem);line-height:1.2;margin:0 0 10px}
+.meta{color:var(--dim);margin:0 0 26px;font-size:15px}
+.meta a{color:var(--dim)}
+.cta{display:inline-block;margin:6px 0 30px;padding:13px 26px;border-radius:100px;
+  background:var(--acc);color:#140B2B;text-decoration:none;font-weight:700}
+.body{white-space:pre-wrap;color:#D5CEE8}
+.body h2{font-size:1.05rem;margin:30px 0 8px;color:var(--ink)}
+ul.roles{list-style:none;padding:0;margin:0}
+ul.roles li{padding:15px 0;border-bottom:1px solid var(--line)}
+ul.roles a{text-decoration:none;font-weight:700;display:block;margin-bottom:3px}
+ul.roles span{color:var(--dim);font-size:14px}
+nav.also{margin-top:44px;padding-top:22px;border-top:1px solid var(--line);
+  color:var(--dim);font-size:14px}
+nav.also a{margin-right:14px;display:inline-block;padding:3px 0}
+footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);
+  color:var(--dim);font-size:13px}`;
+
+function shell({ title, description, canonical, schema, body }) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${htmlEsc(title)}</title>
+<meta name="description" content="${htmlEsc(description)}" />
+<link rel="canonical" href="${htmlEsc(canonical)}" />
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="${htmlEsc(title)}" />
+<meta property="og:description" content="${htmlEsc(description)}" />
+<meta property="og:url" content="${htmlEsc(canonical)}" />
+<meta property="og:image" content="${SITE}/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+${schema ? `<script type="application/ld+json">${JSON.stringify(schema)}</script>` : ''}
+<style>${PAGE_CSS}</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="/">Founders &amp; Friends</a>
+    <a class="back" href="/">Browse every role →</a>
+  </header>
+  ${body}
+  <footer>
+    Founders &amp; Friends — the scattered-site talent network.
+    <a href="/">Every open role</a>
+  </footer>
+</div>
+</body>
+</html>`;
+}
+
+const HTML_HEADERS = {
+  'content-type': 'text/html; charset=utf-8',
+  // Long enough to absorb a crawl, short enough that a role closing today is
+  // gone from search within the hour.
+  'cache-control': 'public, max-age=600, s-maxage=1800',
+};
+
+/* One role, one page. */
+async function jobPage(request, env, path) {
+  const feed = await feedFor(request, env);
+  const jobs = (feed && feed.jobs) || [];
+  const job = jobs.find((j) => jobPath(j) === path);
+
+  /* A role that has closed returns 410, not 404 and not a redirect home.
+
+     410 means "this existed and is gone", which is exactly true and is the
+     signal Google uses to drop a job posting quickly rather than re-crawling
+     it for weeks. Redirecting to the homepage instead would be the soft-404
+     that gets whole sections of job boards demoted. */
+  if (!job) {
+    return new Response(shell({
+      title: 'This role has closed — Founders & Friends',
+      description: 'This position is no longer open. Browse current roles across single-family rental operators and proptech.',
+      canonical: SITE + path,
+      body: `<h1>This role has closed</h1>
+        <p class="meta">The posting is no longer open. It may have been filled, or withdrawn by the employer.</p>
+        <a class="cta" href="/">See roles that are open now</a>`,
+    }), { status: 410, headers: HTML_HEADERS });
+  }
+
+  const city = cityOf(job);
+  const title = `${job.title} at ${job.company}${city ? ' — ' + city.label : ''}`;
+  const desc = (job.summary || `${job.title} at ${job.company}. ${job.location || ''}`)
+    .replace(/\s+/g, ' ').slice(0, 155);
+
+  /* JobPosting schema — the reason this page exists.
+
+     Google Jobs is where job-board traffic comes from, and it reads this block
+     rather than the prose. `validThrough` matters more than it looks: without
+     it a posting is treated as open forever, and a board full of stale roles
+     loses the rich result for all of them, not just the expired ones. Thirty
+     days from the posting date is the convention and matches how often these
+     boards actually turn over. */
+  const posted = job.posted_at || job.scraped_at || new Date().toISOString();
+  const through = new Date(new Date(posted).getTime() + 30 * 86400000).toISOString();
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: job.title,
+    description: `<p>${htmlEsc(job.description || job.summary || job.title)}</p>`,
+    datePosted: String(posted).slice(0, 10),
+    validThrough: String(through).slice(0, 10),
+    employmentType: job.employment_type === 'contract' ? 'CONTRACTOR' : 'FULL_TIME',
+    hiringOrganization: { '@type': 'Organization', name: job.company, sameAs: SITE },
+    jobLocation: city
+      ? { '@type': 'Place', address: { '@type': 'PostalAddress',
+          addressLocality: city.city, addressRegion: city.state, addressCountry: 'US' } }
+      : { '@type': 'Place', address: { '@type': 'PostalAddress', addressCountry: 'US' } },
+    directApply: false,
+  };
+  // Remote roles need the telecommute marker or Google files them under
+  // whatever address is attached, which is nowhere.
+  if (!city && /remote|anywhere|nationwide/i.test(job.location || '')) {
+    schema.jobLocationType = 'TELECOMMUTE';
+    schema.applicantLocationRequirements = { '@type': 'Country', name: 'USA' };
+  }
+  // Only when the employer published it. An invented range is worse than none:
+  // it is wrong in a rich result and it is the candidate who finds out.
+  if (job.comp_min && job.comp_max) {
+    schema.baseSalary = { '@type': 'MonetaryAmount', currency: 'USD',
+      value: { '@type': 'QuantitativeValue', minValue: job.comp_min,
+               maxValue: job.comp_max, unitText: 'YEAR' } };
+  }
+
+  /* Internal links that mean something: the same city, then the same employer.
+     A candidate reading a Dallas leasing role wants the other Dallas roles —
+     and a crawler follows the same edges, which is what gets the city pages
+     discovered without a single one being submitted anywhere. */
+  const sameCity = city ? jobs.filter((j) =>
+    j.id !== job.id && cityOf(j)?.label === city.label).slice(0, 6) : [];
+  const sameCo = jobs.filter((j) => j.id !== job.id && j.company === job.company).slice(0, 6);
+
+  const list = (items) => items.map((j) => `<li>
+      <a href="${jobPath(j)}">${htmlEsc(j.title)}</a>
+      <span>${htmlEsc(j.company)}${j.location ? ' · ' + htmlEsc(j.location) : ''}</span>
+    </li>`).join('');
+
+  const body = `
+    <h1>${htmlEsc(job.title)}</h1>
+    <p class="meta">
+      <a href="/jobs/at/${slug(job.company)}">${htmlEsc(job.company)}</a>
+      ${city ? ` · <a href="/jobs/in/${slug(city.label)}">${htmlEsc(city.label)}</a>` : job.location ? ' · ' + htmlEsc(job.location) : ''}
+      ${job.category ? ' · ' + htmlEsc(job.category) : ''}
+    </p>
+    <a class="cta" href="/#/roles">Apply through Founders &amp; Friends</a>
+    <div class="body">${htmlEsc(job.description || job.summary || '')}</div>
+    ${sameCity.length ? `<h2>More roles in ${htmlEsc(city.label)}</h2><ul class="roles">${list(sameCity)}</ul>` : ''}
+    ${sameCo.length ? `<h2>More at ${htmlEsc(job.company)}</h2><ul class="roles">${list(sameCo)}</ul>` : ''}`;
+
+  return new Response(shell({
+    title: title + ' | Founders & Friends',
+    description: desc, canonical: SITE + path, schema, body,
+  }), { headers: HTML_HEADERS });
+}
+
+/* A market, or an employer. Same shape, different filter. */
+async function collectionPage(request, env, kind, key) {
+  const feed = await feedFor(request, env);
+  const jobs = (feed && feed.jobs) || [];
+
+  const matches = kind === 'in'
+    ? jobs.filter((j) => { const c = cityOf(j); return c && slug(c.label) === key; })
+    : jobs.filter((j) => slug(j.company) === key);
+
+  /* An empty collection page is thin content by definition, and a board that
+     generates one per city whether or not anyone is hiring there is the exact
+     pattern that gets job boards filtered out wholesale. No roles, no page. */
+  if (!matches.length) {
+    return new Response(shell({
+      title: 'Nothing open here right now — Founders & Friends',
+      description: 'No current openings match. Browse every open role across single-family rental operators and proptech.',
+      canonical: SITE + `/jobs/${kind}/${key}`,
+      body: `<h1>Nothing open here right now</h1>
+        <p class="meta">No roles match at the moment. New ones are added every week.</p>
+        <a class="cta" href="/">Browse every open role</a>`,
+    }), { status: 404, headers: HTML_HEADERS });
+  }
+
+  const label = kind === 'in' ? cityOf(matches[0]).label : matches[0].company;
+  const heading = kind === 'in'
+    ? `Single-family rental and proptech jobs in ${label}`
+    : `Open roles at ${label}`;
+  const desc = kind === 'in'
+    ? `${matches.length} open role${matches.length === 1 ? '' : 's'} in ${label} across single-family rental operators and the technology companies serving them.`
+    : `${matches.length} open role${matches.length === 1 ? '' : 's'} at ${label}. Leasing, asset management, product, engineering and leadership.`;
+
+  // Cross-links to neighbouring markets, so the city pages form a network
+  // rather than a set of dead ends hanging off the homepage.
+  const others = kind === 'in'
+    ? [...new Set(jobs.map((j) => cityOf(j)?.label).filter(Boolean))]
+        .filter((l) => l !== label).slice(0, 12)
+    : [];
+
+  const body = `
+    <h1>${htmlEsc(heading)}</h1>
+    <p class="meta">${matches.length} open role${matches.length === 1 ? '' : 's'} · updated ${htmlEsc(String(feed.generated_at || '').slice(0, 10))}</p>
+    <ul class="roles">${matches.slice(0, 100).map((j) => `<li>
+      <a href="${jobPath(j)}">${htmlEsc(j.title)}</a>
+      <span>${htmlEsc(j.company)}${j.location ? ' · ' + htmlEsc(j.location) : ''}</span>
+    </li>`).join('')}</ul>
+    ${others.length ? `<nav class="also">Other markets:
+      ${others.map((l) => `<a href="/jobs/in/${slug(l)}">${htmlEsc(l)}</a>`).join('')}</nav>` : ''}`;
+
+  return new Response(shell({
+    title: `${heading} | Founders & Friends`,
+    description: desc,
+    canonical: SITE + `/jobs/${kind}/${key}`,
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      itemListElement: matches.slice(0, 100).map((j, i) => ({
+        '@type': 'ListItem', position: i + 1,
+        url: SITE + jobPath(j), name: `${j.title} at ${j.company}`,
+      })),
+    },
+    body,
+  }), { headers: HTML_HEADERS });
+}
+
+/* Every page, with the date the feed last changed. */
+async function sitemap(request, env) {
+  const feed = await feedFor(request, env);
+  const jobs = (feed && feed.jobs) || [];
+  const stamp = String(feed?.generated_at || new Date().toISOString()).slice(0, 10);
+
+  const cities = [...new Set(jobs.map((j) => cityOf(j)?.label).filter(Boolean))];
+  const companies = [...new Set(jobs.map((j) => j.company).filter(Boolean))];
+
+  const url = (loc, pri, freq) =>
+    `<url><loc>${SITE}${loc}</loc><lastmod>${stamp}</lastmod>` +
+    `<changefreq>${freq}</changefreq><priority>${pri}</priority></url>`;
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${url('/', '1.0', 'daily')}
+${cities.map((c) => url('/jobs/in/' + slug(c), '0.8', 'daily')).join('\n')}
+${companies.map((c) => url('/jobs/at/' + slug(c), '0.7', 'weekly')).join('\n')}
+${jobs.map((j) => url(jobPath(j), '0.6', 'weekly')).join('\n')}
+</urlset>`;
+
+  return new Response(xml, {
+    headers: { 'content-type': 'application/xml; charset=utf-8',
+               'cache-control': 'public, max-age=3600' },
+  });
+}
+
+function robots() {
+  /* The admin panel and the API are disallowed — not as security, which a
+     robots file has never been, but so a crawler does not spend its budget on
+     pages that will only ever return 401. */
+  return new Response(
+`User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
+
+Sitemap: ${SITE}/sitemap.xml
+`, { headers: { 'content-type': 'text/plain; charset=utf-8',
+                'cache-control': 'public, max-age=86400' } });
+}
+
+/* Routing. Returns null when the path is not ours, so the caller falls
+   through to the API routes and then to the assets exactly as before. */
+async function seoRoute(request, env, pathname) {
+  if (request.method !== 'GET') return null;
+  if (pathname === '/robots.txt') return robots();
+  if (pathname === '/sitemap.xml') return sitemap(request, env);
+
+  const coll = pathname.match(/^\/jobs\/(in|at)\/([a-z0-9-]+)\/?$/);
+  if (coll) return collectionPage(request, env, coll[1], coll[2]);
+
+  if (/^\/jobs\/[a-z0-9-]+$/.test(pathname)) return jobPage(request, env, pathname);
+
+  return null;
+}
+
+
 export default {
   /* Cron entry point. Schedule lives in wrangler.jsonc. */
   async scheduled(event, env, ctx) {
@@ -2276,15 +3111,26 @@ export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
 
+    /* Search pages first. They answer /jobs/*, /sitemap.xml and /robots.txt
+       and return null for everything else, so the API routes below and the
+       asset fallthrough behave exactly as they did. */
+    const page = await seoRoute(request, env, pathname);
+    if (page) return page;
+
     if (pathname === '/api/click'  && request.method === 'POST') return recordClick(request, env);
+    if (pathname === '/api/impressions' && request.method === 'POST') return recordImpressions(request, env);
+    if (pathname === '/api/funnel' && request.method === 'GET')  return funnel(request, env);
     if (pathname === '/api/screen' && request.method === 'POST') return screen(request, env);
     if (pathname === '/api/stats') return stats(request, env, false);
     if (pathname === '/api/stats.csv') return stats(request, env, true);
 
     if (pathname === '/api/apply'         && request.method === 'POST') return receiveApplication(request, env);
+    if (pathname === '/api/resume'        && request.method === 'POST') return uploadResume(request, env);
+    if (pathname === '/api/resume'        && request.method === 'GET')  return downloadResume(request, env);
     if (pathname === '/api/admin/login'   && request.method === 'POST') return adminLogin(request, env);
     if (pathname === '/api/applications'  && request.method === 'GET')  return listApplications(request, env);
     if (pathname === '/api/applications'  && request.method === 'POST') return updateApplication(request, env);
+    if (pathname === '/api/applications/archive' && request.method === 'POST') return archiveApplications(request, env);
     if (pathname === '/api/forward'       && request.method === 'POST') return introduce(request, env);
     if (pathname === '/api/decline'       && request.method === 'POST') return decline(request, env);
     if (pathname === '/api/applications/delete' && request.method === 'POST') return deleteApplication(request, env);
