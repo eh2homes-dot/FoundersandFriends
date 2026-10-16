@@ -812,6 +812,120 @@ function adminAuthed(request, env) {
   return new URL(request.url).searchParams.get('key') === env.STATS_KEY;
 }
 
+/* ===========================================================================
+   Job leads — Apply Now captures who is applying, then sends them on
+   ===========================================================================
+   Apply Now asks for name, email, phone, current company and LinkedIn, saves
+   them here, and the page sends the candidate to the employer's own posting.
+   The candidate is never blocked by this: the page redirects even if the save
+   fails. That is why the save has to be cheap and forgiving — truncate rather
+   than reject, and treat a repeat press as an update, not an error.
+
+   The table creates itself on first use, so the only deploy step is this file.
+   db/job-leads-d1.sql has the same schema for reference.
+   =========================================================================== */
+
+let leadsTableReady = false;
+async function ensureLeadsTable(env) {
+  if (leadsTableReady) return;
+  await env.DB.batch([
+    env.DB.prepare(`create table if not exists job_leads (
+      id integer primary key autoincrement,
+      created_at text not null default (datetime('now')),
+      first_name text, last_name text, email text not null, phone text,
+      current_company text, linkedin text,
+      job_id text, job_title text, company text, hub text, apply_url text,
+      referrer text, country text,
+      repeat_count integer not null default 1)`),
+    env.DB.prepare('create unique index if not exists job_leads_email_job on job_leads (email, job_id)'),
+    env.DB.prepare('create index if not exists job_leads_created on job_leads (created_at)'),
+    env.DB.prepare('create index if not exists job_leads_company on job_leads (company)'),
+  ]);
+  leadsTableReady = true;
+}
+
+async function captureLead(request, env) {
+  if (!env.DB) return new Response(JSON.stringify({ ok: false, error: 'not configured' }), { status: 503, headers: JSON_HEADERS });
+
+  let a;
+  try { a = await request.json(); }
+  catch { return new Response(JSON.stringify({ ok: false, error: 'Expected JSON.' }), { status: 400, headers: JSON_HEADERS }); }
+
+  const email = String(a.email || '').trim().toLowerCase();
+  const missing = ['first_name', 'last_name'].filter((k) => !String(a[k] || '').trim());
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) missing.push('email');
+  if (missing.length) {
+    return new Response(JSON.stringify({ ok: false, error: 'Missing: ' + missing.join(', ') }), { status: 400, headers: JSON_HEADERS });
+  }
+
+  // Only http(s) links are stored as the destination. The page is what does
+  // the redirect, but a stored javascript: URL would be a trap in the admin.
+  const applyUrl = /^https?:\/\//i.test(String(a.apply_url || '')) ? clean(a.apply_url, 500) : null;
+  const linkedin = clean(String(a.linkedin || '').trim(), 200);
+
+  try {
+    await ensureLeadsTable(env);
+    await env.DB.prepare(
+      `INSERT INTO job_leads
+         (first_name, last_name, email, phone, current_company, linkedin,
+          job_id, job_title, company, hub, apply_url, referrer, country)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)
+       ON CONFLICT (email, job_id) DO UPDATE SET
+         first_name = excluded.first_name, last_name = excluded.last_name,
+         phone = coalesce(excluded.phone, phone),
+         current_company = coalesce(excluded.current_company, current_company),
+         linkedin = coalesce(excluded.linkedin, linkedin),
+         repeat_count = repeat_count + 1`
+    ).bind(
+      clean(a.first_name, 80), clean(a.last_name, 80), clean(email, 200),
+      clean(a.phone, 40) || null, clean(a.current_company, 120) || null, linkedin || null,
+      clean(a.job_id, 120), clean(a.job_title), clean(a.company, 120), clean(a.hub, 20),
+      applyUrl, clean(request.headers.get('referer'), 300), clean(request.cf?.country, 4),
+    ).run();
+  } catch (err) {
+    console.error('lead insert failed:', err.message);
+    return new Response(JSON.stringify({ ok: false, error: 'Could not save.' }), { status: 500, headers: JSON_HEADERS });
+  }
+  return new Response(JSON.stringify({ ok: true }), { headers: JSON_HEADERS });
+}
+
+/* GET /api/leads            newest first, JSON
+   GET /api/leads?format=csv the same, as a spreadsheet
+   Optional: ?days=30  ?company=Greystar  ?hub=opco                         */
+async function listLeads(request, env) {
+  if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'unauthorised' }), { status: 401, headers: JSON_HEADERS });
+  if (!env.DB) return new Response(JSON.stringify({ error: 'No database configured.' }), { status: 503, headers: JSON_HEADERS });
+
+  const url = new URL(request.url);
+  const where = [], binds = [];
+  const days = Number(url.searchParams.get('days'));
+  if (days > 0) { binds.push(`-${Math.min(days, 3650)} days`); where.push(`created_at >= datetime('now', ?${binds.length})`); }
+  for (const k of ['company', 'hub']) {
+    const v = url.searchParams.get(k);
+    if (v && v !== 'all') { binds.push(v); where.push(`${k} = ?${binds.length}`); }
+  }
+
+  await ensureLeadsTable(env);
+  const { results = [] } = await env.DB.prepare(
+    `SELECT id, created_at, first_name, last_name, email, phone, current_company, linkedin,
+            job_title, company, hub, apply_url, repeat_count, country
+       FROM job_leads ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+      ORDER BY created_at DESC LIMIT 5000`
+  ).bind(...binds).all();
+
+  if (url.searchParams.get('format') === 'csv') {
+    const cols = ['created_at', 'first_name', 'last_name', 'email', 'phone', 'current_company', 'linkedin',
+                  'job_title', 'company', 'hub', 'apply_url', 'repeat_count', 'country'];
+    return new Response(toCsv(cols, results.map((r) => cols.map((c) => r[c]))), {
+      headers: {
+        'content-type': 'text/csv; charset=utf-8',
+        'content-disposition': `attachment; filename="job-leads-${new Date().toISOString().slice(0, 10)}.csv"`,
+      },
+    });
+  }
+  return new Response(JSON.stringify({ count: results.length, leads: results }), { headers: JSON_HEADERS });
+}
+
 async function adminLogin(request, env) {
   let body;
   try { body = await request.json(); } catch { body = {}; }
@@ -3125,6 +3239,8 @@ export default {
     if (pathname === '/api/stats.csv') return stats(request, env, true);
 
     if (pathname === '/api/apply'         && request.method === 'POST') return receiveApplication(request, env);
+    if (pathname === '/api/lead'          && request.method === 'POST') return captureLead(request, env);
+    if (pathname === '/api/leads'         && request.method === 'GET')  return listLeads(request, env);
     if (pathname === '/api/resume'        && request.method === 'POST') return uploadResume(request, env);
     if (pathname === '/api/resume'        && request.method === 'GET')  return downloadResume(request, env);
     if (pathname === '/api/admin/login'   && request.method === 'POST') return adminLogin(request, env);

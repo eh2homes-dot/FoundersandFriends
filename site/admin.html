@@ -298,6 +298,7 @@ textarea:focus{outline:none;border-color:var(--purple)}
       <button class="btn" type="button" data-view="coverage">Coverage</button>
       <button class="btn" type="button" data-view="reports">Reports</button>
       <button class="btn" type="button" data-view="funnel">Funnel</button>
+      <button class="btn" type="button" data-view="leads">Leads</button>
       <button class="btn" type="button" id="refresh">Refresh</button>
       <button class="btn" type="button" id="signout">Sign out</button>
       <a class="btn" href="/">← Board</a>
@@ -337,6 +338,20 @@ textarea:focus{outline:none;border-color:var(--purple)}
       <button class="btn" type="button" id="fun-refresh" style="margin-left:auto">Refresh</button>
     </div>
     <div id="funnel-body"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- Leads: everyone who pressed Apply Now and left for the employer's
+       posting. Captured by /api/lead before the redirect. -->
+  <div id="leads-view" hidden>
+    <div class="sig-controls">
+      <span class="sig-label">Window</span>
+      <button class="chip on" type="button" data-leaddays="7">7 days</button>
+      <button class="chip" type="button" data-leaddays="30">30 days</button>
+      <button class="chip" type="button" data-leaddays="0">All time</button>
+      <button class="btn act" type="button" id="lead-csv" style="margin-left:auto">Download CSV</button>
+      <button class="btn" type="button" id="lead-refresh">Refresh</button>
+    </div>
+    <div id="leads-body"><div class="empty">Loading…</div></div>
   </div>
 
   <!-- Reports: the two autoreports, ready to paste. The endpoints return both
@@ -620,16 +635,89 @@ function setView(next) {
   $('coverage-view').hidden = next !== 'coverage';
   $('reports-view').hidden = next !== 'reports';
   $('funnel-view').hidden = next !== 'funnel';
+  $('leads-view').hidden = next !== 'leads';
   $('title').textContent = next === 'signals' ? 'Signals'
     : next === 'coverage' ? 'Coverage'
     : next === 'reports' ? 'Reports'
-    : next === 'funnel' ? 'Funnel' : 'Pipeline';
+    : next === 'funnel' ? 'Funnel'
+    : next === 'leads' ? 'Leads' : 'Pipeline';
   document.querySelectorAll('[data-view]').forEach((b) => b.classList.toggle('act', b.dataset.view === next));
   if (next === 'signals' && !sigData) loadSignals();
   if (next === 'coverage' && !covData) { loadCoverage(); loadManaged(); loadDiscoveries(); }
   if (next === 'reports' && !repLoaded) loadReports();
   if (next === 'funnel' && !funData) loadFunnel();
+  if (next === 'leads' && !leadData) loadLeads();
 }
+
+/* ---------- leads ---------- */
+
+let leadDays = 7, leadData = null;
+
+async function loadLeads() {
+  $('leads-body').innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const res = await fetch('/api/leads' + (leadDays ? '?days=' + leadDays : ''), { headers: authHeaders() });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || 'HTTP ' + res.status);
+    leadData = body.leads || [];
+    renderLeads();
+  } catch (err) {
+    leadData = null;
+    $('leads-body').innerHTML = '<div class="empty">' + esc(err.message) + '</div>';
+  }
+}
+
+function renderLeads() {
+  const rows = leadData || [];
+  if (!rows.length) {
+    $('leads-body').innerHTML = '<div class="empty">No one has pressed Apply Now in this window yet.</div>';
+    return;
+  }
+  const byCo = {};
+  rows.forEach((r) => { byCo[r.company] = (byCo[r.company] || 0) + 1; });
+  const top = Object.entries(byCo).sort((a, b) => b[1] - a[1]).slice(0, 5)
+    .map(([c, n]) => esc(c) + ' ' + n).join(' · ');
+  const link = (u) => u && /^https?:/i.test(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40))}</a>` : '';
+  const li = (u) => !u ? '' : link(/^https?:/i.test(u) ? u : 'https://' + u);
+  $('leads-body').innerHTML = `
+    <p class="sig-sub">${rows.length} lead${rows.length === 1 ? '' : 's'} · most wanted: ${top}</p>
+    <table>
+      <thead><tr>
+        <th>Person</th><th>Role</th><th class="hide">Phone</th><th class="hide">LinkedIn</th><th class="hide">When</th>
+      </tr></thead>
+      <tbody>${rows.map((r) => `
+        <tr>
+          <td class="role">
+            <b>${esc((r.first_name || '') + ' ' + (r.last_name || ''))}</b>
+            <span><a href="mailto:${esc(r.email)}">${esc(r.email)}</a>${r.current_company ? ' · ' + esc(r.current_company) : ''}</span>
+          </td>
+          <td class="role">
+            <b>${esc(r.job_title || '—')}</b>
+            <span>${esc(r.company || '')}${r.repeat_count > 1 ? ' · pressed ' + r.repeat_count + '×' : ''}</span>
+          </td>
+          <td class="hide">${esc(r.phone || '')}</td>
+          <td class="hide">${li(r.linkedin)}</td>
+          <td class="hide">${esc((r.created_at || '').slice(0, 16).replace('T', ' '))}</td>
+        </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-leaddays]');
+  if (!b) return;
+  leadDays = Number(b.dataset.leaddays);
+  document.querySelectorAll('[data-leaddays]').forEach((x) => x.classList.toggle('on', x === b));
+  loadLeads();
+});
+$('lead-refresh').addEventListener('click', () => loadLeads());
+$('lead-csv').addEventListener('click', async () => {
+  const res = await fetch('/api/leads?format=csv' + (leadDays ? '&days=' + leadDays : ''), { headers: authHeaders() });
+  if (!res.ok) { alert('Download failed (HTTP ' + res.status + ')'); return; }
+  const url = URL.createObjectURL(await res.blob());
+  const a = Object.assign(document.createElement('a'), { href: url, download: 'job-leads.csv' });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+});
 
 /* ---------- funnel ---------- */
 
