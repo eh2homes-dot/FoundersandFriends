@@ -1,33 +1,35 @@
-Probing 73 companies (concurrency 6)…
+Probing 64 companies (concurrency 6)…
 
+  --    FirstKey Homes                     HTTP 403
   --    Main Street Renewal                fetch failed: fetch failed
   --    Bluerock Homes                     fetch failed: fetch failed
-  --    Home Partners of America           no ATS signature found
   --    Pathway Homes                      HTTP 404
   --    HomeRiver Group                    HTTP 404
-  --    Poplar Homes                       fetch failed: fetch failed
+  ok    AppFolio                           ashby · 13a892fa-5b4f-4539-a264-3a0452bbead3 · 36 live
   --    Yardi Systems                      HTTP 403
   --    Matterport                         HTTP 403
   --    Measurabl                          Rippling detected — no adapter
+  --    Placer.ai                          HTTP 404
+  --    Mynd                               HTTP 404
   --    Divvy Homes                        no ATS signature found
   --    Apartment List                     no ATS signature found
   --    Hemlane                            HTTP 404
+  --    Kasa Living                        no ATS signature found
   --    HouseCanary                        no ATS signature found
+  --    Realtor.com (Move Inc.)            HTTP 403
   --    Auction.com                        Dayforce detected — no adapter
   --    ResMan                             no ATS signature found
   --    Worksmith                          no ATS signature found
+  --    Ojo Labs                           no ATS signature found
   --    Opcity (Realtor.com)               HTTP 403
   --    Guesty                             no ATS signature found
   --    Rhino                              JS-rendered shell — no server-side job links
+  --    Bilt Rewards                       no ATS signature found
   --    Cadre                              HTTP 404
   --    SquareFoot                         HTTP 404
   --    Latch                              Rippling detected — no adapter
   --    Agora                              fetch failed: fetch failed
   --    Cherre                             no ATS signature found
-  ok    Enertiv                            rippling · enertiv-jobs
-  ok    Bowery Valuation                   rippling · bowery-valuation
-  --    WeWork                             HTTP 403
-  --    Industrious                        no ATS signature found
   --    Updater                            HTTP 404
   --    Avail (Realtor.com)                HTTP 404
   --    HqO                                no ATS signature found
@@ -38,7 +40,6 @@ Probing 73 companies (concurrency 6)…
   ok    Offerpad                           adp · 1259f4b4-8ba3-4cf9-86d2-e957dc127478 · 14 live
   --    PointCentral                       HTTP 404
   --    Rentec Direct                      HTTP 404
-  ok    Home365                            bamboohr · home365 · 12 live
   --    Cecilian Partners                  HTTP 404
   --    CoStar Group                       HTTP 403
   --    Notarize (Proof)                   no ATS signature found
@@ -49,20 +50,10 @@ Probing 73 companies (concurrency 6)…
   --    Bright MLS                         JS-rendered shell — no server-side job links
   --    DoorLoop                           no ATS signature found
   --    LeaseLock                          HTTP 404
-  --    Medical Properties Trust           no ATS signature found
-  --    Uniti Group                        no ATS signature found
-  --    Alexander & Baldwin                Dayforce detected — no adapter
-  --    Kite Realty Group Trust            HTTP 403
-  --    Lamar Advertising Company          HTTP 404
-  --    EastGroup Properties               HTTP 404
-  ok    EPR Properties                     bamboohr · eprproperties · 1 live
   --    Veris Residential                  ADP detected — no adapter
-  ok    Highwoods Properties               ukg · HIG1001HIW · 5 live
-  --    Easterly Government Properties     fetch failed: fetch failed
   --    Cohen-Esrey Communities            no ATS signature found
   --    Case & Associates                  no ATS signature found
   --    Oakbrook Corporation               isolved detected — no adapter
-  --    Atria Senior Living                no ATS signature found
   --    Picerne Real Estate Group          HTTP 403
   --    The Lund Company                   HTTP 404
   --    Mountain Property Management       HTTP 404
@@ -75,26 +66,25 @@ Probing 73 companies (concurrency 6)…
   --    Nutiliti                           no ATS signature found
 
 ----------------------------------------------------------------
-resolved   7/73
-  rippling    2
+resolved   3/64
+  ashby       1
   adp         1
-  bamboohr    2
-  ukg         1
   dom         1
 
-unresolved 66 — these stay NULL and will be skipped by run.js:
+unresolved 61 — these stay NULL and will be skipped by run.js:
 
-  no signature (30)
-    Home Partners of America           no ATS signature found
+  no signature (28)
     Divvy Homes                        no ATS signature found
     Apartment List                     no ATS signature found
+    Kasa Living                        no ATS signature found
     HouseCanary                        no ATS signature found
     ResMan                             no ATS signature found
     Worksmith                          no ATS signature found
+    Ojo Labs                           no ATS signature found
     Guesty                             no ATS signature found
     Rhino                              JS-rendered shell — no server-side job links
+    Bilt Rewards                       no ATS signature found
     Cherre                             no ATS signature found
-    Industrious                        no ATS signature found
     HqO                                no ATS signature found
     Buildium (RealPage)                no ATS signature found
     Placester                          no ATS signature found
@@ -104,11 +94,8 @@ unresolved 66 — these stay NULL and will be skipped by run.js:
     Density                            no ATS signature found
     Bright MLS                         JS-rendered shell — no server-side job links
     DoorLoop                           no ATS signature found
-    Medical Properties Trust           no ATS signature found
-    Uniti Group                        no ATS signature found
     Cohen-Esrey Communities            no ATS signature found
     Case & Associates                  no ATS signature found
-    Atria Senior Living                no ATS signature found
     Northpoint Asset Management        no ATS signature found
     Rhome Property Management          JS-rendered shell — no server-side job links
     Keyrenter Property Management      no ATS signature found
@@ -119,6 +106,8 @@ unresolved 66 — these stay NULL and will be skipped by run.js:
   bad careers_url (404) (15)
     Pathway Homes                      HTTP 404
     HomeRiver Group                    HTTP 404
+    Placer.ai                          HTTP 404
+    Mynd                               HTTP 404
     Hemlane                            HTTP 404
     Cadre                              HTTP 404
     SquareFoot                         HTTP 404
@@ -128,41 +117,36 @@ unresolved 66 — these stay NULL and will be skipped by run.js:
     Rentec Direct                      HTTP 404
     Cecilian Partners                  HTTP 404
     LeaseLock                          HTTP 404
-    Lamar Advertising Company          HTTP 404
-    EastGroup Properties               HTTP 404
     The Lund Company                   HTTP 404
     Mountain Property Management       HTTP 404
 
   blocked (403/401) (9)
+    FirstKey Homes                     HTTP 403
     Yardi Systems                      HTTP 403
     Matterport                         HTTP 403
+    Realtor.com (Move Inc.)            HTTP 403
     Opcity (Realtor.com)               HTTP 403
-    WeWork                             HTTP 403
     CoStar Group                       HTTP 403
     Redfin                             HTTP 403
     Rocket Companies                   HTTP 403
-    Kite Realty Group Trust            HTTP 403
     Picerne Real Estate Group          HTTP 403
 
-  known platform, no adapter (7)
+  known platform, no adapter (6)
     Measurabl                          Rippling detected — no adapter
     Auction.com                        Dayforce detected — no adapter
     Latch                              Rippling detected — no adapter
     GetCovered                         Rippling detected — no adapter
-    Alexander & Baldwin                Dayforce detected — no adapter
     Veris Residential                  ADP detected — no adapter
     Oakbrook Corporation               isolved detected — no adapter
 
-  network / timeout (5)
+  network / timeout (3)
     Main Street Renewal                fetch failed: fetch failed
     Bluerock Homes                     fetch failed: fetch failed
-    Poplar Homes                       fetch failed: fetch failed
     Agora                              fetch failed: fetch failed
-    Easterly Government Properties     fetch failed: fetch failed
 
   adapters that would pay off most, in order:
     Rippling           3 companies
-    Dayforce           2 companies
+    Dayforce           1 companies
     ADP                1 companies
     isolved            1 companies
 

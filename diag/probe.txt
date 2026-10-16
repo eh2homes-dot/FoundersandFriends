@@ -1,0 +1,81 @@
+=== Greenhouse / Lever / Ashby candidates ===
+FirstKey Homes: nothing
+Kasa Living: 
+    greenhouse:kasa — 16 jobs, board name "Kasa", e.g. Area Sales Manager - West | Associate Director, National & Regional Sales
+Realtor.com: nothing
+OJO Labs: nothing
+Bilt Rewards: nothing
+Placer.ai: 
+    greenhouse:placerlabs — 19 jobs, board name "Placer.ai", e.g. Account Executive | Account Executive, Management Consulting
+Mynd: nothing
+Lineage: nothing
+Main Street Renewal: nothing
+Measurabl: nothing
+HouseCanary: nothing
+Apartment List: nothing
+Hemlane: nothing
+Cherre: 
+    lever:cherre — 1 jobs, e.g. General Role
+Rhino: nothing
+Guesty: nothing
+Updater: 
+    greenhouse:updater — 1 jobs, board name "Updater", e.g. Director, Corporate Development
+HqO: nothing
+Robin: nothing
+Latch: 
+    lever:latch — 2 jobs, e.g. Associate Account Executive (AAE) | I don’t see the right role
+    ashby:latch — 0 jobs, e.g. 
+Density: nothing
+DoorLoop: 
+    ashby:doorloop — 0 jobs, e.g. 
+LeaseLock: nothing
+Placester: nothing
+Proof: 
+    greenhouse:proof — 127 jobs, board name "Proof", e.g. 1099 Process Server | 1099 Process Server
+    lever:proof — 4 jobs, e.g. Director of Brand and Creative | Director of Product Marketing
+Worksmith: nothing
+ResMan: nothing
+Auction.com: nothing
+Pathway Homes: nothing
+Agora: nothing
+SquareFoot: nothing
+GetCovered: nothing
+Knock: 
+    greenhouse:knock — 7 jobs, board name "Knock", e.g. Director of Sales - Remote (anywhere in the US) | Lending Operations Specialist - Remote 
+    ashby:knock — 3 jobs, e.g. Engineering Manager, Platform | DevOps Engineer
+Yieldstreet (Cadre): nothing
+Maymont Homes (Divvy): nothing
+Esusu: nothing
+Livly: nothing
+Obie: nothing
+Closinglock: nothing
+Procore: nothing
+Reffie: nothing
+
+=== Workday sites ===
+amherstgroup.wd1.myworkdayjobs.com root → 406 https://amherstgroup.wd1.myworkdayjobs.com/
+chamberlain.wd1.myworkdayjobs.com site Chamberlain_Group: 61 jobs, e.g. Senior Sales Intelligence Analyst | Lead Analytics Engineer
+chamberlain.wd1.myworkdayjobs.com root → 406 https://chamberlain.wd1.myworkdayjobs.com/
+
+=== Careers pages: ATS references ===
+FirstKey Homes: HTTP 403 → https://www.firstkeyhomes.com/careers
+      (no ATS references in page)
+Main Street Renewal: fetch failed: fetch failed
+Amherst: HTTP 200 → https://www.amherst.com/careers/
+      amherstgroup.wd1.myworkdayjobs.com/en-US/Amherst_Holdings_Careers
+Chamberlain: HTTP 200 → https://www.chamberlaingroup.com/careers
+      chamberlain.wd1.myworkdayjobs.com/Chamberlain_Group
+Placer.ai: HTTP 200 → https://www.placer.ai/company/we-are-hiring
+      boards.greenhouse.io/embed/job_board/js?for=placerlabs
+Kasa: HTTP 200 → https://kasa.com/careers
+      (no ATS references in page)
+Bilt: HTTP 200 → https://www.bilt.com/careers
+      (no ATS references in page)
+Mynd: HTTP 404 → https://www.mynd.co/careers
+      (no ATS references in page)
+AMH: HTTP 200 → https://www.amh.com/careers
+      (no ATS references in page)
+AMH Oracle: HTTP 503 → https://ejpe.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/requisitions
+      (no ATS references in page)
+Lineage: HTTP 200 → https://www.lineagehq.com/careers
+      (no ATS references in page)
