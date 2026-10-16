@@ -1032,7 +1032,7 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Flexible workspace, not residential. Kept for reference; set active:true to include.
   },
   {
@@ -1046,7 +1046,7 @@ export const COMPANIES = [
     verified: true,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Flexible workspace, not residential. Kept for reference; set active:true to include.
   },
   {
@@ -1638,7 +1638,7 @@ export const COMPANIES = [
     verified: true,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Healthcare REIT. Kept for reference; set active:true to include.
   },
   {
@@ -1652,7 +1652,7 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Fiber infrastructure REIT. Kept for reference; set active:true to include.
   },
   {
@@ -1666,7 +1666,7 @@ export const COMPANIES = [
     verified: true,
     method: "dom",   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Commercial mortgage REIT, not an operator. Kept for reference; set active:true to include.
   },
   {
@@ -1680,7 +1680,7 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Commercial and land REIT. Kept for reference; set active:true to include.
   },
   {
@@ -1694,7 +1694,7 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Shopping centre REIT. Kept for reference; set active:true to include.
   },
   {
@@ -1708,7 +1708,7 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Outdoor advertising REIT. Kept for reference; set active:true to include.
   },
   {
@@ -1722,7 +1722,7 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Industrial REIT. Kept for reference; set active:true to include.
   },
   {
@@ -1736,7 +1736,7 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Entertainment REIT. Kept for reference; set active:true to include.
   },
   {
@@ -1765,7 +1765,7 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: false,
+    active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Office REIT. Kept for reference; set active:true to include.
   },
   {
