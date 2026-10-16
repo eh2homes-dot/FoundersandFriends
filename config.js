@@ -56,9 +56,9 @@ export const COMPANIES = [
     state: "Nevada", segment: "SFR REIT",
     // NYSE: AMH. Over 61,000 homes. Formerly American Homes 4 Rent; also
     // trades as AMH Living in some states.
-    verified: true, method: "oracle", atsSlug: "ejpe.fa.us6.oraclecloud.com", priority: true, active: true,
-    atsSite: "CX_1",
-    // Oracle Recruiting Cloud (found Oct 2026 in an AMH posting).
+    verified: true, method: null, atsSlug: null, priority: true, active: true,
+    // Possibly Oracle Recruiting Cloud: ejpe.fa.us6.oraclecloud.com, site CX_1
+    // (seen in an AMH posting, Oct 2026). That host answered 503 to every request from GitHub runners, including its own career page — host unconfirmed. Needs a person to open an AMH posting and copy the apply URL.
   },
   {
     id: "firstkey-homes", name: "FirstKey Homes", hub: "opco",
@@ -84,6 +84,8 @@ export const COMPANIES = [
     website: "https://www.amherst.com",
     state: "Texas", segment: "SFR Investment Manager",
     verified: true, method: "workday", atsSlug: "amherstgroup.wd1.myworkdayjobs.com", active: true,
+    atsSite: "Amherst_Holdings_Careers",
+    // atsSite from the link on amherst.com/careers (Oct 2026). Main Street Renewal, Amherst's operating company, posts under this board too.
   },
   {
     id: "vinebrook-homes", name: "VineBrook Homes", hub: "opco",
@@ -336,11 +338,12 @@ export const COMPANIES = [
     state: "California",
     segment: "Foot Traffic / Location Analytics",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "placerlabs",
     active: true,
     // Embedded Greenhouse board (gh_jid links on placer.ai); token assumed "placerai".
     // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
+    // Confirmed Oct 16: the careers page embeds Greenhouse board "placerlabs".
   },
   {
     id: "roofstock",
@@ -526,11 +529,12 @@ export const COMPANIES = [
     state: "California",
     segment: "Flexible-Stay Hospitality Tech",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "kasa",
     active: true,
     // Board: job-boards.greenhouse.io/kasaliving.
     // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
+    // Confirmed Oct 16: Greenhouse board "kasa" (board name "Kasa"). The "kasaliving" token 404s.
   },
   {
     id: "side",
@@ -1095,9 +1099,10 @@ export const COMPANIES = [
     state: "New York",
     segment: "Moving/Relocation Tech for Property Managers",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "updater",
     active: true,
+    // Confirmed Oct 16: Greenhouse board "updater" (board name "Updater").
   },
   {
     id: "livly",
@@ -1124,6 +1129,8 @@ export const COMPANIES = [
     method: "workday",   // greenhouse | lever | workday | dom
     atsSlug: "chamberlain.wd1.myworkdayjobs.com",
     active: true,
+    atsSite: "Chamberlain_Group",
+    // atsSite confirmed Oct 2026 (61 live postings).
   },
   {
     id: "obie",

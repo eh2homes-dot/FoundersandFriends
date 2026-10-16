@@ -1371,7 +1371,7 @@ async function scrapeOne(company) {
       outsideUS: named.length - inUS.length,
       // Flagged so the log can say these went out without detail, rather than
       // implying they passed a check that never ran.
-      undescribed: canJudge ? 0 : solid.length,
+      undescribed: canJudge ? 0 : onBoard.length,
     };
   } catch (err) {
     return { company, ok: false, reason: err.message, jobs: [] };
@@ -1604,6 +1604,14 @@ const EXCLUDED = [
   [/\b(receptionist|data entry|file clerk|mail\s?room)\b/i, 'admin support'],
   [/\bcustomer (service|support)\s+(representative|rep|associate|agent)\b/i, 'support rep'],
   [/\b(intern|internship|apprentice)\b/i, 'intern'],
+  // Gig and contractor listings, surfaced once Doorstead, Home365 and Atlas
+  // came online: 50 "Showing Agent" and 30 "Photographer" posts from one
+  // company alone would crowd out every placement-worthy role.
+  [/\b(showing|field)\s+agents?\b/i, 'gig / contractor'],
+  [/\bphotographers?\b/i, 'gig / contractor'],
+  [/\breal estate (agents?|advisors?)\b/i, 'gig / contractor'],
+  [/\b1099\b|\bpartnership opportunit/i, 'gig / contractor'],
+  [/\bfront desk\b/i, 'admin support'],
 ];
 
 /**
