@@ -231,7 +231,10 @@ const NON_US = ['canada','ontario','toronto','vancouver','british columbia','alb
   'netherlands','amsterdam','poland','warsaw','portugal','lisbon','romania','bucharest',
   'australia','sydney','melbourne','new zealand','singapore','japan','tokyo','china','shanghai',
   'hong kong','korea','seoul','vietnam','thailand','indonesia','jakarta','malaysia',
-  'united arab emirates','dubai','south africa','nigeria','kenya', 'emea','apac','latam'];
+  'united arab emirates','dubai','south africa','nigeria','kenya', 'emea','apac','latam',
+  'gurugram','haryana','karnataka','maharashtra','telangana','noida','chile','santiago','peru','lima',
+  'uruguay','montevideo','ecuador','guatemala','honduras','el salvador','dominican republic','jamaica',
+  'ukraine','kyiv','serbia','belgrade','egypt','cairo','pakistan','lahore','karachi','turkey','istanbul'];
 
 /**
  * Is this posting in the US?
@@ -251,7 +254,8 @@ const NON_US_COUNTRIES = ['canada','united kingdom','england','scotland','irelan
   'philippines','mexico','brazil','argentina','colombia','costa rica','germany','france','spain',
   'netherlands','poland','portugal','romania','australia','new zealand','singapore','japan','china',
   'hong kong','korea','vietnam','thailand','indonesia','malaysia','united arab emirates',
-  'south africa','nigeria','kenya','emea','apac','latam'];
+  'south africa','nigeria','kenya','emea','apac','latam','chile','peru','uruguay','ecuador','guatemala',
+  'honduras','el salvador','dominican republic','jamaica','ukraine','serbia','egypt','pakistan','turkey'];
 
 /**
  * The checks run in a deliberate order. The old version tested the non-US
@@ -436,6 +440,8 @@ function isNotAJob(title) {
     .replace(/[-\u2010-\u2015_]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim().toLowerCase()
+    // Leading emoji and arrows: RentSpree's "👉  Apply for Future Opportunities".
+    .replace(/^[^\p{L}\p{N}]+/u, '')
     .replace(/[.!?→>»…\-–—]+$/, '').trim();
 
   // Whole-phrase CTAs and nav labels.
@@ -463,7 +469,7 @@ function isNotAJob(title) {
   // ---- talent pools, not openings ----
   // These collect résumés against no specific role. Sending a candidate to one
   // is worse than not listing it — they apply into a void.
-  if (/\b(general application|talent (pool|network|community|pipeline)|future openings?|speculative|open application|don'?t see|didn'?t see|no(ne)? (of these|that fit)|other opportunit\w*|join (our )?talent|keep me in mind|submit your (resume|cv)|general interest)\b/i.test(t)) return true;
+  if (/\b(general application|talent (pool|network|community|pipeline)|future (openings?|opportunit\w*|roles?|positions?)|speculative|open application|don'?t see|didn'?t see|no(ne)? (of these|that fit)|other opportunit\w*|join (our )?talent|keep me in mind|submit your (resume|cv)|general interest)\b/i.test(t)) return true;
 
   // ---- noun-first index labels ----
   // "Job Search", "Career Opportunities", "Position Openings" — the same nav
@@ -492,7 +498,9 @@ function isNotAJob(title) {
  * MRI. So the substance check only applies where a description was actually
  * available and the employer chose not to write one.
  */
-const DESCRIBES = new Set(['greenhouse', 'lever', 'ashby', 'workable', 'breezy', 'jsonld', 'ukg']);
+// Breezy is not here: its /json list carries no description at all, so every
+// Breezy posting failed the substance check — all 99 of Doorstead's roles.
+const DESCRIBES = new Set(['greenhouse', 'lever', 'ashby', 'workable', 'jsonld', 'ukg']);
 
 /**
  * Is there enough here to be worth publishing?
@@ -551,6 +559,25 @@ const OFF_QA = /\b(quality\s+assurance|qa)\b[^,]*\b(specialist|analyst|associate
 // Seniority beats the function: "Director of Maintenance" is a leadership role
 // that happens to own maintenance, not field work.
 const SENIOR_OVERRIDE = /\b(chief|c[toefi]o|vp|vice\s+president|head\s+of|director|principal|staff|manager|supervisor|lead)\b/i;
+
+/**
+ * For scope: "corporate" companies (Greystar). Fixing Workday paging took
+ * Greystar from 40 postings to over 1,400, and almost all of them are
+ * property-site jobs — Community Manager, Maintenance Supervisor, Concierge.
+ * Those are real roles but not ones this board serves, and at that volume they
+ * would bury every other company.
+ *
+ * Leadership is always kept. Site-level titles are dropped. Everything else —
+ * engineering, finance, marketing, development, analysts — is corporate and kept.
+ */
+const CORP_LEADERSHIP = /\b(chief|c[toefi]o|president|vp|vice\s+president|svp|evp|head\s+of|director|managing\s+director|principal|regional)\b/i;
+const SITE_LEVEL = /\b(community|leasing|lease[- ]up|maintenance|mainteance|service\s+supervisor|superintendent|concierge|porter|valet|doorperson|door\s+attendant|housekeep\w*|groundskeep\w*|resident\s+(services?|lifestyle|experience)|lifestyle|event\s*&?\s*lifestyle|property\s+manager|assistant\s+manager|floating|front\s+desk|lobby|amenity|courtesy\s+patrol|make[- ]ready|turnover|painter|carpenter|technician|production\s+associate|driver|building\s+engineer|door\s*person|handy\s*person|hiring\s+event|part[- ]time|temporary|seasonal)\b/i;
+
+function isCorporate(title) {
+  const t = String(title || '');
+  if (CORP_LEADERSHIP.test(t)) return true;
+  return !SITE_LEVEL.test(t);
+}
 
 function isOffBoard(title) {
   const t = String(title || '');
@@ -1052,32 +1079,52 @@ async function paylocity(company) {
 
   const detail = (id) => `https://recruiting.paylocity.com/Recruiting/Jobs/Details/${id}`;
 
+  // The board page is what candidates see, so it is the source of truth. The
+  // JSON feed answered with an empty list for all three boards on the first
+  // test run — Atlas, Redstone and Tamarack — though Atlas had confirmed live
+  // roles, so an empty feed is never taken as "not hiring".
+  let pageList = null, pageNote = '';
   try {
-    const res = await get(`https://recruiting.paylocity.com/recruiting/v2/api/feed/jobs/${guid}`);
-    if (res.ok) {
-      const body = await res.json();
-      if (Array.isArray(body?.jobs)) {
-        return body.jobs.map((j) => {
-          const loc = j.jobLocation || {};
-          return {
-            sourceId: String(j.jobId),
-            title: j.title,
-            location: [loc.city, loc.state].filter(Boolean).join(', ') || j.locationName || 'See posting',
-            url: j.displayUrl || detail(j.jobId),
-            description: '',
-            postedAt: j.publishedDate || null,
-            min: null, max: null,
-          };
-        });
+    const res = await get(`https://recruiting.paylocity.com/recruiting/jobs/All/${guid}`);
+    if (!res.ok) pageNote = 'page HTTP ' + res.status;
+    else {
+      const html = await res.text();
+      const data = embeddedJson(html, 'window.pageData');
+      if (Array.isArray(data?.Jobs)) pageList = data.Jobs;
+      else {
+        // No pageData: fall back to the detail links the page renders.
+        const seen = new Map();
+        for (const m of html.matchAll(/href="[^"]*\/Recruiting\/Jobs\/Details\/(\d+)[^"]*"[^>]*>([\s\S]{1,200}?)<\/a>/gi)) {
+          const title = toText(m[2]).split('\n')[0].trim();
+          if (title && !seen.has(m[1])) seen.set(m[1], { JobId: m[1], JobTitle: title });
+        }
+        if (seen.size) pageList = [...seen.values()];
+        else pageNote = 'page had no pageData and no job links';
       }
     }
-  } catch { /* fall through to the page */ }
+  } catch (err) { pageNote = 'page ' + err.message; }
 
-  const res = await get(`https://recruiting.paylocity.com/recruiting/jobs/All/${guid}`);
-  if (!res.ok) throw new Error('paylocity HTTP ' + res.status);
-  const data = embeddedJson(await res.text(), 'window.pageData');
-  const list = data?.Jobs;
-  if (!Array.isArray(list)) throw new Error('paylocity page carried no Jobs list');
+  if (!pageList) {
+    const res = await get(`https://recruiting.paylocity.com/recruiting/v2/api/feed/jobs/${guid}`);
+    const body = res.ok ? await res.json().catch(() => null) : null;
+    if (Array.isArray(body?.jobs) && body.jobs.length) {
+      return body.jobs.map((j) => {
+        const loc = j.jobLocation || {};
+        return {
+          sourceId: String(j.jobId),
+          title: j.title,
+          location: [loc.city, loc.state].filter(Boolean).join(', ') || j.locationName || 'See posting',
+          url: j.displayUrl || detail(j.jobId),
+          description: '',
+          postedAt: j.publishedDate || null,
+          min: null, max: null,
+        };
+      });
+    }
+    throw new Error(`paylocity: ${pageNote || 'no listings found'}; feed ${res.ok ? 'empty' : 'HTTP ' + res.status}`);
+  }
+
+  const list = pageList;
   return list.map((j) => ({
     sourceId: String(j.JobId),
     title: j.JobTitle,
@@ -1152,7 +1199,13 @@ async function oracle(company) {
     const url = `https://${host}/hcmRestApi/resources/latest/recruitingCEJobRequisitions` +
       `?onlyData=true&expand=requisitionList.secondaryLocations` +
       `&finder=findReqs;siteNumber=${site},limit=${PAGE},offset=${offset},sortBy=POSTING_DATES_DESC`;
-    const res = await get(url);
+    // Oracle's edge answered the bot user-agent with 503 on the first test.
+    // This is the same public endpoint the career site's own page calls.
+    const res = await get(url, { headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+      'Accept-Language': 'en-US,en;q=0.9',
+      Referer: `https://${host}/hcmUI/CandidateExperience/en/sites/${site}/requisitions`,
+    } });
     if (!res.ok) throw new Error('oracle HTTP ' + res.status);
     const body = await res.json().catch(() => null);
     const item = body?.items?.[0];
@@ -1298,7 +1351,11 @@ async function scrapeOne(company) {
     // Field and hourly operational work, and QA specialists. This board is for
     // go-to-market, engineering and leadership; those roles are real jobs, just
     // not ones anyone comes here to find.
-    const onBoard = solid.filter((j) => !isOffBoard(j.title));
+    const general = solid.filter((j) => !isOffBoard(j.title));
+    // Large operators publish thousands of property-level roles. For those,
+    // config sets scope: "corporate" and only corporate and leadership roles
+    // reach the board.
+    const onBoard = company.scope === 'corporate' ? general.filter((j) => isCorporate(j.title)) : general;
 
     return {
       company, ok: true,

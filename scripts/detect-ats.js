@@ -227,7 +227,9 @@ const SIGNATURES = [
   {
     method: 'rippling',
     test: (html, finalUrl) => {
-      const m = finalUrl.match(/ats\.rippling\.com\/([a-z0-9_-]+)/i) || html.match(/ats\.rippling\.com\/([a-z0-9_-]+)/i);
+      // Boards may carry a locale first: ats.rippling.com/en-GB/getcovered/jobs.
+      const re = /ats\.rippling\.com\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?([a-z0-9_-]+)/i;
+      const m = finalUrl.match(re) || html.match(re);
       const slug = m && m[1];
       return slug && !/^(api|embed|static)$/i.test(slug) ? { slug } : null;
     },
@@ -412,6 +414,7 @@ async function loadCompanies() {
   const mod = await import(CONFIG_PATH);
   return mod.COMPANIES.map((c) => ({
     id: c.id, name: c.name, careers_url: c.careersUrl, hub: c.hub, scrape_method: c.method,
+    active: c.active,
   }));
 }
 
@@ -459,6 +462,7 @@ async function writeBack(results) {
 
 const all = await loadCompanies();
 const targets = all
+  .filter((c) => c.active !== false || args.only)   // inactive companies are not scraped, so not worth probing
   .filter((c) => (args.hub ? c.hub === args.hub : true))
   .filter((c) => (args.only ? c.id === args.only : true))
   .filter((c) => (args.redetect ? true : !c.scrape_method));

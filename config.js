@@ -66,8 +66,9 @@ export const COMPANIES = [
     website: "https://www.firstkeyhomes.com",
     state: "Georgia", segment: "SFR Property Management",
     // Cerberus-backed, ~34,000 homes.
-    verified: true, method: "greenhouse", atsSlug: "firstkeyhomes", priority: true, active: true,
+    verified: true, method: null, atsSlug: null, priority: true, active: true,
     // Board: job-boards.greenhouse.io/firstkeyhomes (found Oct 2026).
+    // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
   },
   {
     id: "main-street-renewal", name: "Main Street Renewal", hub: "opco",
@@ -264,15 +265,15 @@ export const COMPANIES = [
     id: "appfolio",
     name: "AppFolio",
     hub: "proptech",
-    careersUrl: "https://jobs.jobvite.com/appfolio-internal/jobs",
+    careersUrl: "https://www.appfolio.com/open-roles",
     website: "https://www.appfolio.com",
     state: "California",
     segment: "Property Management Software",
     verified: true,
-    method: "dom",   // greenhouse | lever | workday | dom
+    method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
-    // Jobvite board "appfolio-internal" (public apply buttons despite the name).
+    // Jobvite board jobs.jobvite.com/appfolio-internal exists but the page is JS-rendered (dom returned only "Powered by Jobvite"). Needs a Jobvite adapter.
   },
   {
     id: "yardi-systems",
@@ -335,10 +336,11 @@ export const COMPANIES = [
     state: "California",
     segment: "Foot Traffic / Location Analytics",
     verified: true,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "placerai",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
     // Embedded Greenhouse board (gh_jid links on placer.ai); token assumed "placerai".
+    // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
   },
   {
     id: "roofstock",
@@ -362,10 +364,11 @@ export const COMPANIES = [
     state: "California",
     segment: "SFR Property Management",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "mynd",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
     // Greenhouse short links use grnh.se/mynd; board token assumed "mynd".
+    // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
   },
   {
     id: "doma",
@@ -523,10 +526,11 @@ export const COMPANIES = [
     state: "California",
     segment: "Flexible-Stay Hospitality Tech",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "kasaliving",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
     // Board: job-boards.greenhouse.io/kasaliving.
+    // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
   },
   {
     id: "side",
@@ -604,10 +608,11 @@ export const COMPANIES = [
     state: "California",
     segment: "Real Estate Listings Marketplace",
     verified: true,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "rdccareers",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
     // Board: job-boards.greenhouse.io/rdccareers.
+    // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
   },
   {
     id: "auctioncom",
@@ -763,10 +768,11 @@ export const COMPANIES = [
     state: "Texas",
     segment: "AI Real Estate Assistant",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "ojolabs",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
     // Board: job-boards.greenhouse.io/ojolabs.
+    // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
   },
   {
     id: "opcity-realtorcom",
@@ -856,10 +862,11 @@ export const COMPANIES = [
     state: "New York",
     segment: "Rent Rewards / Resident Fintech",
     verified: false,
-    method: "greenhouse",   // greenhouse | lever | workday | dom
-    atsSlug: "biltrewards",
+    method: null,   // greenhouse | lever | workday | dom
+    atsSlug: null,
     active: true,
     // Board: job-boards.greenhouse.io/biltrewards.
+    // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
   },
   {
     id: "compstak",
@@ -949,9 +956,11 @@ export const COMPANIES = [
     state: "New York",
     segment: "Building Energy Management",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "rippling",   // greenhouse | lever | workday | dom
+    atsSlug: "enertiv-jobs",
     active: true,
+    // Found by detect-ats.js (dry run, Oct 16 2026).
+    // Found by detect-ats.js (dry run, Oct 16 2026).
   },
   {
     id: "bowery-valuation",
@@ -962,9 +971,11 @@ export const COMPANIES = [
     state: "New York",
     segment: "AI-Powered Appraisal Software",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "rippling",   // greenhouse | lever | workday | dom
+    atsSlug: "bowery-valuation",
     active: true,
+    // Found by detect-ats.js (dry run, Oct 16 2026).
+    // Found by detect-ats.js (dry run, Oct 16 2026).
   },
   {
     id: "obligo",
@@ -1359,9 +1370,11 @@ export const COMPANIES = [
     state: "Nevada",
     segment: "SFR Full-Service Property Management",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "bamboohr",   // greenhouse | lever | workday | dom
+    atsSlug: "home365",
     active: true,
+    // Found by detect-ats.js (dry run, Oct 16 2026).
+    // Found by detect-ats.js (dry run, Oct 16 2026).
   },
   {
     id: "cecilian-partners",
@@ -1763,6 +1776,9 @@ export const COMPANIES = [
     active: true,
     // Largest US rental housing operator — predominantly MULTIFAMILY, not scattered-site. Kept in opco but worth reviewing against the SFR focus.
     assetClass: "multifamily",   // NOT scattered-site — segment separately
+    scope: "corporate",
+    // Corporate and leadership roles only (Oct 2026): with Workday paging fixed,
+    // Greystar posts 1,400+ roles, almost all property-site jobs.
   },
   {
     id: "easterly-government-properties",

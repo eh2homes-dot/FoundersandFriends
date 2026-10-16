@@ -33,6 +33,9 @@ jobs:
       - name: Detect ATS, dry run
         run: node scripts/detect-ats.js --dry > diag/detect.txt 2>&1 || echo "detect exited $?" >> diag/detect.txt
 
+      - name: Probe candidate board identifiers
+        run: node .github/diag-probe.mjs > diag/probe.txt 2>&1 || echo "probe exited $?" >> diag/probe.txt
+
       - name: Sample titles per company
         run: |
           node -e "
