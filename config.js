@@ -56,7 +56,9 @@ export const COMPANIES = [
     state: "Nevada", segment: "SFR REIT",
     // NYSE: AMH. Over 61,000 homes. Formerly American Homes 4 Rent; also
     // trades as AMH Living in some states.
-    verified: true, method: null, atsSlug: null, priority: true, active: true,
+    verified: true, method: "oracle", atsSlug: "ejpe.fa.us6.oraclecloud.com", priority: true, active: true,
+    atsSite: "CX_1",
+    // Oracle Recruiting Cloud (found Oct 2026 in an AMH posting).
   },
   {
     id: "firstkey-homes", name: "FirstKey Homes", hub: "opco",
@@ -64,7 +66,8 @@ export const COMPANIES = [
     website: "https://www.firstkeyhomes.com",
     state: "Georgia", segment: "SFR Property Management",
     // Cerberus-backed, ~34,000 homes.
-    verified: true, method: null, atsSlug: null, priority: true, active: true,
+    verified: true, method: "greenhouse", atsSlug: "firstkeyhomes", priority: true, active: true,
+    // Board: job-boards.greenhouse.io/firstkeyhomes (found Oct 2026).
   },
   {
     id: "main-street-renewal", name: "Main Street Renewal", hub: "opco",
@@ -94,7 +97,8 @@ export const COMPANIES = [
     careersUrl: "https://www.sfr3.com/careers",
     website: "https://www.sfr3.com",
     state: "New York", segment: "SFR Operator",
-    verified: true, method: null, atsSlug: null, active: true,
+    verified: true, method: "rippling", atsSlug: "sfr3-llc", active: true,
+    // Board: ats.rippling.com/sfr3-llc/jobs (moved off sfr3.breezy.hr).
   },
   {
     id: "bluerock-homes", name: "Bluerock Homes", hub: "opco",
@@ -110,7 +114,8 @@ export const COMPANIES = [
     website: "https://www.homepartners.com",
     state: "Illinois", segment: "Lease-to-Own SFR",
     // Blackstone-owned.
-    verified: true, method: null, atsSlug: null, active: true,
+    verified: true, method: null, atsSlug: null, active: false,
+    // Inactive Oct 2026: Blackstone shut it down Feb 2025 and folded it into Tricon Residential, which is tracked.
   },
   {
     id: "pathway-homes", name: "Pathway Homes", hub: "opco",
@@ -124,7 +129,8 @@ export const COMPANIES = [
     careersUrl: "https://www.evernest.co/careers",
     website: "https://www.evernest.co",
     state: "Alabama", segment: "SFR Property Management",
-    verified: true, method: null, atsSlug: null, active: true,
+    verified: true, method: "lever", atsSlug: "evernest", active: true,
+    // Board: jobs.lever.co/evernest. Also covers Poplar Homes, which Evernest acquired Jan 2025.
   },
   {
     id: "homeriver-group", name: "HomeRiver Group", hub: "opco",
@@ -138,7 +144,8 @@ export const COMPANIES = [
     careersUrl: "https://www.poplarhomes.com/careers",
     website: "https://www.poplarhomes.com",
     state: "California", segment: "SFR Property Management",
-    verified: true, method: null, atsSlug: null, active: true,
+    verified: true, method: null, atsSlug: null, active: false,
+    // Inactive Oct 2026: acquired by Evernest (Jan 2025), which is tracked.
   },
   // ---------------------------------------------------------------------------
   // Verified proptech vendors. Every token below was confirmed against the live
@@ -257,14 +264,15 @@ export const COMPANIES = [
     id: "appfolio",
     name: "AppFolio",
     hub: "proptech",
-    careersUrl: "https://www.appfolio.com/open-roles",
+    careersUrl: "https://jobs.jobvite.com/appfolio-internal/jobs",
     website: "https://www.appfolio.com",
     state: "California",
     segment: "Property Management Software",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
+    method: "dom",   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    // Jobvite board "appfolio-internal" (public apply buttons despite the name).
   },
   {
     id: "yardi-systems",
@@ -327,9 +335,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Foot Traffic / Location Analytics",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "placerai",
     active: true,
+    // Embedded Greenhouse board (gh_jid links on placer.ai); token assumed "placerai".
   },
   {
     id: "roofstock",
@@ -353,9 +362,10 @@ export const COMPANIES = [
     state: "California",
     segment: "SFR Property Management",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "mynd",
     active: true,
+    // Greenhouse short links use grnh.se/mynd; board token assumed "mynd".
   },
   {
     id: "doma",
@@ -366,9 +376,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Title Insurance / Mortgage Tech",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "doma",
     active: true,
+    // Restored Oct 2026 (lost in the Sept 12 config overwrite). Taken private by TRG in 2024 — board may be gone.
   },
   {
     id: "blend-labs",
@@ -379,9 +390,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Mortgage/Lending Software",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "blend",
     active: true,
+    // Board: job-boards.greenhouse.io/blend.
   },
   {
     id: "point",
@@ -431,9 +443,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Rental Marketplace",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "rippling",   // greenhouse | lever | workday | dom
+    atsSlug: "zumper",
     active: true,
+    // Board: ats.rippling.com/zumper/jobs.
   },
   {
     id: "apartment-list",
@@ -483,9 +496,10 @@ export const COMPANIES = [
     state: "California",
     segment: "CRE Marketplace & Data",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "crexi",
     active: true,
+    // Board: job-boards.greenhouse.io/crexi.
   },
   {
     id: "kiavi",
@@ -509,9 +523,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Flexible-Stay Hospitality Tech",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "kasaliving",
     active: true,
+    // Board: job-boards.greenhouse.io/kasaliving.
   },
   {
     id: "side",
@@ -522,9 +537,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Real Estate Brokerage Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "lever",   // greenhouse | lever | workday | dom
+    atsSlug: "sideinc",
     active: true,
+    // Board: jobs.lever.co/sideinc (confirmed the brokerage Side, not a namesake).
   },
   {
     id: "housecanary",
@@ -574,9 +590,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Tenant Screening Software",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "rippling",   // greenhouse | lever | workday | dom
+    atsSlug: "rentspree",
     active: true,
+    // Board: ats.rippling.com/rentspree/jobs.
   },
   {
     id: "realtorcom-move-inc",
@@ -587,9 +604,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Real Estate Listings Marketplace",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "rdccareers",
     active: true,
+    // Board: job-boards.greenhouse.io/rdccareers.
   },
   {
     id: "auctioncom",
@@ -691,9 +709,10 @@ export const COMPANIES = [
     state: "Texas",
     segment: "Real Estate Agent Marketing Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "lever",   // greenhouse | lever | workday | dom
+    atsSlug: "luxurypresence",
     active: true,
+    // Restored Oct 2026 (lost in the Sept 12 config overwrite).
   },
   {
     id: "greenlite",
@@ -712,7 +731,7 @@ export const COMPANIES = [
     id: "worksmith",
     name: "Worksmith",
     hub: "proptech",
-    careersUrl: "https://www.worksmith.com/careers",
+    careersUrl: "https://www.worksmith.com/team-and-careers",
     website: "https://www.worksmith.com",
     state: "Texas",
     segment: "Retail/CRE Facilities Marketplace",
@@ -720,6 +739,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    // Careers page moved (Oct 2026).
   },
   {
     id: "ownwell",
@@ -743,9 +763,10 @@ export const COMPANIES = [
     state: "Texas",
     segment: "AI Real Estate Assistant",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "ojolabs",
     active: true,
+    // Board: job-boards.greenhouse.io/ojolabs.
   },
   {
     id: "opcity-realtorcom",
@@ -782,9 +803,10 @@ export const COMPANIES = [
     state: "New York",
     segment: "Commercial Real Estate Leasing Platform",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "vts",
     active: true,
+    // Board: job-boards.greenhouse.io/vts.
   },
   {
     id: "butterflymx",
@@ -834,9 +856,10 @@ export const COMPANIES = [
     state: "New York",
     segment: "Rent Rewards / Resident Fintech",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "biltrewards",
     active: true,
+    // Board: job-boards.greenhouse.io/biltrewards.
   },
   {
     id: "compstak",
@@ -847,9 +870,10 @@ export const COMPANIES = [
     state: "New York",
     segment: "CRE Comparable Data Platform",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "lever",   // greenhouse | lever | workday | dom
+    atsSlug: "compstak",
     active: true,
+    // Restored Oct 2026 (lost in the Sept 12 config overwrite).
   },
   {
     id: "cadre",
@@ -977,9 +1001,10 @@ export const COMPANIES = [
     state: "New York",
     segment: "Multifamily Leasing CRM",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "workable",   // greenhouse | lever | workday | dom
+    atsSlug: "funnel-leasing",
     active: true,
+    // Restored Oct 2026 (lost in the Sept 12 config overwrite).
   },
   {
     id: "wework",
@@ -1045,9 +1070,10 @@ export const COMPANIES = [
     state: "New York",
     segment: "Digital Mortgage Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "better-mortgage",
     active: true,
+    // Restored Oct 2026 (lost in the Sept 12 config overwrite).
   },
   {
     id: "updater",
@@ -1227,9 +1253,10 @@ export const COMPANIES = [
     state: "Georgia",
     segment: "Vendor Compliance & Insurance Software",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "bamboohr",   // greenhouse | lever | workday | dom
+    atsSlug: "netvendor",
     active: true,
+    // BambooHR board at netvendor.bamboohr.com.
   },
   {
     id: "smartrent",
@@ -1266,9 +1293,10 @@ export const COMPANIES = [
     state: "Arizona",
     segment: "iBuying / Real Estate Transactions",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
+    method: "dom",   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    // Restored Oct 2026 (lost in the Sept 12 config overwrite).
   },
   {
     id: "pointcentral",
@@ -1370,9 +1398,10 @@ export const COMPANIES = [
     state: "Virginia",
     segment: "Smart Property / Security Platform",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "alarmcom",
     active: true,
+    // Board: job-boards.greenhouse.io/alarmcom.
   },
   {
     id: "notarize-proof",
@@ -1431,7 +1460,7 @@ export const COMPANIES = [
     id: "rocket-companies",
     name: "Rocket Companies",
     hub: "proptech",
-    careersUrl: "https://www.rocketcompanies.com/careers",
+    careersUrl: "https://careers.rocket.com/us/en/search-results",
     website: "https://www.rocketcompanies.com",
     state: "Michigan",
     segment: "Mortgage / Real Estate Fintech",
@@ -1439,19 +1468,22 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    // Phenom career site. No adapter yet.
   },
   {
     id: "rent-manager-lcs",
     name: "Rent Manager (LCS)",
     hub: "proptech",
-    careersUrl: "https://www.rentmanager.com/careers",
+    careersUrl: "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=b156e713-5801-4c36-bb62-a62f3bc9844f&ccId=19000101_000001&type=MP&lang=en_US",
     website: "https://www.rentmanager.com",
     state: "Ohio",
     segment: "Property Management Software",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "adp",   // greenhouse | lever | workday | dom
+    atsSlug: "b156e713-5801-4c36-bb62-a62f3bc9844f",
     active: true,
+    atsSite: "19000101_000001",
+    // ADP board, linked from lcs.com/careers.
   },
   {
     id: "mri-software",
@@ -1497,14 +1529,16 @@ export const COMPANIES = [
     id: "renters-warehouse",
     name: "Renters Warehouse",
     hub: "opco",
-    careersUrl: "https://www.renterswarehouse.com/careers",
+    careersUrl: "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=0b4acaac-5cd6-4597-9e3b-0cc4e2eba1da&ccId=19000101_000001&lang=en_US",
     website: "https://www.renterswarehouse.com",
     state: "Minnesota",
     segment: "SFR Property Management Franchise",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "adp",   // greenhouse | lever | workday | dom
+    atsSlug: "0b4acaac-5cd6-4597-9e3b-0cc4e2eba1da",
     active: true,
+    atsSite: "19000101_000001",
+    // ADP board. Now branded RENOSY by Renters Warehouse.
   },
   {
     id: "doorloop",
@@ -1554,9 +1588,10 @@ export const COMPANIES = [
     state: "California",
     segment: "Guaranteed-Rent Property Management",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "breezy",   // greenhouse | lever | workday | dom
+    atsSlug: "doorstead",
     active: true,
+    // Board: doorstead.breezy.hr (jobs.doorstead.com). Mostly field roles — the role filter holds most back.
   },
   {
     id: "belong",
@@ -1688,7 +1723,7 @@ export const COMPANIES = [
     id: "veris-residential",
     name: "Veris Residential",
     hub: "opco",
-    careersUrl: "https://www.verisresidential.com/careers",
+    careersUrl: "https://www.rhoresidential.com/careers/",
     website: "https://www.verisresidential.com",
     state: "New Jersey",
     segment: "Multifamily REIT",
@@ -1697,6 +1732,7 @@ export const COMPANIES = [
     atsSlug: null,
     active: true,
     assetClass: "multifamily",   // NOT scattered-site — segment separately
+    // verisresidential.com/careers now redirects to RHO Residential.
   },
   {
     id: "highwoods-properties",
@@ -1774,7 +1810,7 @@ export const COMPANIES = [
     id: "oakbrook-corporation",
     name: "Oakbrook Corporation",
     hub: "opco",
-    careersUrl: "https://www.oakbrookcorp.com/careers",
+    careersUrl: "https://oakbrookcorp.isolvedhire.com/jobs/",
     website: "https://www.oakbrookcorp.com",
     state: "Wisconsin",
     segment: "Commercial & Residential Property Management",
@@ -1783,6 +1819,7 @@ export const COMPANIES = [
     atsSlug: null,
     active: true,
     assetClass: "multifamily",   // NOT scattered-site — segment separately
+    // isolved Hire board, linked from oakbrookcorp-commercial.com/careers. No adapter yet.
   },
   {
     id: "bh-management-services",
@@ -1844,14 +1881,15 @@ export const COMPANIES = [
     id: "tamarack-property-management",
     name: "Tamarack Property Management",
     hub: "proptech",
-    careersUrl: "https://www.tamarackproperty.com/careers",
+    careersUrl: "https://recruiting.paylocity.com/recruiting/jobs/All/fb3d7b03-70e0-44f3-b073-8d681dd8a995/Northwest-Real-Estate-Capital-Corporation",
     website: "https://www.tamarackproperty.com",
     state: "Montana",
     segment: "Affordable/Multifamily/Senior Housing Management",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "paylocity",   // greenhouse | lever | workday | dom
+    atsSlug: "fb3d7b03-70e0-44f3-b073-8d681dd8a995",
     active: true,
+    // tamarackproperty.com is now a parked domain. Roles post under parent Northwest Real Estate Capital Corp.
   },
   {
     id: "mountain-property-management",
@@ -1871,15 +1909,16 @@ export const COMPANIES = [
     id: "redstone",
     name: "Redstone",
     hub: "opco",
-    careersUrl: "https://www.redstonevt.com/careers",
+    careersUrl: "https://recruiting.paylocity.com/recruiting/jobs/All/48034f13-35cd-42bc-a80e-1480b6ae5d26/CATAMOUNT-COMMERCIAL-SERVICES",
     website: "https://www.redstonevt.com",
     state: "Vermont",
     segment: "Multifamily & Commercial Property Management",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "paylocity",   // greenhouse | lever | workday | dom
+    atsSlug: "48034f13-35cd-42bc-a80e-1480b6ae5d26",
     active: true,
     assetClass: "multifamily",   // NOT scattered-site — segment separately
+    // redstonevt.com/careers redirects to this Paylocity board (named Catamount Commercial Services).
   },
 
   // --- added from the Syndeo sheet: scattered-site operators ---
@@ -1892,17 +1931,20 @@ export const COMPANIES = [
   },
   {
     id: "atlas-real-estate", name: "Atlas Real Estate", hub: "opco",
-    careersUrl: "https://realatlas.com/careers/",
+    careersUrl: "https://recruiting.paylocity.com/recruiting/jobs/All/5e5fc082-a90b-4d93-8b73-46f77d40e081/Atlas-Real-Estate",
     website: "https://realatlas.com",
     state: "Colorado", segment: "SFR Property Management",
-    verified: false, method: null, atsSlug: null, active: true,
+    verified: false, method: "paylocity", atsSlug: "5e5fc082-a90b-4d93-8b73-46f77d40e081", active: true,
+    // Paylocity board, linked from realatlas.com/careers.
   },
   {
     id: "pure-homeriver", name: "PURE HomeRiver Group", hub: "opco",
-    careersUrl: "https://purehomeriver.com/company/careers/",
+    careersUrl: "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=eea42ed6-3dcf-47f3-b99b-29a304948b2b&ccId=9200441095595_2&lang=en_US",
     website: "https://purehomeriver.com",
     state: "Florida", segment: "SFR Property Management",
-    verified: false, method: null, atsSlug: null, active: true,
+    verified: false, method: "adp", atsSlug: "eea42ed6-3dcf-47f3-b99b-29a304948b2b", active: true,
+    atsSite: "9200441095595_2",
+    // ADP Workforce Now board, linked from purehomeriver.com/company/careers.
   },
   {
     id: "rhome-pm", name: "Rhome Property Management", hub: "opco",

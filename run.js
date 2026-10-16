@@ -55,6 +55,23 @@ function get(url, opts = {}) {
   }).finally(() => clearTimeout(timer));
 }
 
+/**
+ * POST with the same timeout as get(). Workday and UKG were calling fetch()
+ * bare, so one tenant that stopped answering held its batch slot until the
+ * 30-minute job limit killed the whole run — and with it every other company.
+ */
+function post(url, body, headers = {}) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'User-Agent': UA, 'Content-Type': 'application/json', Accept: 'application/json', ...headers },
+    body: typeof body === 'string' ? body : JSON.stringify(body),
+    redirect: 'follow',
+    signal: ctl.signal,
+  }).finally(() => clearTimeout(timer));
+}
+
 /** Strip HTML to readable text — descriptions arrive as markup from every ATS. */
 /**
  * HTML to readable text.
@@ -225,18 +242,51 @@ const NON_US = ['canada','ontario','toronto','vancouver','british columbia','alb
  * location is written as "Field-based" or "Multiple locations", and a missing
  * job is harder to notice than an extra one.
  */
+const CA_PROVINCES = new Set(['ON','BC','AB','QC','MB','NS','SK','NB','NL','PE','YT','NT','NU']);
+
+// Countries only — the subset of NON_US that can never be a US place name.
+// Cities are excluded on purpose: Dublin OH, Ontario CA, Paris TX, London KY,
+// Manchester NH and Melbourne FL are all real US job locations.
+const NON_US_COUNTRIES = ['canada','united kingdom','england','scotland','ireland','israel','india',
+  'philippines','mexico','brazil','argentina','colombia','costa rica','germany','france','spain',
+  'netherlands','poland','portugal','romania','australia','new zealand','singapore','japan','china',
+  'hong kong','korea','vietnam','thailand','indonesia','malaysia','united arab emirates',
+  'south africa','nigeria','kenya','emea','apac','latam'];
+
+/**
+ * The checks run in a deliberate order. The old version tested the non-US
+ * list first, so "Albuquerque, New Mexico" was dropped for containing
+ * "mexico", and "Dublin, OH" for containing "dublin" — real US roles at the
+ * operators this board exists for.
+ *
+ *   1. an explicit non-US country (with "New Mexico" masked out) → drop
+ *   2. any positive US signal — country, state name, state code → keep
+ *   3. a non-US city with no US signal ("Toronto", "Tel Aviv") → drop
+ *   4. anything else → keep
+ */
 function isUS(location, title) {
-  const s = String(location || '').toLowerCase().trim();
+  const raw = String(location || '');
+  const s = raw.toLowerCase().trim();
   if (!s) return true;                       // unknown: keep
 
-  if (NON_US.some((k) => new RegExp('\\b' + k + '\\b').test(s))) return false;
-  if (/\b(united states|usa|u\.s\.a?\.?|america)\b/.test(s)) return true;
+  const usCountry = /\b(united states|usa|u\.s\.a?\.?|america)\b/.test(s);
+  const masked = s.replace(/\bnew mexico\b/g, ' ');
+  const foreignCountry = NON_US_COUNTRIES.some((k) => new RegExp('\\b' + k + '\\b').test(masked));
+  // A multi-location posting that names the US anywhere stays: a US candidate can take it.
+  if (foreignCountry && !usCountry) return false;
+
+  if (usCountry) return true;
   if (US_STATE_NAMES.some((n) => s.includes(n))) return true;
-  if ((String(location).match(/\b([A-Z]{2})\b/g) || []).some((a) => US_ABBR.has(a))) return true;
+  // "CA" is also Canada's country code: "Toronto, ON, CA". When a Canadian
+  // province code is present, "CA" alone is not evidence of California.
+  const codes = raw.match(/\b([A-Z]{2})\b/g) || [];
+  const canadian = codes.some((a) => CA_PROVINCES.has(a));
+  if (codes.some((a) => US_ABBR.has(a) && !(canadian && a === 'CA'))) return true;
+  if (canadian) return false;
+
+  if (NON_US.some((k) => new RegExp('\\b' + k + '\\b').test(s))) return false;
 
   // "Remote" with no country attached: treat as US on a US board.
-  if (/\bremote\b|\banywhere\b|\bnationwide\b/.test(s)) return true;
-
   return true;                               // nothing disqualifying found
 }
 
@@ -295,40 +345,62 @@ async function workday(company) {
   // per client and both of which live in the careers URL:
   //     {tenant}.wdN.myworkdayjobs.com/{site}
   const host = company.atsSlug || '';
-  const m = (company.careersUrl || '').match(/myworkdayjobs\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?([^/?#]+)/);
-  const site = company.atsSite || (m && m[1]);
-  if (!host || !site) throw new Error('workday needs atsSlug (the host) and a site path');
+  const siteRe = /myworkdayjobs\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?([^/?#]+)/;
+  const m = (company.careersUrl || '').match(siteRe);
+  let site = company.atsSite || (m && m[1]);
+  if (!host) throw new Error('workday needs atsSlug (the host, e.g. acme.wd1.myworkdayjobs.com)');
+
+  // No site path in config. Amherst and Chamberlain both failed every run on
+  // this: detect-ats.js records the host but never the site, and their
+  // careersUrl is the company's own page rather than the Workday board. A
+  // tenant's bare host redirects to its default external site, so ask it.
+  if (!site) {
+    try {
+      const r = await get(`https://${host}/`);
+      const found = (r.url || '').match(siteRe);
+      if (found && !/^(wday|login)$/i.test(found[1])) site = found[1];
+    } catch { /* fall through to the error below */ }
+  }
+  if (!site) throw new Error(`workday: no site path for ${host} — set atsSite in config.js`);
 
   const tenant = host.split('.')[0];
   const url = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
 
   // This endpoint is a POST with a JSON body, not a GET. A GET returns 405 and
   // looks like the company simply has no openings, which is worse than an error.
-  // It also pages 20 at a time, so a large operator needs several calls.
+  // It pages 20 at a time.
+  //
+  // Workday reports `total` on the FIRST page only; later pages come back with
+  // total: 0. The old loop re-read total on every page, so the second page
+  // always satisfied `all.length >= 0` and the loop stopped at 40 postings —
+  // every Workday company (Greystar, Zillow, Progress, Tricon, MRI) was capped
+  // at 40 regardless of size. The total is now taken once, and paging also
+  // continues while full pages keep arriving, in case a tenant omits it.
+  //
+  // The cap is generous because Greystar posts thousands of site-level roles
+  // and the corporate ones the board wants are scattered through them.
+  const MAX = Number(company.maxPostings) || 3000;
   const all = [];
   const PAGE = 20;
-  for (let offset = 0; offset < 400; offset += PAGE) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'User-Agent': UA,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ appliedFacets: {}, limit: PAGE, offset, searchText: '' }),
-    });
+  let total = null;
+  for (let offset = 0; offset < MAX; offset += PAGE) {
+    const res = await post(url, { appliedFacets: {}, limit: PAGE, offset, searchText: '' });
     if (!res.ok) throw new Error('workday HTTP ' + res.status);
 
     const body = await res.json();
-    const posts = body.jobPostings || [];
+    if (!Array.isArray(body.jobPostings)) throw new Error('workday returned no jobPostings array');
+    const posts = body.jobPostings;
+    if (offset === 0) total = Number(body.total) || 0;
     all.push(...posts);
 
-    const total = body.total ?? all.length;
-    if (posts.length < PAGE || all.length >= total) break;
-    await sleep(200);              // be polite between pages
+    if (posts.length < PAGE || (total && all.length >= total)) break;
+    await sleep(150);              // be polite between pages
   }
 
-  if (!all.length) throw new Error('workday returned no jobPostings');
+  // A well-formed response with nothing in it is an empty board, not a failure.
+  // Treating it as a failure carried the company's last roles forward forever,
+  // so closed jobs stayed on the site.
+  if (!all.length) return [];
 
   return all.map((j) => ({
     sourceId: String(j.bulletFields?.[0] || j.externalPath),
@@ -817,8 +889,11 @@ async function ukg(company) {
   const url = company.careersUrl || '';
   const m = url.match(/recruiting\.ultipro\.com\/([^/]+)\/JobBoard\/([0-9a-f-]{36})/i);
 
-  const tenant = company.atsSlug || (m && m[1]);
-  const board = company.atsSite || (m && m[2]);
+  // detect-ats.js used to write both halves into atsSlug as "TENANT/GUID".
+  // Accept that shape too, so a config written by the old script still works.
+  const [slugTenant, slugBoard] = String(company.atsSlug || '').split('/');
+  const tenant = slugTenant || (m && m[1]);
+  const board = company.atsSite || slugBoard || (m && m[2]);
   if (!tenant || !board) {
     throw new Error('ukg needs atsSlug (tenant, e.g. VIN1007VNB) and atsSite (the board GUID)');
   }
@@ -830,14 +905,7 @@ async function ukg(company) {
   const PAGE = 50;
 
   for (let skip = 0; skip < 500; skip += PAGE) {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'User-Agent': UA,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
+    const res = await post(endpoint, {
         opportunitySearch: {
           Top: PAGE,
           Skip: skip,
@@ -862,7 +930,6 @@ async function ukg(company) {
           hasNoLicenses: false,
           SkippedSkills: [],
         },
-      }),
     });
 
     if (!res.ok) throw new Error('ukg HTTP ' + res.status);
@@ -916,7 +983,267 @@ async function ukg(company) {
   });
 }
 
-const ADAPTERS = { greenhouse, lever, workday, jsonld, breezy, ashby, workable, reffie, dom, ukg };
+/* --------------------------------------------------------------------------
+   Adapters added Oct 2026 for platforms the operator list actually uses.
+   Each one follows the house rule: a well-formed empty board returns [], and
+   any response in an unexpected shape throws rather than reading as "not
+   hiring". None of them return a full description, so none are in DESCRIBES.
+   -------------------------------------------------------------------------- */
+
+/** Pull the first JSON object assigned to a JS variable in a page, e.g. `window.pageData = {...};`. */
+function embeddedJson(html, name) {
+  const at = html.indexOf(name);
+  if (at === -1) return null;
+  const start = html.indexOf('{', at);
+  if (start === -1) return null;
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < html.length; i++) {
+    const ch = html[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === '{') depth++;
+    else if (ch === '}' && --depth === 0) {
+      try { return JSON.parse(html.slice(start, i + 1)); } catch { return null; }
+    }
+  }
+  return null;
+}
+
+/**
+ * BambooHR. Every company gets a public JSON list at SLUG.bamboohr.com.
+ *   atsSlug: the subdomain (NetVendor is "netvendor")
+ */
+async function bamboohr(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for bamboohr');
+  const res = await get(`https://${slug}.bamboohr.com/careers/list`);
+  if (!res.ok) throw new Error('bamboohr HTTP ' + res.status);
+  const body = await res.json().catch(() => null);
+  if (!Array.isArray(body?.result)) throw new Error('bamboohr returned no result array');
+  return body.result.map((j) => ({
+    sourceId: String(j.id),
+    title: j.jobOpeningName,
+    location: j.isRemote ? 'Remote' :
+      [j.location?.city, j.location?.state].filter(Boolean).join(', ') || 'See posting',
+    url: `https://${slug}.bamboohr.com/careers/${j.id}`,
+    description: '',
+    postedAt: null,
+    min: null, max: null,
+  }));
+}
+
+/**
+ * Paylocity Recruiting. The board URL carries a company GUID:
+ *   recruiting.paylocity.com/recruiting/jobs/All/{GUID}/{Name}
+ *   atsSlug: the GUID
+ *
+ * Tries the public JSON feed first, then the jobs page, which embeds its
+ * listings as `window.pageData`.
+ */
+async function paylocity(company) {
+  const guid = company.atsSlug ||
+    ((company.careersUrl || '').match(/paylocity\.com\/recruiting\/jobs\/All\/([0-9a-f-]{36})/i) || [])[1];
+  if (!guid) throw new Error('paylocity needs atsSlug (the company GUID)');
+
+  const detail = (id) => `https://recruiting.paylocity.com/Recruiting/Jobs/Details/${id}`;
+
+  try {
+    const res = await get(`https://recruiting.paylocity.com/recruiting/v2/api/feed/jobs/${guid}`);
+    if (res.ok) {
+      const body = await res.json();
+      if (Array.isArray(body?.jobs)) {
+        return body.jobs.map((j) => {
+          const loc = j.jobLocation || {};
+          return {
+            sourceId: String(j.jobId),
+            title: j.title,
+            location: [loc.city, loc.state].filter(Boolean).join(', ') || j.locationName || 'See posting',
+            url: j.displayUrl || detail(j.jobId),
+            description: '',
+            postedAt: j.publishedDate || null,
+            min: null, max: null,
+          };
+        });
+      }
+    }
+  } catch { /* fall through to the page */ }
+
+  const res = await get(`https://recruiting.paylocity.com/recruiting/jobs/All/${guid}`);
+  if (!res.ok) throw new Error('paylocity HTTP ' + res.status);
+  const data = embeddedJson(await res.text(), 'window.pageData');
+  const list = data?.Jobs;
+  if (!Array.isArray(list)) throw new Error('paylocity page carried no Jobs list');
+  return list.map((j) => ({
+    sourceId: String(j.JobId),
+    title: j.JobTitle,
+    location: j.LocationName || [j.JobLocation?.City, j.JobLocation?.State].filter(Boolean).join(', ') || 'See posting',
+    url: detail(j.JobId),
+    description: '',
+    postedAt: j.PublishedDate || null,
+    min: null, max: null,
+  }));
+}
+
+/**
+ * ADP Workforce Now recruitment. The board URL carries two ids:
+ *   workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid={CID}&ccId={CCID}
+ *   atsSlug: cid   atsSite: ccId
+ */
+async function adp(company) {
+  const q = new URL(company.careersUrl && /adp\.com/.test(company.careersUrl)
+    ? company.careersUrl : 'https://x.invalid/').searchParams;
+  const cid = company.atsSlug || q.get('cid');
+  const ccId = company.atsSite || q.get('ccId') || '19000101_000001';
+  if (!cid) throw new Error('adp needs atsSlug (the cid)');
+
+  const base = 'https://workforcenow.adp.com/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions';
+  const PAGE = 20;
+  const all = [];
+  let total = null;
+  for (let skip = 0; skip < 1000; skip += PAGE) {
+    const url = `${base}?cid=${cid}&ccId=${ccId}&lang=en_US&locale=en_US&timeStamp=${Date.now()}&$top=${PAGE}&$skip=${skip}`;
+    const res = await get(url);
+    if (!res.ok) throw new Error('adp HTTP ' + res.status);
+    const body = await res.json().catch(() => null);
+    const list = body?.jobRequisitions;
+    if (!Array.isArray(list)) throw new Error('adp returned no jobRequisitions array');
+    if (skip === 0) total = Number(body?.meta?.totalNumber) || 0;
+    all.push(...list);
+    if (list.length < PAGE || (total && all.length >= total)) break;
+    await sleep(200);
+  }
+
+  return all.map((j) => {
+    const loc = (j.requisitionLocations || [])[0] || {};
+    const addr = loc.address || {};
+    const location = [addr.cityName, addr.countrySubdivisionLevel1?.codeValue].filter(Boolean).join(', ') ||
+      loc.nameCode?.shortName || 'See posting';
+    return {
+      sourceId: String(j.itemID),
+      title: j.requisitionTitle,
+      location,
+      url: `https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=${cid}&ccId=${ccId}&jobId=${j.itemID}&lang=en_US&type=MP`,
+      description: '',
+      postedAt: /^\d{4}-\d{2}-\d{2}/.test(j.postDate || '') ? j.postDate.slice(0, 10) : null,
+      min: null, max: null,
+    };
+  });
+}
+
+/**
+ * Oracle Recruiting Cloud (Candidate Experience). AMH runs on this.
+ *   atsSlug: the host, e.g. ejpe.fa.us6.oraclecloud.com
+ *   atsSite: the site number, e.g. CX_1
+ */
+async function oracle(company) {
+  const host = company.atsSlug;
+  const site = company.atsSite || 'CX_1';
+  if (!host) throw new Error('oracle needs atsSlug (the host)');
+
+  const PAGE = 25;
+  const all = [];
+  let total = null;
+  for (let offset = 0; offset < 2000; offset += PAGE) {
+    const url = `https://${host}/hcmRestApi/resources/latest/recruitingCEJobRequisitions` +
+      `?onlyData=true&expand=requisitionList.secondaryLocations` +
+      `&finder=findReqs;siteNumber=${site},limit=${PAGE},offset=${offset},sortBy=POSTING_DATES_DESC`;
+    const res = await get(url);
+    if (!res.ok) throw new Error('oracle HTTP ' + res.status);
+    const body = await res.json().catch(() => null);
+    const item = body?.items?.[0];
+    const list = item?.requisitionList;
+    if (!Array.isArray(list)) throw new Error('oracle returned no requisitionList');
+    if (offset === 0) total = Number(item.TotalJobsCount) || 0;
+    all.push(...list);
+    if (list.length < PAGE || (total && all.length >= total)) break;
+    await sleep(200);
+  }
+
+  return all.map((j) => ({
+    sourceId: String(j.Id),
+    title: j.Title,
+    location: j.PrimaryLocation || 'See posting',
+    url: `https://${host}/hcmUI/CandidateExperience/en/sites/${site}/job/${j.Id}`,
+    description: '',
+    postedAt: /^\d{4}-\d{2}-\d{2}/.test(j.PostedDate || '') ? j.PostedDate.slice(0, 10) : null,
+    min: null, max: null,
+  }));
+}
+
+/**
+ * Rippling ATS. Boards live at ats.rippling.com/{slug}/jobs.
+ *   atsSlug: the board slug (Zumper is "zumper", SFR3 is "sfr3-llc")
+ *
+ * Tries Rippling's public board API, then falls back to reading the job list
+ * out of the board page's server-rendered Next.js data.
+ */
+async function rippling(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for rippling');
+  const jobUrl = (id) => `https://ats.rippling.com/${slug}/jobs/${id}`;
+  const shape = (j) => {
+    const id = j.uuid || j.id;
+    const loc = j.workLocation?.label || j.locations?.[0]?.name || j.location?.name ||
+      (typeof j.location === 'string' ? j.location : '') || 'See posting';
+    return {
+      sourceId: String(id),
+      title: j.name || j.title,
+      location: loc,
+      url: j.url && /^https?:/.test(j.url) ? j.url : jobUrl(id),
+      description: '',
+      postedAt: null,
+      min: null, max: null,
+    };
+  };
+
+  try {
+    const res = await get(`https://api.rippling.com/platform/api/ats/v1/board/${slug}/jobs`);
+    if (res.ok) {
+      const body = await res.json();
+      const list = Array.isArray(body) ? body : body?.items || body?.jobs;
+      if (Array.isArray(list)) return list.map(shape);
+    }
+  } catch { /* fall through to the page */ }
+
+  const res = await get(`https://ats.rippling.com/${slug}/jobs`);
+  if (!res.ok) throw new Error('rippling HTTP ' + res.status);
+  const html = await res.text();
+  const raw = (html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/) || [])[1];
+  if (!raw) throw new Error('rippling page carried no __NEXT_DATA__');
+  let data;
+  try { data = JSON.parse(raw); } catch { throw new Error('rippling __NEXT_DATA__ unreadable'); }
+
+  // Find the job list wherever this release of the page keeps it: the first
+  // array whose items look like postings (an id and a name or title).
+  let found = null;
+  const walk = (node, depth = 0) => {
+    if (found || !node || typeof node !== 'object' || depth > 12) return;
+    if (Array.isArray(node)) {
+      if (node.length && node.every((x) => x && typeof x === 'object' && (x.uuid || x.id) && (x.name || x.title))) {
+        found = node; return;
+      }
+      node.forEach((x) => walk(x, depth + 1));
+      return;
+    }
+    Object.values(node).forEach((v) => walk(v, depth + 1));
+  };
+  walk(data?.props?.pageProps);
+  // No posting-shaped array could mean an empty board or a page redesign. The
+  // two cannot be told apart from here, so fail: a failure is visible in the
+  // log, and the carry-over age limit stops stale roles living on.
+  if (!found) throw new Error('rippling page had no recognisable job list');
+  return found.map(shape);
+}
+
+const ADAPTERS = {
+  greenhouse, lever, workday, jsonld, breezy, ashby, workable, reffie, dom, ukg,
+  bamboohr, paylocity, adp, oracle, rippling,
+};
 
 /* ==========================================================================
    RUN
@@ -1041,13 +1368,37 @@ async function companiesFromDatabase() {
 }
 
 const configIds = new Set(COMPANIES.map((c) => c.id));
-const fromDb = (await companiesFromDatabase()).filter((c) => c.id && !configIds.has(c.id));
+const dbRows = await companiesFromDatabase();
+const fromDb = dbRows.filter((c) => c.id && !configIds.has(c.id));
 if (fromDb.length) {
   const named = fromDb.map((c) => c.name).join(', ');
   console.log(`companies  ${fromDb.length} from the discovery queue: ${named}\n`);
 }
 
-const targets = [...COMPANIES, ...fromDb]
+/* A company in both lists keeps its config.js definition — except where
+   config.js has no scrape method and the database has one. The admin panel's
+   "detect" action writes methods into the database for every company,
+   including ones config.js already lists; the old merge discarded all of
+   those, so detection run from the admin panel never reached the scraper.
+   A blank is not something set by hand, so filling it overrides nothing. */
+const dbById = new Map(dbRows.filter((c) => c.id && c.method).map((c) => [c.id, c]));
+const adopted = [];
+const configured = COMPANIES.map((c) => {
+  const d = dbById.get(c.id);
+  if (c.method || !d) return c;
+  adopted.push(c.name);
+  return {
+    ...c,
+    method: d.method, atsSlug: d.atsSlug ?? c.atsSlug, atsSite: d.atsSite ?? c.atsSite,
+    listUrl: d.listUrl ?? c.listUrl, sitemap: d.sitemap ?? c.sitemap,
+    linkOverride: d.linkOverride ?? c.linkOverride,
+  };
+});
+if (adopted.length) {
+  console.log(`companies  ${adopted.length} scrape method(s) taken from the database: ${adopted.join(', ')}\n`);
+}
+
+const targets = [...configured, ...fromDb]
   .filter((c) => c.active !== false)
   .filter((c) => (args.hub ? c.hub === args.hub : true))
   .filter((c) => (args.only ? c.id === args.only : true));
@@ -1101,7 +1452,33 @@ const fresh = okResults.flatMap((r) => r.jobs);
 // In short: a scrape updates the companies it covered and leaves the rest alone.
 const scrapedIds = new Set(okResults.map((r) => r.company.id));
 const previous = await loadPrevious(OUT);
-const carriedRaw = previous.filter((j) => !scrapedIds.has(j.company_id));
+
+/* Limits on carry-over, added Oct 2026. Without them the feed accumulated
+   roles that were never re-checked:
+     - a company that failed or lost its scrape method kept its last roles
+       forever (Opendoor's 49, Luxury Presence's 19 — all frozen since Sept 11)
+     - a company switched to active:false, or removed from config, kept them
+       too (Convene's 15, frozen since Aug 25)
+     - a hand-made test row, id "sample:1", had been live since Aug 2
+   A role that has not been confirmed for MAX_CARRY_DAYS is more likely closed
+   than open, and a closed role on the board costs a candidate an application. */
+const MAX_CARRY_DAYS = 14;
+const carryCutoff = Date.now() - MAX_CARRY_DAYS * 86400000;
+const knownIds = new Set([...configured, ...fromDb].filter((c) => c.active !== false).map((c) => c.id));
+const inScopeIds = new Set(targets.map((c) => c.id));
+let expired = 0, orphaned = 0;
+const carriedRaw = previous.filter((j) => {
+  if (scrapedIds.has(j.company_id)) return false;                 // replaced by fresh rows
+  if (String(j.id || '').startsWith('sample:') || !j.company_id) { orphaned++; return false; }
+  if (!knownIds.has(j.company_id)) { orphaned++; return false; }   // removed or inactive
+  // In scope but not refreshed (failed, or no method): only while recent.
+  // Out of scope (a --hub or --only run): untouched, whatever its age.
+  if (inScopeIds.has(j.company_id)) {
+    const seen = Date.parse(j.scraped_at || '') || 0;
+    if (seen < carryCutoff) { expired++; return false; }
+  }
+  return true;
+});
 
 // Carried-over roles were written by an older, looser version of these filters,
 // so they have to pass the current ones too. Without this, junk scraped once
@@ -1217,6 +1594,8 @@ if (sum('junk'))      console.log(`filtered  ${sum('junk')} entries that were no
 if (sum('outsideUS')) console.log(`filtered  ${sum('outsideUS')} roles outside the US`);
 if (sum('thin'))      console.log(`filtered  ${sum('thin')} roles with too little detail to publish`);
 if (purged)           console.log(`purged    ${purged} previously-published roles that no longer pass the filters`);
+if (expired)          console.log(`expired   ${expired} carried roles not confirmed in ${MAX_CARRY_DAYS}+ days`);
+if (orphaned)         console.log(`removed   ${orphaned} roles from inactive, removed or test companies`);
 
 const undescribed = okResults.filter((r) => r.undescribed > 0);
 if (undescribed.length) {
@@ -1236,7 +1615,13 @@ if (emptied.length) {
 }
 if (fromFailed) console.log(`carried   ${fromFailed} roles from ${failed.length} failed source(s)`);
 if (outOfScope) console.log(`kept      ${outOfScope} roles from companies not in this run`);
-if (pending.length) console.log(`skipped   ${pending.length} companies with no method — run scripts/detect-ats.js`);
+if (pending.length) {
+  // Named, priority first. A bare count here is how 91 companies — three of
+  // them priority operators — went unscraped for a month without anyone noticing.
+  console.log(`\nskipped   ${pending.length} companies with no scrape method (not scraped at all):`);
+  [...pending].sort((a, b) => (b.priority === true) - (a.priority === true) || a.name.localeCompare(b.name))
+    .forEach((c) => console.log(`  ${c.priority ? 'PRIORITY ' : '         '}${c.name}`));
+}
 if (failed.length) {
   console.log(`\nfailed ${failed.length}:`);
   failed.forEach((r) => console.log(`  ${r.company.name.padEnd(30).slice(0, 30)} ${r.reason}`));

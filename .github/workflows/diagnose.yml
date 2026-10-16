@@ -1,0 +1,51 @@
+name: Diagnose scraper (temporary)
+
+# Temporary verification for the fix/scraper-coverage branch. Runs the scraper
+# and ATS detection with NO secrets — so no history sync and no database
+# reads — writing into diag/ only, never site/jobs.json. Removed before merge.
+on:
+  push:
+    branches: [fix/scraper-coverage]
+    paths-ignore: ['diag/**']
+
+concurrency:
+  group: diagnose
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Scrape into diag/ (starting from the live feed, to test carry-over)
+        run: |
+          mkdir -p diag
+          cp site/jobs.json diag/jobs.json
+          node run.js --out=diag/jobs.json > diag/run.txt 2>&1 || echo "run.js exited $?" >> diag/run.txt
+
+      - name: Detect ATS, dry run
+        run: node scripts/detect-ats.js --dry > diag/detect.txt 2>&1 || echo "detect exited $?" >> diag/detect.txt
+
+      - name: Sample titles per company
+        run: |
+          node -e "
+            const f = require('./diag/jobs.json');
+            const by = {};
+            for (const j of f.jobs) (by[j.company] ||= []).push(j.title + ' — ' + j.location + ' — ' + j.scraped_at.slice(0,10));
+            for (const [c, t] of Object.entries(by).sort()) console.log(c + ' (' + t.length + ')\n  ' + t.slice(0, 4).join('\n  '));
+          " > diag/samples.txt 2>&1 || true
+
+      - name: Commit diag/ to this branch
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add diag
+          git commit -m "Diagnostic run output" || exit 0
+          git push
