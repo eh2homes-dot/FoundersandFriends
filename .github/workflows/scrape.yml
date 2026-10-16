@@ -105,6 +105,10 @@ jobs:
         env:
           HISTORY_URL: ${{ secrets.HISTORY_URL }}
           HISTORY_KEY: ${{ secrets.HISTORY_KEY }}
+          # lead-sheet.js lists syndeo-jobsearch's output folders through the
+          # GitHub API to find the newest weekly files. Unauthenticated, that
+          # API allows 60 calls an hour per IP, and runners share IPs.
+          GITHUB_TOKEN: ${{ github.token }}
         run: node run.js --out=site/jobs.json
 
       - name: Scrape one hub
@@ -112,6 +116,10 @@ jobs:
         env:
           HISTORY_URL: ${{ secrets.HISTORY_URL }}
           HISTORY_KEY: ${{ secrets.HISTORY_KEY }}
+          # lead-sheet.js lists syndeo-jobsearch's output folders through the
+          # GitHub API to find the newest weekly files. Unauthenticated, that
+          # API allows 60 calls an hour per IP, and runners share IPs.
+          GITHUB_TOKEN: ${{ github.token }}
         run: node run.js --hub=${{ inputs.hub }} --out=site/jobs.json
 
       # Guard against publishing a broken or empty feed. A scrape that fails
