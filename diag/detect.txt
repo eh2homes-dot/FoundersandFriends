@@ -1,5 +1,6 @@
-Probing 64 companies (concurrency 6)…
+Probing 62 companies (concurrency 6)…
 
+  --    AMH                                Oracle HCM detected — no adapter
   --    FirstKey Homes                     HTTP 403
   --    Main Street Renewal                fetch failed: fetch failed
   --    Bluerock Homes                     fetch failed: fetch failed
@@ -9,12 +10,10 @@ Probing 64 companies (concurrency 6)…
   --    Yardi Systems                      HTTP 403
   --    Matterport                         HTTP 403
   --    Measurabl                          Rippling detected — no adapter
-  --    Placer.ai                          HTTP 404
   --    Mynd                               HTTP 404
   --    Divvy Homes                        no ATS signature found
   --    Apartment List                     no ATS signature found
   --    Hemlane                            HTTP 404
-  --    Kasa Living                        no ATS signature found
   --    HouseCanary                        no ATS signature found
   --    Realtor.com (Move Inc.)            HTTP 403
   --    Auction.com                        Dayforce detected — no adapter
@@ -30,7 +29,6 @@ Probing 64 companies (concurrency 6)…
   --    Latch                              Rippling detected — no adapter
   --    Agora                              fetch failed: fetch failed
   --    Cherre                             no ATS signature found
-  --    Updater                            HTTP 404
   --    Avail (Realtor.com)                HTTP 404
   --    HqO                                no ATS signature found
   --    Buildium (RealPage)                no ATS signature found
@@ -66,17 +64,16 @@ Probing 64 companies (concurrency 6)…
   --    Nutiliti                           no ATS signature found
 
 ----------------------------------------------------------------
-resolved   3/64
+resolved   3/62
   ashby       1
   adp         1
   dom         1
 
-unresolved 61 — these stay NULL and will be skipped by run.js:
+unresolved 59 — these stay NULL and will be skipped by run.js:
 
-  no signature (28)
+  no signature (27)
     Divvy Homes                        no ATS signature found
     Apartment List                     no ATS signature found
-    Kasa Living                        no ATS signature found
     HouseCanary                        no ATS signature found
     ResMan                             no ATS signature found
     Worksmith                          no ATS signature found
@@ -103,15 +100,13 @@ unresolved 61 — these stay NULL and will be skipped by run.js:
     Evergreen Residential              no ATS signature found
     Nutiliti                           no ATS signature found
 
-  bad careers_url (404) (15)
+  bad careers_url (404) (13)
     Pathway Homes                      HTTP 404
     HomeRiver Group                    HTTP 404
-    Placer.ai                          HTTP 404
     Mynd                               HTTP 404
     Hemlane                            HTTP 404
     Cadre                              HTTP 404
     SquareFoot                         HTTP 404
-    Updater                            HTTP 404
     Avail (Realtor.com)                HTTP 404
     PointCentral                       HTTP 404
     Rentec Direct                      HTTP 404
@@ -131,7 +126,8 @@ unresolved 61 — these stay NULL and will be skipped by run.js:
     Rocket Companies                   HTTP 403
     Picerne Real Estate Group          HTTP 403
 
-  known platform, no adapter (6)
+  known platform, no adapter (7)
+    AMH                                Oracle HCM detected — no adapter
     Measurabl                          Rippling detected — no adapter
     Auction.com                        Dayforce detected — no adapter
     Latch                              Rippling detected — no adapter
@@ -146,6 +142,7 @@ unresolved 61 — these stay NULL and will be skipped by run.js:
 
   adapters that would pay off most, in order:
     Rippling           3 companies
+    Oracle HCM         1 companies
     Dayforce           1 companies
     ADP                1 companies
     isolved            1 companies

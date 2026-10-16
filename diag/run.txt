@@ -1,7 +1,6 @@
-Scraping 74 companies, skipping 64 with no method set
+Scraping 76 companies, skipping 62 with no method set
 
-  FAIL  AMH                            oracle HTTP 503
-  FAIL  Amherst Group                  workday: no site path for amherstgroup.wd1.myworkdayjobs.com — set atsSite in config.js
+  ok    Amherst Group                  20 roles  (2 not a job, 9 outside the US)
   FAIL  VineBrook Homes                ukg board reports 0 total openings — check the board id, or the company really is not hiring
   ok    SFR3                           10 roles  (4 outside the US)
   ok    Evernest                       7 roles  (4 outside the US)
@@ -16,6 +15,7 @@ Scraping 74 companies, skipping 64 with no method set
   ok    Progress Residential           30 roles
   ok    Tricon Residential             9 roles  (7 outside the US)
   FAIL  Procore Technologies           dom HTTP 404
+  ok    Placer.ai                      12 roles  (7 outside the US)
   ok    Roofstock                      8 roles
   ok    Doma                           4 roles
   ok    Blend Labs                     15 roles
@@ -25,6 +25,7 @@ Scraping 74 companies, skipping 64 with no method set
   ok    Pacaso                         3 roles
   ok    Crexi                          16 roles
   ok    Kiavi                          1 role
+  ok    Kasa Living                    16 roles
   ok    Side                           4 roles
   ok    HomeLight                      15 roles  (1 outside the US)
   ok    Snapdocs                       3 roles
@@ -48,8 +49,9 @@ Scraping 74 companies, skipping 64 with no method set
   ok    Funnel Leasing                 4 roles
   ok    Orchard                        30 roles
   ok    Better.com                     2 roles  (5 outside the US)
+  ok    Updater                        1 role
   FAIL  Livly                          dom found no job links — page is probably JS-rendered
-  FAIL  Chamberlain Group              workday: no site path for chamberlain.wd1.myworkdayjobs.com — set atsSite in config.js
+  ok    Chamberlain Group              43 roles  (17 not a job)
   FAIL  Obie                           dom found no job links — page is probably JS-rendered
   ok    TurboTenant                    2 roles  (1 not a job)
   ok    Homebot                        0 roles
@@ -76,17 +78,18 @@ Scraping 74 companies, skipping 64 with no method set
   ok    PURE HomeRiver Group           8 roles
 
 ------------------------------------------------------------
-scraped   991 roles from 62 sources
-filtered  63 entries that were not job postings
-filtered  207 roles outside the US
+scraped   1083 roles from 67 sources
+filtered  82 entries that were not job postings
+filtered  223 roles outside the US
 filtered  2 roles with too little detail to publish
 expired   1 carried roles not confirmed in 14+ days
 removed   16 roles from inactive, removed or test companies
 
-2006 roles published without a description (rippling, workday, dom, bamboohr, adp, breezy, paylocity return titles only):
+633 roles published without a description (workday, rippling, dom, bamboohr, adp, breezy, paylocity return titles only):
+  Amherst Group                  20
   SFR3                           10
-  Progress Residential           74
-  Tricon Residential             18
+  Progress Residential           30
+  Tricon Residential             9
   Point                          18
   Zumper                         3
   RentSpree                      12
@@ -94,23 +97,25 @@ removed   16 roles from inactive, removed or test companies
   Compass                        23
   Bowery Valuation               15
   TheGuarantors                  18
+  Chamberlain Group              43
   NetVendor                      10
   SmartRent                      4
-  Opendoor                       44
+  Opendoor                       43
   Home365                        12
   Zillow Group                   108
   Rent Manager (LCS)             4
   MRI Software                   23
   Renters Warehouse              12
   Doorstead                      99
-  Greystar                       1447
-  Tamarack Property Management   18
-  Redstone                       3
-  Atlas Real Estate              18
+  Greystar                       79
+  Tamarack Property Management   6
+  Redstone                       2
+  Atlas Real Estate              17
   PURE HomeRiver Group           8
-carried   3 roles from 12 failed source(s)
+carried   3 roles from 9 failed source(s)
 
-skipped   64 companies with no scrape method (not scraped at all):
+skipped   62 companies with no scrape method (not scraped at all):
+  PRIORITY AMH
   PRIORITY FirstKey Homes
   PRIORITY Main Street Renewal
            Agora
@@ -138,7 +143,6 @@ skipped   64 companies with no scrape method (not scraped at all):
            HomeRiver Group
            HouseCanary
            HqO
-           Kasa Living
            Keyrenter Property Management
            Knock CRM
            Latch
@@ -156,7 +160,6 @@ skipped   64 companies with no scrape method (not scraped at all):
            Opcity (Realtor.com)
            Pathway Homes
            Picerne Real Estate Group
-           Placer.ai
            Placester
            PointCentral
            Property Management Inc
@@ -171,14 +174,11 @@ skipped   64 companies with no scrape method (not scraped at all):
            Rocket Companies
            SquareFoot
            The Lund Company
-           Updater
            Veris Residential
            Worksmith
            Yardi Systems
 
-failed 12:
-  AMH                            oracle HTTP 503
-  Amherst Group                  workday: no site path for amherstgroup.wd1.myworkdayjobs.com — set atsSite in config.js
+failed 9:
   VineBrook Homes                ukg board reports 0 total openings — check the board id, or the company really is not hiring
   Esusu                          dom found no job links — page is probably JS-rendered
   Lineage                        greenhouse HTTP 404
@@ -186,23 +186,19 @@ failed 12:
   Procore Technologies           dom HTTP 404
   Closinglock                    dom found no job links — page is probably JS-rendered
   Livly                          dom found no job links — page is probably JS-rendered
-  Chamberlain Group              workday: no site path for chamberlain.wd1.myworkdayjobs.com — set atsSite in config.js
   Obie                           dom found no job links — page is probably JS-rendered
   BH Management Services         dom found no job links — page is probably JS-rendered
+opco       198 roles from 12 companies  (139 held back)
+proptech   722 roles from 49 companies  (27 held back)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-PRIORITY COMPANIES FAILED — the board will look empty without these:
-  AMH: oracle HTTP 503
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-opco       292 roles from 12 companies  (25 held back)
-proptech   669 roles from 45 companies  (8 held back)
+wrote diag/jobs.json — 920 roles, 138 companies (77 with nothing open)
 
-wrote diag/jobs.json — 961 roles, 138 companies (81 with nothing open)
-
-held back 33 of 994 roles from the board (still recorded in history):
+held back 166 of 1086 roles from the board (still recorded in history):
+   127  gig / contractor
+    12  field technician
     11  support rep
-    10  field technician
+     7  intern
      6  leasing agent
-     5  intern
-     1  trades
+     2  trades
+     1  admin support
 history  skipped (HISTORY_URL / HISTORY_KEY not set)
