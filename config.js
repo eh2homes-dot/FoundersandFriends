@@ -425,7 +425,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    // Agreed sale to Brookfield, Jan 2025 (Maymont Homes runs the portfolio).
+    active: false,
   },
   {
     id: "flock-homes",
@@ -789,7 +790,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    // Folded into Realtor.com, whose roles come from realtorcom-move-inc; same careers page.
+    active: false,
   },
   {
     id: "compass",
