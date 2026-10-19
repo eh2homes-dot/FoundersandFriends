@@ -1749,6 +1749,7 @@ const totalFailure = ready.length > 0 && okResults.length === 0;
    nothing open" is a different statement from silence, and the more useful one.
 
    Every active company in scope goes in, with its live count. */
+const failedReason = new Map(failed.map((r) => [r.company.id, String(r.reason || 'failed').slice(0, 80)]));
 const roster = targets
   .filter((c) => c.active !== false)
   .map((c) => ({
@@ -1762,6 +1763,10 @@ const roster = targets
     // Null method means the company is configured but not yet scrapeable, which
     // is a different thing from scraped-and-empty.
     scrapeable: Boolean(c.method),
+    // Set when this run's scrape of the company failed. Its roles are carried
+    // over from the last good run, so a non-zero count here does not mean the
+    // board still works — the weekly health report lists these separately.
+    scrape_error: failedReason.get(c.id) || null,
   }))
   .sort((a, b) => b.open_roles - a.open_roles || a.name.localeCompare(b.name));
 

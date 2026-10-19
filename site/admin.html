@@ -364,6 +364,13 @@ textarea:focus{outline:none;border-color:var(--purple)}
       <button class="btn act" type="button" data-repcopy="rep-brief">Copy</button>
       <button class="btn" type="button" data-reppdf="rep-brief" data-reptitle="Hiring Movement Brief">Download PDF</button>
     </div>
+    <div class="sig-card">
+      <h3>Board health</h3>
+      <p class="sig-sub">Boards that failed, came back empty, or have never been scraped.</p>
+      <pre id="rep-health" class="rep-out">Loading…</pre>
+      <button class="btn act" type="button" data-repcopy="rep-health">Copy</button>
+      <button class="btn" type="button" data-reppdf="rep-health" data-reptitle="Board Health">Download PDF</button>
+    </div>
   </div>
 
   <!-- Coverage: the state of the scraper. Operational detail, admin only. -->
@@ -840,6 +847,7 @@ async function loadReports() {
   repLoaded = true;
   $('rep-top').textContent = 'Loading…';
   $('rep-brief').textContent = 'Loading…';
+  $('rep-health').textContent = 'Loading…';
 
   // format=text asks the Worker for the finished block rather than JSON, so
   // there is nothing to assemble here and nothing to drift out of step with
@@ -858,6 +866,7 @@ async function loadReports() {
   await Promise.all([
     get('/api/report/top', 'rep-top'),
     get('/api/report/brief', 'rep-brief'),
+    get('/api/report/health', 'rep-health'),
   ]);
 }
 

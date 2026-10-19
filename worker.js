@@ -10,6 +10,7 @@
  *   GET  /api/stats.csv?key=…  same, as a spreadsheet    (protected)
  *   GET  /api/report/top       top roles by engagement  (admin)
  *   GET  /api/report/brief     weekly movement brief    (admin)
+ *   GET  /api/report/health    lapsing boards and leads (admin)
  *   anything else              the static site
  *
  * If the D1 binding is missing the site still serves normally and clicks are
@@ -2353,6 +2354,7 @@ async function reviewDiscovery(request, env) {
 /* ===========================================================================
    AUTOREPORTS  —  GET /api/report/top     best-performing roles
                    GET /api/report/brief   what opened, closed and moved
+                   GET /api/report/health  boards that failed, emptied or were never scraped
 
    Both admin-only, both returning { data, text }: `data` drives admin.html,
    `text` is a finished block to paste into LinkedIn or the newsletter.
@@ -2640,6 +2642,67 @@ async function movementBriefReport(request, env) {
   }, request);
 }
 
+/* GET /api/report/health — which leads have lapsed.
+
+   Read from the published feed, not D1: the feed's `companies` roster is the
+   scraper's own account of every active company it was asked about, which is
+   the only place a company with nothing open still shows up. Three lists,
+   kept apart because each needs a different fix:
+
+     failed     the board errored this run; its roles are carried over, so
+                the board can look healthy while the source is gone
+     empty      scraped fine, nothing open; often the board has moved and
+                the old address still answers
+     unscraped  no ATS method in config.js, so never scraped at all
+
+   ?days= is accepted for symmetry with the other reports and ignored: this
+   is a snapshot of the latest run, not a window. */
+const FEED_STALE_HOURS = 36;
+
+async function boardHealthReport(request, env) {
+  if (!adminAuthed(request, env)) return deny();
+  const feed = await feedFor(request, env);
+  if (!feed) return ok({ error: 'feed unavailable', data: null, text: '' }, request);
+
+  const cos = Array.isArray(feed.companies) ? feed.companies : [];
+  const failed = cos.filter((c) => c.scrape_error);
+  const empty = cos.filter((c) => c.scrapeable && !c.scrape_error && !c.open_roles);
+  const unscraped = cos.filter((c) => !c.scrapeable);
+  const ageHours = feed.generated_at ? (Date.now() - Date.parse(feed.generated_at)) / 36e5 : null;
+  const stale = ageHours === null || ageHours > FEED_STALE_HOURS;
+
+  const lines = ['Board health', ''];
+  if (stale) {
+    lines.push(`[STALE] The feed has not updated in ${ageHours === null ? 'an unknown time' : Math.round(ageHours) + ' hours'}.`
+      + ' The scrape Action is probably failing — check GitHub Actions before anything below.', '');
+  }
+  lines.push(`${feed.count ?? (feed.jobs || []).length} roles from ${cos.length - unscraped.length} scrapeable`
+    + ` of ${cos.length} companies. ${feed.sources_failed || 0} source(s) failed on the last run.`);
+
+  if (failed.length) {
+    lines.push('', `Scrape failed (${failed.length}) — roles shown are from the last good run:`);
+    failed.forEach((c) => lines.push(`  ${c.name} — ${c.scrape_error}`));
+  }
+  if (empty.length) {
+    lines.push('', `Scraped, nothing open (${empty.length}) — check the board still lives where config.js points:`);
+    empty.forEach((c) => lines.push(`  ${c.name} (${c.hub})`));
+  }
+  if (unscraped.length) {
+    lines.push('', `Never scraped (${unscraped.length}) — no ATS method set:`);
+    lines.push(`  ${unscraped.map((c) => c.name).join(', ')}`);
+  }
+
+  return ok({
+    data: {
+      generated_at: feed.generated_at || null, stale,
+      failed: failed.map((c) => ({ id: c.id, name: c.name, error: c.scrape_error })),
+      empty: empty.map((c) => ({ id: c.id, name: c.name, hub: c.hub })),
+      unscraped: unscraped.map((c) => ({ id: c.id, name: c.name, hub: c.hub })),
+    },
+    text: lines.join('\n'),
+  }, request);
+}
+
 /* ===========================================================================
    THE WEEKLY AGENT
 
@@ -2653,25 +2716,33 @@ async function movementBriefReport(request, env) {
    the same code path. Two builders would drift.
    =========================================================================== */
 async function runScheduledReports(env, { days = 7 } = {}) {
-  const to = env.ADMIN_EMAIL || env.EMPLOYER_EMAIL;
+  // ADMIN_EMAIL gets the report as before. REPORT_TO adds more readers,
+  // comma-separated. Set it as a dashboard variable, not in wrangler.jsonc:
+  // this repo is public and the addresses would be published with it.
+  const to = [...new Set([env.ADMIN_EMAIL || env.EMPLOYER_EMAIL, ...String(env.REPORT_TO || '').split(',')]
+    .map((s) => (s || '').trim()).filter(Boolean))];
   if (!env.STATS_KEY) return { ok: false, error: 'No STATS_KEY — cannot authorise the internal call.' };
   if (!env.RESEND_API_KEY) return { ok: false, error: 'No RESEND_API_KEY configured.' };
-  if (!to) return { ok: false, error: 'No recipient — set ADMIN_EMAIL.' };
+  if (!to.length) return { ok: false, error: 'No recipient — set ADMIN_EMAIL.' };
 
+  const handlers = {
+    '/api/report/top': topRolesReport,
+    '/api/report/brief': movementBriefReport,
+    '/api/report/health': boardHealthReport,
+  };
   const call = async (path) => {
     const req = new Request(`https://internal${path}?days=${days}`, {
       headers: { 'x-admin-key': env.STATS_KEY },
     });
-    const res = path.includes('/top')
-      ? await topRolesReport(req, env)
-      : await movementBriefReport(req, env);
+    const res = await handlers[path](req, env);
     const body = await res.json().catch(() => ({}));
     return typeof body.text === 'string' ? body.text : '(report unavailable)';
   };
 
-  const [top, brief] = await Promise.all([
+  const [top, brief, health] = await Promise.all([
     call('/api/report/top'),
     call('/api/report/brief'),
+    call('/api/report/health'),
   ]);
 
   const when = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
@@ -2689,7 +2760,7 @@ async function runScheduledReports(env, { days = 7 } = {}) {
     headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: env.FROM_EMAIL || 'Founders & Friends <onboarding@resend.dev>',
-      to: [to],
+      to,
       subject: `Founders & Friends — ${days}-day report, ${when}`,
       html: `<div style="max-width:680px;margin:0 auto;padding:24px;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
         <div style="font:600 11px/1 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;letter-spacing:.18em;
@@ -2698,6 +2769,7 @@ async function runScheduledReports(env, { days = 7 } = {}) {
         <p style="font-size:13px;color:#6a6478;margin:0">${when} · ready to paste</p>
         ${block('Top roles — for LinkedIn', top)}
         ${block('Movement brief', brief)}
+        ${block('Board health — lapsing leads', health)}
         <p style="font-size:12px;color:#8a8398;margin-top:26px">
           Full panel: <a href="https://www.propertyandtechnologyjobs.com/admin.html">admin</a>
         </p>
@@ -3139,6 +3211,7 @@ export default {
     if (pathname === '/api/signals'       && request.method === 'GET')  return signals(request, env);
     if (pathname === '/api/report/top'    && request.method === 'GET')  return topRolesReport(request, env);
     if (pathname === '/api/report/brief'  && request.method === 'GET')  return movementBriefReport(request, env);
+    if (pathname === '/api/report/health' && request.method === 'GET')  return boardHealthReport(request, env);
     if (pathname === '/api/report/send'   && request.method === 'POST') {
       // Same path the cron takes — so testing it tests the real thing.
       if (!adminAuthed(request, env)) return new Response(JSON.stringify({ error: 'admin only' }), { status: 401, headers: JSON_HEADERS });
