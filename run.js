@@ -1426,7 +1426,20 @@ async function companiesFromDatabase() {
 
 const configIds = new Set(COMPANIES.map((c) => c.id));
 const dbRows = await companiesFromDatabase();
-const fromDb = dbRows.filter((c) => c.id && !configIds.has(c.id));
+
+/* A discovery whose website is already in config.js is the same company under
+   another id — typically a typo when it was added ("Nutilliti" for Nutiliti).
+   Scraping both would list the company twice, so the config.js entry wins. */
+const host = (u) => {
+  try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return null; }
+};
+const configHosts = new Map(COMPANIES.map((c) => [host(c.website), c.name]).filter(([h]) => h));
+const sameSite = dbRows.filter((c) => c.id && !configIds.has(c.id) && configHosts.has(host(c.website)));
+if (sameSite.length) {
+  console.log(`companies  skipped ${sameSite.length} database row(s) duplicating config.js by website: `
+    + sameSite.map((c) => `${c.name} (= ${configHosts.get(host(c.website))})`).join(', ') + '\n');
+}
+const fromDb = dbRows.filter((c) => c.id && !configIds.has(c.id) && !sameSite.includes(c));
 if (fromDb.length) {
   const named = fromDb.map((c) => c.name).join(', ');
   console.log(`companies  ${fromDb.length} from the discovery queue: ${named}\n`);

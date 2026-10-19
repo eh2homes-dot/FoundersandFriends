@@ -2018,6 +2018,15 @@ export const COMPANIES = [
     state: null, segment: "Utility Management for Property Operators",
     verified: false, method: null, atsSlug: null, active: true,
   },
+  {
+    // Not a company: a misspelled duplicate of "nutiliti" that sits in the
+    // D1 companies table. A config.js entry overrides a database row with the
+    // same id, so this keeps it off the board until the row is deactivated
+    // in the admin panel. Safe to delete after that.
+    id: "nutilliti", name: "Nutilliti", hub: "proptech",
+    careersUrl: null, website: null, state: null, segment: null,
+    verified: false, method: null, atsSlug: null, active: false,
+  },
 ];
 
 /** Companies pinned to the front of the board regardless of volume. */
