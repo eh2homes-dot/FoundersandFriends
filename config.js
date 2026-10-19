@@ -272,8 +272,8 @@ export const COMPANIES = [
     state: "California",
     segment: "Property Management Software",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ashby",   // greenhouse | lever | workday | dom
+    atsSlug: "13a892fa-5b4f-4539-a264-3a0452bbead3",
     active: true,
     // Jobvite board jobs.jobvite.com/appfolio-internal exists but the page is JS-rendered (dom returned only "Powered by Jobvite"). Needs a Jobvite adapter.
   },
@@ -1298,9 +1298,10 @@ export const COMPANIES = [
     state: "Arizona",
     segment: "iBuying / Real Estate Transactions",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "adp",   // greenhouse | lever | workday | dom
+    atsSlug: "1259f4b4-8ba3-4cf9-86d2-e957dc127478",
     active: true,
+    atsSite: "19000101_000001",
   },
   {
     id: "opendoor",
@@ -1995,7 +1996,7 @@ export const COMPANIES = [
     careersUrl: "https://jobs.realpropertymgt.com/jobs",
     website: "https://www.realpropertymgt.com",
     state: "Utah", segment: "SFR Property Management Franchise",
-    verified: false, method: null, atsSlug: null, active: true,
+    verified: false, method: "dom", atsSlug: null, active: true,
   },
   {
     id: "evergreen-residential", name: "Evergreen Residential", hub: "opco",
