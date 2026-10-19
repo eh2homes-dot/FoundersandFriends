@@ -87,8 +87,14 @@ jobs:
           echo "running: node scripts/find-careers-url.js $FLAGS"
           node scripts/find-careers-url.js $FLAGS
 
+      # Runs on every scheduled run as well as on request. It only probes
+      # companies with no scrape method, writes a method only after the ATS's
+      # own API confirms the board, and leaves anything unresolved as null —
+      # so it can add coverage but never remove it. While it was manual-only,
+      # nobody ran it after Sept 11 and new companies were never picked up.
       - name: Detect ATS for new companies
-        if: inputs.detect
+        if: inputs.detect || github.event_name == 'schedule'
+        continue-on-error: true
         run: node scripts/detect-ats.js
 
       # A single pass over every company when no hub is chosen. run.js merges

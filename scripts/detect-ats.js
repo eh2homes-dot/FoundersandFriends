@@ -162,11 +162,13 @@ const SIGNATURES = [
     test: (html, finalUrl) => {
       const re = /recruiting\.ultipro\.com\/([^/"'\s]+)\/JobBoard\/([0-9a-f-]{36})/i;
       const m = finalUrl.match(re) || html.match(re);
-      // slug carries both halves, tenant first — writeBack stores one value.
-      return m ? { slug: `${m[1]}/${m[2]}` } : null;
+      // Tenant and board are written to atsSlug and atsSite separately. They
+      // used to be joined as "TENANT/GUID" in atsSlug, which run.js then used
+      // as the tenant — building a URL that could never work.
+      return m ? { slug: m[1], site: m[2] } : null;
     },
-    verify: async (slug) => {
-      const [tenant, board] = slug.split('/');
+    verify: async (slug, site) => {
+      const tenant = slug, board = site;
       if (!tenant || !board) return null;
       const res = await fetch(
         `https://recruiting.ultipro.com/${tenant}/JobBoard/${board}/JobBoardView/LoadSearchResults`,
@@ -193,14 +195,77 @@ const SIGNATURES = [
   {
     method: 'workday',
     test: (html, finalUrl) => {
-      const m =
-        html.match(/([a-z0-9-]+)\.wd\d+\.myworkdayjobs\.com/i) ||
-        finalUrl.match(/([a-z0-9-]+)\.wd\d+\.myworkdayjobs\.com/i);
-      return m ? { slug: m[0] } : null;
+      // Capture the site path as well as the host. Only the host used to be
+      // recorded, and run.js cannot call Workday without the site — so every
+      // company detected this way (Amherst, Chamberlain) failed every run.
+      const re = /([a-z0-9-]+\.wd\d+\.myworkdayjobs\.com)(?:\/(?:[a-z]{2}-[A-Z]{2}\/)?([A-Za-z0-9_-]+))?/i;
+      const m = finalUrl.match(re) || html.match(re);
+      if (!m) return null;
+      const site = m[2] && !/^(wday|login)$/i.test(m[2]) ? m[2] : null;
+      return { slug: m[1], site };
     },
     // Workday's CXS endpoint needs a tenant + site path that varies per client,
     // so this reports the host and leaves the exact endpoint to run.js.
     verify: async (slug) => ({ count: null, url: `https://${slug}` }),
+  },
+  /* Platforms run.js gained adapters for in Oct 2026. Each was previously
+     only recognised in KNOWN_HOSTS ("detected — no adapter"). */
+  {
+    method: 'bamboohr',
+    test: (html, finalUrl) => {
+      const m = finalUrl.match(/([a-z0-9-]+)\.bamboohr\.com/i) || html.match(/([a-z0-9-]+)\.bamboohr\.com\/(?:careers|jobs)/i);
+      const slug = m && m[1];
+      return slug && !/^(www|api|app)$/i.test(slug) ? { slug } : null;
+    },
+    verify: async (slug) => {
+      const r = await get(`https://${slug}.bamboohr.com/careers/list`);
+      if (!r.ok) return null;
+      const body = await r.json().catch(() => null);
+      return Array.isArray(body?.result) ? { count: body.result.length, url: `https://${slug}.bamboohr.com/careers` } : null;
+    },
+  },
+  {
+    method: 'rippling',
+    test: (html, finalUrl) => {
+      // Boards may carry a locale first: ats.rippling.com/en-GB/getcovered/jobs.
+      const re = /ats\.rippling\.com\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?([a-z0-9_-]+)/i;
+      const m = finalUrl.match(re) || html.match(re);
+      const slug = m && m[1];
+      return slug && !/^(api|embed|static)$/i.test(slug) ? { slug } : null;
+    },
+    verify: async (slug) => {
+      const r = await get(`https://ats.rippling.com/${slug}/jobs`);
+      return r.ok ? { count: null, url: `https://ats.rippling.com/${slug}/jobs` } : null;
+    },
+  },
+  {
+    method: 'paylocity',
+    test: (html, finalUrl) => {
+      const re = /recruiting\.paylocity\.com\/recruiting\/jobs\/All\/([0-9a-f-]{36})/i;
+      const m = finalUrl.match(re) || html.match(re);
+      return m ? { slug: m[1] } : null;
+    },
+    verify: async (slug) => {
+      const r = await get(`https://recruiting.paylocity.com/recruiting/jobs/All/${slug}`);
+      return r.ok ? { count: null, url: `https://recruiting.paylocity.com/recruiting/jobs/All/${slug}` } : null;
+    },
+  },
+  {
+    method: 'adp',
+    test: (html, finalUrl) => {
+      const src = /workforcenow\.adp\.com/i.test(finalUrl) ? finalUrl
+        : ((html.match(/https?:\/\/workforcenow\.adp\.com\/mascsr\/[^"'\s<>]+/i) || [])[0] || '');
+      const cid = (src.replace(/&amp;/g, '&').match(/[?&]cid=([0-9a-f-]{36})/i) || [])[1];
+      const ccId = (src.replace(/&amp;/g, '&').match(/[?&]ccId=([0-9_]+)/i) || [])[1];
+      return cid ? { slug: cid, site: ccId || '19000101_000001' } : null;
+    },
+    verify: async (slug, site) => {
+      const r = await get('https://workforcenow.adp.com/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions' +
+        `?cid=${slug}&ccId=${site}&lang=en_US&locale=en_US&timeStamp=${Date.now()}&$top=1`);
+      if (!r.ok) return null;
+      const body = await r.json().catch(() => null);
+      return Array.isArray(body?.jobRequisitions) ? { count: body?.meta?.totalNumber ?? null, url: null } : null;
+    },
   },
   {
     method: 'dom',
@@ -309,7 +374,7 @@ async function detect(company) {
     const hit = sig.test(html, finalUrl);
     if (!hit) continue;
     let confirmed = null;
-    try { confirmed = await sig.verify(hit.slug); } catch { /* falls through */ }
+    try { confirmed = await sig.verify(hit.slug, hit.site); } catch { /* falls through */ }
     if (sig.method !== 'dom' && !confirmed) {
       // Signature matched but the API did not confirm — usually a stale board
       // token left in the page. Keep looking rather than trusting it.
@@ -319,6 +384,7 @@ async function detect(company) {
       ...company,
       method: sig.method,
       slug: hit.slug,
+      site: hit.site || null,
       atsUrl: confirmed?.url ?? null,
       count: confirmed?.count ?? null,
       reason: null,
@@ -348,6 +414,7 @@ async function loadCompanies() {
   const mod = await import(CONFIG_PATH);
   return mod.COMPANIES.map((c) => ({
     id: c.id, name: c.name, careers_url: c.careersUrl, hub: c.hub, scrape_method: c.method,
+    active: c.active,
   }));
 }
 
@@ -370,10 +437,20 @@ async function writeBack(results) {
     const end = src.indexOf('\n  },', idAt);
     if (end === -1) continue;
 
-    const before = src.slice(idAt, end);
-    const after = before
-      .replace(/method: [^,]+,/, `method: ${JSON.stringify(r.method)},`)
-      .replace(/atsSlug: [^,]+,/, `atsSlug: ${r.slug ? JSON.stringify(r.slug) : 'null'},`);
+    // Set a field if the entry has it, add it if not. The old version could
+    // only replace, so atsSite — which most entries lack — was never written.
+    const setField = (block, key, value) => {
+      const re = new RegExp(`(^|[\\s,])${key}: (?:"(?:[^"\\\\]|\\\\.)*"|null|true|false)`);
+      const lit = value == null ? 'null' : JSON.stringify(value);
+      return re.test(block)
+        ? block.replace(re, `$1${key}: ${lit}`)
+        : block.replace(/,?\s*$/, `,\n    ${key}: ${lit},`);
+    };
+
+    let after = src.slice(idAt, end);
+    after = setField(after, 'method', r.method);
+    after = setField(after, 'atsSlug', r.slug || null);
+    if (r.site) after = setField(after, 'atsSite', r.site);
     src = src.slice(0, idAt) + after + src.slice(end);
   }
 
@@ -385,6 +462,7 @@ async function writeBack(results) {
 
 const all = await loadCompanies();
 const targets = all
+  .filter((c) => c.active !== false || args.only)   // inactive companies are not scraped, so not worth probing
   .filter((c) => (args.hub ? c.hub === args.hub : true))
   .filter((c) => (args.only ? c.id === args.only : true))
   .filter((c) => (args.redetect ? true : !c.scrape_method));
@@ -410,7 +488,7 @@ const unresolved = results.filter((r) => !r.method);
 
 console.log('\n' + '-'.repeat(64));
 console.log(`resolved   ${resolved.length}/${results.length}`);
-for (const m of ['greenhouse', 'lever', 'workday', 'dom']) {
+for (const m of [...new Set(resolved.map((r) => r.method))]) {
   const n = resolved.filter((r) => r.method === m).length;
   if (n) console.log(`  ${m.padEnd(11)} ${n}`);
 }
