@@ -1951,7 +1951,7 @@ export const COMPANIES = [
     careersUrl: "https://northpointam.com/careers",
     website: "https://northpointam.com",
     state: "Utah", segment: "SFR Property Management",
-    verified: false, method: null, atsSlug: null, active: true,
+    verified: false, method: "rippling", atsSlug: "northpoint-asset-management", active: true,
   },
   {
     id: "atlas-real-estate", name: "Atlas Real Estate", hub: "opco",
