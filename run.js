@@ -21,6 +21,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { COMPANIES } from './config.js';
+import { loadLeadSheet } from './lead-sheet.js';
 
 /* ---- options -------------------------------------------------------------- */
 const args = Object.fromEntries(process.argv.slice(2).map((a) => {
@@ -1293,9 +1294,20 @@ async function rippling(company) {
   return found.map(shape);
 }
 
+/* Roles for this company from the master leads sheet's weekly job search
+   (see lead-sheet.js). Not a scrape: the rows were read on Sunday by the
+   syndeo-jobsearch run, which can reach boards this file has no adapter for.
+   Assigned to sheet companies config.js does not know, to config.js companies
+   with no method, and as the fallback when a company's own scrape fails. */
+let LEADS = null;
+async function leadsheet(company) {
+  if (!LEADS) throw new Error('lead sheet not loaded');
+  return LEADS.rowsFor(company);
+}
+
 const ADAPTERS = {
   greenhouse, lever, workday, jsonld, breezy, ashby, workable, reffie, dom, ukg,
-  bamboohr, paylocity, adp, oracle, rippling,
+  bamboohr, paylocity, adp, oracle, rippling, leadsheet,
 };
 
 /* ==========================================================================
@@ -1455,7 +1467,28 @@ if (adopted.length) {
   console.log(`companies  ${adopted.length} scrape method(s) taken from the database: ${adopted.join(', ')}\n`);
 }
 
-const targets = [...configured, ...fromDb]
+/* The master leads sheet. Skipped with --no-leads (a pure config.js run, for
+   comparing the two). */
+if (!args['no-leads']) {
+  LEADS = await loadLeadSheet([...configured, ...fromDb]);
+}
+const withLeads = [...configured, ...fromDb].map((c) => {
+  // An active company with no scrape method of its own reads its sheet rows.
+  if (!c.method && LEADS?.has(c) && c.active !== false) return { ...c, method: 'leadsheet' };
+  return c;
+});
+const leadAdds = LEADS ? LEADS.added : [];
+if (leadAdds.length) {
+  console.log(`companies  ${leadAdds.length} on the lead sheet but not in config.js: ` +
+    leadAdds.map((c) => `${c.name} (${c.hub})`).join(', ') + '\n');
+}
+const leadFilled = withLeads.filter((c, i) => c.method === 'leadsheet' && !configured.concat(fromDb)[i].method);
+if (leadFilled.length) {
+  console.log(`companies  ${leadFilled.length} with no scrape method read from the lead sheet: ` +
+    leadFilled.map((c) => c.name).join(', ') + '\n');
+}
+
+const targets = [...withLeads, ...leadAdds]
   .filter((c) => c.active !== false)
   .filter((c) => (args.hub ? c.hub === args.hub : true))
   .filter((c) => (args.only ? c.id === args.only : true));
@@ -1486,6 +1519,23 @@ for (let i = 0; i < ready.length; i += CONCURRENCY) {
   }
   results.push(...batch);
   if (i + CONCURRENCY < ready.length) await sleep(DELAY_MS);
+}
+
+/* A company whose own scrape failed falls back to its lead-sheet rows, when
+   the sheet has any. Those rows are at most a week old and link-checked,
+   which beats carrying forward whatever this scraper last saw. */
+const fellBack = [];
+for (let i = 0; i < results.length; i++) {
+  const r = results[i];
+  if (r.ok || r.skipped || !LEADS?.has(r.company)) continue;
+  const again = await scrapeOne({ ...r.company, method: 'leadsheet' });
+  if (again.ok && again.jobs.length) {
+    fellBack.push(`${r.company.name} (${again.jobs.length})`);
+    results[i] = { ...again, fellBackFrom: r.reason };
+  }
+}
+if (fellBack.length) {
+  console.log(`\nfallback  own scrape failed, used the lead sheet instead: ${fellBack.join(', ')}`);
 }
 
 const okResults = results.filter((r) => r.ok);
@@ -1521,12 +1571,20 @@ const previous = await loadPrevious(OUT);
    than open, and a closed role on the board costs a candidate an application. */
 const MAX_CARRY_DAYS = 14;
 const carryCutoff = Date.now() - MAX_CARRY_DAYS * 86400000;
-const knownIds = new Set([...configured, ...fromDb].filter((c) => c.active !== false).map((c) => c.id));
+const knownIds = new Set([...configured, ...fromDb, ...leadAdds].filter((c) => c.active !== false).map((c) => c.id));
+/* Lead-sheet companies exist only while the sheet lists them, so their roles
+   are kept while recent even in a run where the sheet could not be read. */
+const isLeadId = (id) => String(id || '').startsWith('lead-');
 const inScopeIds = new Set(targets.map((c) => c.id));
 let expired = 0, orphaned = 0;
 const carriedRaw = previous.filter((j) => {
   if (scrapedIds.has(j.company_id)) return false;                 // replaced by fresh rows
   if (String(j.id || '').startsWith('sample:') || !j.company_id) { orphaned++; return false; }
+  if (isLeadId(j.company_id) && !knownIds.has(j.company_id)) {
+    const seen = Date.parse(j.scraped_at || '') || 0;
+    if (seen < carryCutoff) { expired++; return false; }
+    return true;
+  }
   if (!knownIds.has(j.company_id)) { orphaned++; return false; }   // removed or inactive
   // In scope but not refreshed (failed, or no method): only while recent.
   // Out of scope (a --hub or --only run): untouched, whatever its age.

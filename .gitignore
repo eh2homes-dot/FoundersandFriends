@@ -9,3 +9,6 @@ dist/
 .DS_Store
 *.log
 npm-debug.log*
+
+# local wrangler dev state
+.wrangler/

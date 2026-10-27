@@ -2340,7 +2340,9 @@ function openDrawer(id){
     <div class="drawer-body">${readable(j.description).split(/\n{2,}/).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join('')}</div>
     <div class="drawer-foot">
       <button class="cta-mega" type="button" id="apply-btn">Apply Now</button>
-      <p class="apply-note">One application, reviewed by us, sent to ${esc(j.company)}.</p>
+      <p class="apply-note">${APPLY_MODE === 'capture' && j.applyUrl
+        ? `Takes 20 seconds, then we send you to ${esc(j.company)}'s own posting.`
+        : `One application, reviewed by us, sent to ${esc(j.company)}.`}</p>
     </div>`;
 
   document.body.append(scrim, drawer);
@@ -2382,10 +2384,162 @@ const STAGE_LABELS = [
   ['Stage 03','Review'],
 ];
 
+/* Apply Now mode, decided Oct 16 2026.
+     'capture' — one quick form (name, email, phone, company, LinkedIn), saved
+                 to the job_leads table, then the candidate goes straight to the
+                 employer's own posting. Every press of Apply Now becomes a lead.
+     'wizard'  — the original three-stage application, reviewed by us.
+   A role with no posting link always uses the wizard, since there is nowhere
+   to send the candidate. */
+const APPLY_MODE = 'capture';
+
+/* Which capture fields must be filled. Name and email only by default: every
+   required box costs some candidates, and the redirect is the promise. Add
+   'phone', 'company' or 'linkedin' here to require them. */
+const CAPTURE_REQUIRED = ['first', 'last', 'email'];
+
 function openApply(job){
   track('start_apply', job);
+  if (APPLY_MODE === 'capture' && job.applyUrl) { openCapture(job); return; }
   apply = { job, step: 1, data: apply?.data || {}, review: null };
   renderApply();
+}
+
+/* ---------- quick capture ---------- */
+
+// Remembered on this device so a second Apply Now is one click. Browser
+// storage can be missing or throw (private windows); the form works without it.
+const LEAD_KEY = 'ff_lead_v1';
+function recallLead(){ try { return JSON.parse(localStorage.getItem(LEAD_KEY) || '{}') || {}; } catch (_) { return {}; } }
+function rememberLead(d){ try { localStorage.setItem(LEAD_KEY, JSON.stringify(d)); } catch (_) {} }
+
+function openCapture(job){
+  apply = { job, step: 'capture', data: { ...recallLead(), ...(apply?.data || {}) } };
+  const d = apply.data;
+  const req = (id) => CAPTURE_REQUIRED.includes(id);
+  const field = (id, label, opts = {}) => `
+    <div class="f" data-for="${id}">
+      <label for="a-${id}">${label} ${req(id) ? '<span class="req">*</span>' : '<span class="opt">(optional)</span>'}</label>
+      <input id="a-${id}" type="${opts.type || 'text'}" value="${esc(d[id] || '')}"
+        placeholder="${esc(opts.ph || '')}" autocomplete="${opts.ac || 'on'}" />
+    </div>`;
+
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <button type="button" class="drawer-close" aria-label="Close">✕</button>
+      <div class="job-meta"><span class="chip cat">Applying</span><span class="chip seg">${esc(job.company)}</span></div>
+      <h2>${esc(job.title)}</h2>
+      <p class="drawer-company">${esc(job.location)}</p>
+    </div>
+    <form class="wiz-body" id="wiz-body" novalidate>
+      <p class="wiz-intro">Quick details, then we take you to ${esc(job.company)}'s posting to finish your application.</p>
+      <div class="f-row">
+        ${field('first', 'First name', { ac: 'given-name' })}
+        ${field('last', 'Last name', { ac: 'family-name' })}
+      </div>
+      <div class="f-row">
+        ${field('email', 'Email address', { type: 'email', ph: 'name@example.com', ac: 'email' })}
+        ${field('phone', 'Phone number', { type: 'tel', ac: 'tel' })}
+      </div>
+      <div class="f-row">
+        ${field('company', 'Current company', { ac: 'organization' })}
+        ${field('linkedin', 'LinkedIn profile', { ph: 'linkedin.com/in/yourname', ac: 'url' })}
+      </div>
+      <p class="apply-note">We keep these details to match you with roles like this one. We never send them to the employer without asking you first.</p>
+      <button type="submit" hidden></button>
+    </form>
+    <div class="wiz-foot" id="wiz-foot">
+      <button class="btn" type="button" id="wiz-back">Back to role</button>
+      <span class="spacer"></span>
+      <button class="btn primary" type="button" id="wiz-next">Continue to ${esc(job.company)} →</button>
+    </div>`;
+
+  drawer.querySelector('.drawer-close').addEventListener('click', closeDrawer);
+  $('wiz-back').addEventListener('click', () => { const j = apply.job; apply = null; openDrawer(j.id); });
+  $('wiz-next').addEventListener('click', submitCapture);
+  $('wiz-body').addEventListener('submit', (e) => { e.preventDefault(); submitCapture(); });
+  (CAPTURE_REQUIRED.map((id) => $('a-' + id)).find((el) => el && !el.value) || $('wiz-next'))?.focus();
+}
+
+function validateCapture(d){
+  document.querySelectorAll('.f.has-error').forEach(w => { w.classList.remove('has-error'); w.querySelector('.err')?.remove(); });
+  let ok = true;
+  const need = (id, msg, test = (v) => !!v) => {
+    if ((CAPTURE_REQUIRED.includes(id) || d[id]) && !test(d[id] || '')) { markError(id, msg); ok = false; }
+  };
+  need('first', 'Add your first name.');
+  need('last', 'Add your last name.');
+  need('email', 'Add a valid email address.', (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v));
+  need('phone', 'Add a phone number we can reach you on.', (v) => v.replace(/\D/g, '').length >= 7);
+  need('company', 'Add your current company.');
+  need('linkedin', 'That does not look like a LinkedIn link.', (v) => /linkedin\.com\//i.test(v));
+  if (!ok) document.querySelector('.f.has-error input')?.focus();
+  return ok;
+}
+
+async function submitCapture(){
+  if (!apply || apply.step !== 'capture' || apply.sending) return;
+  const { job } = apply;
+  const d = apply.data;
+  ['first', 'last', 'email', 'phone', 'company', 'linkedin'].forEach((id) => { d[id] = ($('a-' + id)?.value || '').trim(); });
+  if (!validateCapture(d)) return;
+  apply.sending = true;
+
+  // Open the new tab now, while this is still the click. A tab opened after
+  // the save finishes is no longer tied to a click and popup blockers stop it.
+  let tab = null;
+  try {
+    tab = window.open('', '_blank');
+    if (tab) {
+      tab.opener = null;
+      tab.document.title = 'Opening ' + job.company + '…';
+      tab.document.body.style.cssText = 'font:15px system-ui,sans-serif;color:#555;padding:40px';
+      tab.document.body.textContent = 'Taking you to ' + job.company + '\u2019s posting…';
+    }
+  } catch (_) { tab = null; }
+
+  $('wiz-foot').innerHTML = '<span class="wiz-sending">Saving your details…</span>';
+  rememberLead({ first: d.first, last: d.last, email: d.email, phone: d.phone, company: d.company, linkedin: d.linkedin });
+  track('submit_apply', job, { mode: 'capture' });
+
+  // Save first, but never hold the candidate hostage to it: after 3 seconds
+  // they go regardless. keepalive lets the request finish even as they leave.
+  const save = fetch('/api/lead', {
+    method: 'POST',
+    keepalive: true,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      first_name: d.first, last_name: d.last, email: d.email, phone: d.phone,
+      current_company: d.company, linkedin: d.linkedin,
+      job_id: job.id, job_title: job.title, company: job.company, hub: job.hub,
+      apply_url: job.applyUrl,
+    }),
+  }).then((r) => r.ok).catch(() => false);
+  await Promise.race([save, new Promise((r) => setTimeout(r, 3000))]);
+
+  let opened = false;
+  try { if (tab && !tab.closed) { tab.location.href = job.applyUrl; opened = true; } } catch (_) {}
+  track('outbound', job, { via: 'apply_capture' });
+
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <button type="button" class="drawer-close" aria-label="Close">✕</button>
+      <div class="job-meta"><span class="chip cat">On your way</span></div>
+      <h2>${esc(job.title)}</h2>
+      <p class="drawer-company">${esc(job.company)}</p>
+    </div>
+    <div class="done-wrap">
+      <div class="done-mark" aria-hidden="true">✓</div>
+      <h3>${opened ? 'Posting opened in a new tab.' : 'One more click.'}</h3>
+      <p>Finish your application on ${esc(job.company)}'s site, ${esc(d.first)}. We have your details and will flag roles like this one.</p>
+    </div>
+    <div class="drawer-foot">
+      <a class="cta-mega" id="done-go" href="${esc(job.applyUrl)}" target="_blank" rel="noopener" style="text-decoration:none;box-sizing:border-box">${opened ? 'Didn\u2019t open? Go to the posting' : 'Go to the posting'} →</a>
+      <button class="btn" type="button" id="done-close" style="margin-top:12px">Back to roles</button>
+    </div>`;
+  drawer.querySelector('.drawer-close').addEventListener('click', closeDrawer);
+  $('done-close').addEventListener('click', closeDrawer);
+  apply = null;
 }
 
 function renderApply(){
