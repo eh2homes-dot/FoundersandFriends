@@ -1167,7 +1167,7 @@ export const COMPANIES = [
     state: "Massachusetts",
     segment: "Tenant/Workplace Experience Platform",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
+    method: "dom",   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
   },
