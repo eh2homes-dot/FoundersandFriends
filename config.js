@@ -1735,8 +1735,8 @@ export const COMPANIES = [
     state: "Missouri",
     segment: "Experiential/Entertainment REIT",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "bamboohr",   // greenhouse | lever | workday | dom
+    atsSlug: "eprproperties",
     active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
     // PARKED — Entertainment REIT. Kept for reference; set active:true to include.
   },
@@ -1764,10 +1764,11 @@ export const COMPANIES = [
     state: "North Carolina",
     segment: "Office REIT",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "ukg",   // greenhouse | lever | workday | dom
+    atsSlug: "HIG1001HIW",
     active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
-    // PARKED — Office REIT. Kept for reference; set active:true to include.
+    // PARKED — Office REIT. Kept for reference; set active:true to include.,
+    atsSite: "cf2a3a89-ceb7-4bb7-aa13-3167c6417621",
   },
   {
     id: "greystar",
