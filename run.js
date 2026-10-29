@@ -470,7 +470,7 @@ function isNotAJob(title) {
   // ---- talent pools, not openings ----
   // These collect résumés against no specific role. Sending a candidate to one
   // is worse than not listing it — they apply into a void.
-  if (/\b(general application|talent (pool|network|community|pipeline)|future (openings?|opportunit\w*|roles?|positions?)|speculative|open application|don'?t see|didn'?t see|no(ne)? (of these|that fit)|other opportunit\w*|join (our )?talent|keep me in mind|submit your (resume|cv)|general interest)\b/i.test(t)) return true;
+  if (/\b(general application|talent (pool|network|community|pipeline)|future (openings?|opportunit\w*|roles?|positions?)|speculative|open application|don'?t see|didn'?t see|no(ne)? (of these|that fit)|other opportunit\w*|join (our )?talent|keep me in mind|submit your (resume|cv)|(drop|send|leave) (us )?(a|your) (resume|cv)|general interest)\b/i.test(t)) return true;
 
   // ---- noun-first index labels ----
   // "Job Search", "Career Opportunities", "Position Openings" — the same nav
@@ -501,7 +501,10 @@ function isNotAJob(title) {
  */
 // Breezy is not here: its /json list carries no description at all, so every
 // Breezy posting failed the substance check — all 99 of Doorstead's roles.
-const DESCRIBES = new Set(['greenhouse', 'lever', 'ashby', 'workable', 'jsonld', 'ukg']);
+// Not ukg (Oct 29 2026): its search results carry no full description, so
+// every UKG role failed the thin-description check and VineBrook and
+// Highwoods published nothing while their scrapes reported success.
+const DESCRIBES = new Set(['greenhouse', 'lever', 'ashby', 'workable', 'jsonld']);
 
 /**
  * Is there enough here to be worth publishing?
@@ -572,7 +575,11 @@ const SENIOR_OVERRIDE = /\b(chief|c[toefi]o|vp|vice\s+president|head\s+of|direct
  * engineering, finance, marketing, development, analysts — is corporate and kept.
  */
 const CORP_LEADERSHIP = /\b(chief|c[toefi]o|president|vp|vice\s+president|svp|evp|head\s+of|director|managing\s+director|principal|regional)\b/i;
-const SITE_LEVEL = /\b(community|leasing|lease[- ]up|maintenance|mainteance|service\s+supervisor|superintendent|concierge|porter|valet|doorperson|door\s+attendant|housekeep\w*|groundskeep\w*|resident\s+(services?|lifestyle|experience)|lifestyle|event\s*&?\s*lifestyle|property\s+manager|assistant\s+manager|floating|front\s+desk|lobby|amenity|courtesy\s+patrol|make[- ]ready|turnover|painter|carpenter|technician|production\s+associate|driver|building\s+engineer|door\s*person|handy\s*person|hiring\s+event|part[- ]time|temporary|seasonal)\b/i;
+const SITE_LEVEL = /\b(community|leasing|lease[- ]up|maintenance|mainteance|service\s+supervisor|superintendent|concierge|porter|valet|doorperson|door\s+attendant|housekeep\w*|groundskeep\w*|resident\s+(services?|lifestyle|experience)|lifestyle|event\s*&?\s*lifestyle|property\s+manager|assistant\s+manager|floating|front\s+desk|lobby|amenity|courtesy\s+patrol|make[- ]ready|turnover|painter|carpenter|technician|production\s+associate|driver|building\s+engineer|door\s*person|handy\s*person|hiring\s+event|part[- ]time|temporary|seasonal|installer|installation\s+crew|crew\s+member|buried\s+drop|drop\s+tech|splicer|line\s+worker|warehouse|member\s+experience|workplace\s+experience|hospitality|ambassador|assistant\s+general\s+manager|facilities)\b/i;
+// The terms after "seasonal" came with the Oct 2026 REITs: billboard and
+// transit installers (Lamar), fiber drop techs, splicers and line crews
+// (Uniti), and coworking floor staff (WeWork, Industrious). Like everything
+// above, they only apply to scope: "corporate" companies.
 
 function isCorporate(title) {
   const t = String(title || '');
@@ -997,7 +1004,10 @@ async function ukg(company) {
       ? j.PostedDate.slice(0, 10)
       : null;
 
-    const description = toText(j.JobDescription || j.Description || '');
+    // The search endpoint returns a short BriefDescription, not the posting
+    // text. Keep whatever is there; ukg is not in DESCRIBES, so a short one is
+    // not held against the role.
+    const description = toText(j.JobDescription || j.Description || j.BriefDescription || '');
 
     return {
       sourceId: String(j.Id ?? j.RequisitionNumber ?? j.Title),
@@ -1523,19 +1533,27 @@ for (let i = 0; i < ready.length; i += CONCURRENCY) {
 
 /* A company whose own scrape failed falls back to its lead-sheet rows, when
    the sheet has any. Those rows are at most a week old and link-checked,
-   which beats carrying forward whatever this scraper last saw. */
+   which beats carrying forward whatever this scraper last saw.
+
+   An empty scrape counts too. A scrape can "succeed" with nothing on the
+   board — a careers page that only shows its jobs in the browser, or roles
+   that all fail a check the adapter can't satisfy (UKG's thin descriptions).
+   That is how Highwoods and Starwood sat at zero for two weeks while the
+   weekly search had their roles. Sheet rows go through the same filters, so
+   a company whose roles were all off-board stays empty. */
 const fellBack = [];
 for (let i = 0; i < results.length; i++) {
   const r = results[i];
-  if (r.ok || r.skipped || !LEADS?.has(r.company)) continue;
+  if (r.skipped || !LEADS?.has(r.company)) continue;
+  if (r.ok && r.jobs.length) continue;
   const again = await scrapeOne({ ...r.company, method: 'leadsheet' });
   if (again.ok && again.jobs.length) {
-    fellBack.push(`${r.company.name} (${again.jobs.length})`);
-    results[i] = { ...again, fellBackFrom: r.reason };
+    fellBack.push(`${r.company.name} (${again.jobs.length}${r.ok ? ', own scrape empty' : ''})`);
+    results[i] = { ...again, fellBackFrom: r.ok ? 'own scrape returned no roles' : r.reason };
   }
 }
 if (fellBack.length) {
-  console.log(`\nfallback  own scrape failed, used the lead sheet instead: ${fellBack.join(', ')}`);
+  console.log(`\nfallback  own scrape failed or empty, used the lead sheet instead: ${fellBack.join(', ')}`);
 }
 
 const okResults = results.filter((r) => r.ok);
