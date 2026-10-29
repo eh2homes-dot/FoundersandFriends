@@ -1033,6 +1033,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
+    scope: "corporate",   // Oct 29 2026: corporate and leadership roles only — the rest are site, crew and field jobs
     // PARKED — Flexible workspace, not residential. Kept for reference; set active:true to include.
   },
   {
@@ -1047,6 +1048,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
+    scope: "corporate",   // Oct 29 2026: corporate and leadership roles only — the rest are site, crew and field jobs
     // PARKED — Flexible workspace, not residential. Kept for reference; set active:true to include.
   },
   {
@@ -1654,6 +1656,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
+    scope: "corporate",   // Oct 29 2026: corporate and leadership roles only — the rest are site, crew and field jobs
     // PARKED — Fiber infrastructure REIT. Kept for reference; set active:true to include.
   },
   {
@@ -1688,7 +1691,7 @@ export const COMPANIES = [
     id: "kite-realty-group-trust",
     name: "Kite Realty Group Trust",
     hub: "opco",
-    careersUrl: "https://www.kiterealty.com/careers",
+    careersUrl: "https://www.paycomonline.net/v4/ats/web.php/jobs?clientkey=830A4F280E9131389F42C8C69858D6F6",   // Oct 29 2026: kiterealty.com/careers times out; this is the Paycom board their careers page links to
     website: "https://www.kiterealty.com",
     state: "Indiana",
     segment: "Shopping Center REIT",
@@ -1710,6 +1713,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,   // on the OpCo tab of the master leads sheet; switched on Oct 16 2026
+    scope: "corporate",   // Oct 29 2026: corporate and leadership roles only — the rest are site, crew and field jobs
     // PARKED — Outdoor advertising REIT. Kept for reference; set active:true to include.
   },
   {
