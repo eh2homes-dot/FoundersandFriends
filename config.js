@@ -425,7 +425,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    // Agreed sale to Brookfield, Jan 2025 (Maymont Homes runs the portfolio).
+    active: false,
   },
   {
     id: "flock-homes",
@@ -789,7 +790,8 @@ export const COMPANIES = [
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
-    active: true,
+    // Folded into Realtor.com, whose roles come from realtorcom-move-inc; same careers page.
+    active: false,
   },
   {
     id: "compass",
@@ -2020,6 +2022,15 @@ export const COMPANIES = [
     website: "https://www.nutiliti.com",
     state: null, segment: "Utility Management for Property Operators",
     verified: false, method: null, atsSlug: null, active: true,
+  },
+  {
+    // Not a company: a misspelled duplicate of "nutiliti" that sits in the
+    // D1 companies table. A config.js entry overrides a database row with the
+    // same id, so this keeps it off the board until the row is deactivated
+    // in the admin panel. Safe to delete after that.
+    id: "nutilliti", name: "Nutilliti", hub: "proptech",
+    careersUrl: null, website: null, state: null, segment: null,
+    verified: false, method: null, atsSlug: null, active: false,
   },
 ];
 

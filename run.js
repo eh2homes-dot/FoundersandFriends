@@ -1448,7 +1448,20 @@ async function companiesFromDatabase() {
 
 const configIds = new Set(COMPANIES.map((c) => c.id));
 const dbRows = await companiesFromDatabase();
-const fromDb = dbRows.filter((c) => c.id && !configIds.has(c.id));
+
+/* A discovery whose website is already in config.js is the same company under
+   another id — typically a typo when it was added ("Nutilliti" for Nutiliti).
+   Scraping both would list the company twice, so the config.js entry wins. */
+const host = (u) => {
+  try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return null; }
+};
+const configHosts = new Map(COMPANIES.map((c) => [host(c.website), c.name]).filter(([h]) => h));
+const sameSite = dbRows.filter((c) => c.id && !configIds.has(c.id) && configHosts.has(host(c.website)));
+if (sameSite.length) {
+  console.log(`companies  skipped ${sameSite.length} database row(s) duplicating config.js by website: `
+    + sameSite.map((c) => `${c.name} (= ${configHosts.get(host(c.website))})`).join(', ') + '\n');
+}
+const fromDb = dbRows.filter((c) => c.id && !configIds.has(c.id) && !sameSite.includes(c));
 if (fromDb.length) {
   const named = fromDb.map((c) => c.name).join(', ');
   console.log(`companies  ${fromDb.length} from the discovery queue: ${named}\n`);
@@ -1825,6 +1838,7 @@ const totalFailure = ready.length > 0 && okResults.length === 0;
    nothing open" is a different statement from silence, and the more useful one.
 
    Every active company in scope goes in, with its live count. */
+const failedReason = new Map(failed.map((r) => [r.company.id, String(r.reason || 'failed').slice(0, 80)]));
 const roster = targets
   .filter((c) => c.active !== false)
   .map((c) => ({
@@ -1838,6 +1852,10 @@ const roster = targets
     // Null method means the company is configured but not yet scrapeable, which
     // is a different thing from scraped-and-empty.
     scrapeable: Boolean(c.method),
+    // Set when this run's scrape of the company failed. Its roles are carried
+    // over from the last good run, so a non-zero count here does not mean the
+    // board still works — the weekly health report lists these separately.
+    scrape_error: failedReason.get(c.id) || null,
   }))
   .sort((a, b) => b.open_roles - a.open_roles || a.name.localeCompare(b.name));
 
