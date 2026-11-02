@@ -1374,9 +1374,12 @@ export const COMPANIES = [
     state: "Virginia",
     segment: "Real Estate Data & Analytics",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "eightfold",
+    atsSlug: "costar",
+    atsHost: "careers.costargroup.com",
+    atsDomain: "costar.com",
     active: true,
+    // Nov 2 2026: careers.costargroup.com is Eightfold (~390 roles). Matterport posts here too (department "Matterport").
   },
   {
     id: "alarmcom",
