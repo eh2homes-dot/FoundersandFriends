@@ -1315,9 +1315,53 @@ async function leadsheet(company) {
   return LEADS.rowsFor(company);
 }
 
+/**
+ * Eightfold career sites (CoStar). Public JSON, paged:
+ *   https://{host}/api/apply/v2/jobs?domain={domain}&start=N&num=M
+ *   atsSlug:   the tenant ("costar" -> costar.eightfold.ai)
+ *   atsHost:   the site serving the API when it's a custom domain
+ *              (careers.costargroup.com); default {atsSlug}.eightfold.ai
+ *   atsDomain: the company domain the API expects; default {atsSlug}.com
+ */
+async function eightfold(company) {
+  const slug = company.atsSlug;
+  if (!slug) throw new Error('no atsSlug for eightfold');
+  const host = company.atsHost || `${slug}.eightfold.ai`;
+  const domain = company.atsDomain || `${slug}.com`;
+  const PAGE = 50, MAX_PAGES = 60;
+  const jobs = new Map();
+  let start = 0, total = null;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const res = await get(`https://${host}/api/apply/v2/jobs?domain=${encodeURIComponent(domain)}&start=${start}&num=${PAGE}&sort_by=timestamp`);
+    if (!res.ok) throw new Error('eightfold HTTP ' + res.status);
+    const body = await res.json();
+    if (total === null) total = Number(body.count) || 0;
+    const list = Array.isArray(body.positions) ? body.positions : [];
+    if (!list.length) break;
+    for (const j of list) {
+      const id = String(j.id ?? j.ats_job_id ?? '');
+      if (!id || jobs.has(id)) continue;
+      const created = Number(j.t_create);
+      jobs.set(id, {
+        sourceId: id,
+        title: j.posting_name || j.name,
+        location: j.location || (Array.isArray(j.locations) ? j.locations.join('; ') : '') || 'See posting',
+        url: j.canonicalPositionUrl || `https://${host}/careers/job/${id}`,
+        description: '',
+        postedAt: created ? new Date(created * 1000).toISOString() : null,
+        min: null, max: null,
+      });
+    }
+    start += list.length;
+    if (start >= total) break;
+  }
+  if (!jobs.size && total) throw new Error(`eightfold listed ${total} roles but returned none`);
+  return [...jobs.values()];
+}
+
 const ADAPTERS = {
   greenhouse, lever, workday, jsonld, breezy, ashby, workable, reffie, dom, ukg,
-  bamboohr, paylocity, adp, oracle, rippling, leadsheet,
+  bamboohr, paylocity, adp, oracle, rippling, leadsheet, eightfold,
 };
 
 /* ==========================================================================
