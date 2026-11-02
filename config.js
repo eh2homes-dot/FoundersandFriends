@@ -179,9 +179,10 @@ export const COMPANIES = [
   },
   {
     id: "property-meld", name: "Property Meld", hub: "proptech",
-    careersUrl: "https://property-meld.breezy.hr", website: "https://propertymeld.com",
+    careersUrl: "https://careers.propertymeld.com/jobs", website: "https://propertymeld.com",
     state: "South Dakota", segment: "Maintenance Coordination SaaS",
-    verified: true, method: "breezy", atsSlug: "property-meld", active: true,
+    verified: true, method: "dom", atsSlug: null, active: true,
+    // Nov 2 2026: Breezy board is stale; Property Meld posts on Teamtailor at careers.propertymeld.com/jobs (server-rendered).
   },
   {
     id: "showdigs", name: "Showdigs", hub: "proptech",
@@ -191,7 +192,7 @@ export const COMPANIES = [
   },
   {
     id: "lineage", name: "Lineage", hub: "proptech",
-    careersUrl: "https://boards.greenhouse.io/lineagehq", website: "https://www.lineage.com",
+    careersUrl: "https://www.lineagehq.com/careers", website: "https://www.lineage.com",
     state: "New York", segment: "SFR Investing Infrastructure",
     // the board token is "lineagehq", not "lineage"
     verified: true, method: "greenhouse", atsSlug: "lineagehq", active: true,
@@ -307,7 +308,7 @@ export const COMPANIES = [
     id: "matterport",
     name: "Matterport",
     hub: "proptech",
-    careersUrl: "https://matterport.com/careers",
+    careersUrl: "https://careers.costargroup.com/careers",
     website: "https://matterport.com",
     state: "California",
     segment: "3D Space Capture / Real Estate Media",
@@ -315,18 +316,19 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    // Nov 2 2026: hires through parent CoStar's board (postings that name Matterport).
   },
   {
     id: "measurabl",
     name: "Measurabl",
     hub: "proptech",
-    careersUrl: "https://measurabl.com/careers",
+    careersUrl: "https://ats.rippling.com/measurabljobs/jobs",
     website: "https://measurabl.com",
     state: "California",
     segment: "ESG/Sustainability Data for CRE",
     verified: true,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "rippling",   // greenhouse | lever | workday | dom
+    atsSlug: "measurabljobs",
     active: true,
   },
   {
@@ -415,20 +417,6 @@ export const COMPANIES = [
     active: true,
   },
   {
-    id: "divvy-homes",
-    name: "Divvy Homes",
-    hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.divvyhomes.com/careers",
-    website: "https://www.divvyhomes.com",
-    state: "California",
-    segment: "Rent-to-Own Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    // Agreed sale to Brookfield, Jan 2025 (Maymont Homes runs the portfolio).
-    active: false,
-  },
-  {
     id: "flock-homes",
     name: "Flock Homes",
     hub: "proptech",   // REVIEW: opco/proptech call is arguable
@@ -472,7 +460,7 @@ export const COMPANIES = [
     id: "hemlane",
     name: "Hemlane",
     hub: "proptech",
-    careersUrl: "https://www.hemlane.com/careers",
+    careersUrl: "https://www.hemlane.com/about-us/#careers",
     website: "https://www.hemlane.com",
     state: "California",
     segment: "Property Management Software",
@@ -525,7 +513,7 @@ export const COMPANIES = [
     id: "kasa-living",
     name: "Kasa Living",
     hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.kasa.com/careers",
+    careersUrl: "https://kasa.com/careers",
     website: "https://www.kasa.com",
     state: "California",
     segment: "Flexible-Stay Hospitality Tech",
@@ -536,6 +524,7 @@ export const COMPANIES = [
     // Board: job-boards.greenhouse.io/kasaliving.
     // Greenhouse API returned 404 for the token above on the Oct 16 test — board token unconfirmed.
     // Confirmed Oct 16: Greenhouse board "kasa" (board name "Kasa"). The "kasaliving" token 404s.
+    // Nov 2 2026: www.kasa.com has a bad TLS certificate; use kasa.com.
   },
   {
     id: "side",
@@ -555,7 +544,7 @@ export const COMPANIES = [
     id: "housecanary",
     name: "HouseCanary",
     hub: "proptech",
-    careersUrl: "https://www.housecanary.com/careers",
+    careersUrl: "https://www.housecanary.com/resources/careers",
     website: "https://www.housecanary.com",
     state: "California",
     segment: "Real Estate Valuation/AVM Data",
@@ -1084,7 +1073,7 @@ export const COMPANIES = [
     id: "bettercom",
     name: "Better.com",
     hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://better.com/about-us/careers",
+    careersUrl: "https://jobs.ashbyhq.com/better-mortgage",
     website: "https://better.com",
     state: "New York",
     segment: "Digital Mortgage Platform",
@@ -1163,23 +1152,10 @@ export const COMPANIES = [
     active: true,
   },
   {
-    id: "hqo",
-    name: "HqO",
-    hub: "proptech",
-    careersUrl: "https://www.hqo.com/careers",
-    website: "https://www.hqo.com",
-    state: "Massachusetts",
-    segment: "Tenant/Workplace Experience Platform",
-    verified: false,
-    method: "dom",   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
     id: "buildium-realpage",
     name: "Buildium (RealPage)",
     hub: "proptech",
-    careersUrl: "https://www.buildium.com/careers",
+    careersUrl: "https://careers-realpagepms.icims.com/jobs/search?ss=1",
     website: "https://www.buildium.com",
     state: "Massachusetts",
     segment: "Property Management Software",
@@ -1189,23 +1165,10 @@ export const COMPANIES = [
     active: true,
   },
   {
-    id: "placester",
-    name: "Placester",
-    hub: "proptech",
-    careersUrl: "https://placester.com/careers",
-    website: "https://placester.com",
-    state: "Massachusetts",
-    segment: "Real Estate Agent Website Platform",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-  },
-  {
     id: "robin",
     name: "Robin",
     hub: "proptech",
-    careersUrl: "https://www.robinpowered.com/careers",
+    careersUrl: "https://careers.kula.ai/robin",
     website: "https://www.robinpowered.com",
     state: "Massachusetts",
     segment: "Workplace Experience Platform",
@@ -1325,7 +1288,7 @@ export const COMPANIES = [
     id: "pointcentral",
     name: "PointCentral",
     hub: "proptech",
-    careersUrl: "https://www.pointcentral.com/careers",
+    careersUrl: "https://job-boards.greenhouse.io/alarmcom",
     website: "https://www.pointcentral.com",
     state: "Arizona",
     segment: "Smart Home for SFR (Alarm.com subsidiary)",
@@ -1333,6 +1296,7 @@ export const COMPANIES = [
     method: null,   // greenhouse | lever | workday | dom
     atsSlug: null,
     active: true,
+    // Nov 2 2026: careers now go to parent Alarm.com's Greenhouse board; greenhouse:pointcentral is gone. Not scraped here (would pull all Alarm.com jobs).
   },
   {
     id: "entrata",
@@ -1405,7 +1369,7 @@ export const COMPANIES = [
     id: "costar-group",
     name: "CoStar Group",
     hub: "proptech",
-    careersUrl: "https://www.costargroup.com/careers",
+    careersUrl: "https://careers.costargroup.com/careers",
     website: "https://www.costargroup.com",
     state: "Virginia",
     segment: "Real Estate Data & Analytics",
@@ -1459,7 +1423,7 @@ export const COMPANIES = [
     id: "redfin",
     name: "Redfin",
     hub: "proptech",   // REVIEW: opco/proptech call is arguable
-    careersUrl: "https://www.redfin.com/careers",
+    careersUrl: "https://careers.rocket.com/us/en/search-results?qkcompany=Redfin%20Corporation",
     website: "https://www.redfin.com",
     state: "Washington",
     segment: "Real Estate Brokerage Tech",
@@ -1472,7 +1436,7 @@ export const COMPANIES = [
     id: "knock-crm",
     name: "Knock CRM",
     hub: "proptech",
-    careersUrl: "https://www.knockcrm.com/careers/",
+    careersUrl: "https://careers-realpagepms.icims.com/jobs/search?ss=1",
     website: "https://www.knockrentals.com",
     state: "Washington",
     segment: "Multifamily Leasing CRM",
@@ -1799,7 +1763,7 @@ export const COMPANIES = [
     id: "easterly-government-properties",
     name: "Easterly Government Properties",
     hub: "opco",
-    careersUrl: "https://www.easterlyre.com/careers",
+    careersUrl: "https://easterlyreit.com/careers",
     website: "https://www.easterlyre.com",
     state: "District of Columbia",
     segment: "Government-Leased Office REIT",
@@ -1816,20 +1780,6 @@ export const COMPANIES = [
     careersUrl: "https://www.cohenesrey.com/careers",
     website: "https://www.cohenesrey.com",
     state: "Kansas",
-    segment: "Multifamily Property Management",
-    verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
-    active: true,
-    assetClass: "multifamily",   // NOT scattered-site — segment separately
-  },
-  {
-    id: "case-and-associates",
-    name: "Case & Associates",
-    hub: "opco",
-    careersUrl: "https://www.caseandassociates.com/careers",
-    website: "https://www.caseandassociates.com",
-    state: "Oklahoma",
     segment: "Multifamily Property Management",
     verified: false,
     method: null,   // greenhouse | lever | workday | dom
@@ -1909,20 +1859,6 @@ export const COMPANIES = [
     assetClass: "multifamily",   // NOT scattered-site — segment separately
   },
   {
-    id: "tamarack-property-management",
-    name: "Tamarack Property Management",
-    hub: "proptech",
-    careersUrl: "https://recruiting.paylocity.com/recruiting/jobs/All/fb3d7b03-70e0-44f3-b073-8d681dd8a995/Northwest-Real-Estate-Capital-Corporation",
-    website: "https://www.tamarackproperty.com",
-    state: "Montana",
-    segment: "Affordable/Multifamily/Senior Housing Management",
-    verified: false,
-    method: "paylocity",   // greenhouse | lever | workday | dom
-    atsSlug: "fb3d7b03-70e0-44f3-b073-8d681dd8a995",
-    active: true,
-    // tamarackproperty.com is now a parked domain. Roles post under parent Northwest Real Estate Capital Corp.
-  },
-  {
     id: "mountain-property-management",
     name: "Mountain Property Management",
     hub: "opco",
@@ -1955,7 +1891,7 @@ export const COMPANIES = [
   // --- added from the Syndeo sheet: scattered-site operators ---
   {
     id: "northpoint-asset-management", name: "Northpoint Asset Management", hub: "opco",
-    careersUrl: "https://northpointam.com/careers",
+    careersUrl: "https://ats.rippling.com/northpoint-asset-management/jobs",
     website: "https://northpointam.com",
     state: "Utah", segment: "SFR Property Management",
     verified: false, method: "rippling", atsSlug: "northpoint-asset-management", active: true,
