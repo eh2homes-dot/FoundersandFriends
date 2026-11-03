@@ -1293,8 +1293,8 @@ export const COMPANIES = [
     state: "Arizona",
     segment: "Smart Home for SFR (Alarm.com subsidiary)",
     verified: false,
-    method: null,   // greenhouse | lever | workday | dom
-    atsSlug: null,
+    method: "greenhouse",   // greenhouse | lever | workday | dom
+    atsSlug: "alarmcom",
     active: true,
     // Nov 2 2026: careers now go to parent Alarm.com's Greenhouse board; greenhouse:pointcentral is gone. Not scraped here (would pull all Alarm.com jobs).
   },
